@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Texts of the settings screens, taken from Chromium (commit f0407d708267c4ff6a8c16a7da873d020b68f28b,
+  version 160.0.8161.0): chrome/browser/ui/android/strings/android_chrome_strings.grd,
+  components/browser_ui/strings/android/browser_ui_strings.grd, site_settings.grdp and
+  chrome/android/features/tab_ui/java/strings/android_chrome_tab_ui_strings.grd and
+  components/new_or_sad_tab_strings.grdp.
+  "Chrome" is replaced by "Explorer"; placeholders and link marks are adapted to Android resources.
+
+  Copyright The Chromium Authors. Use of this source code is governed by a BSD-style license
+  that can be found in third_party/chromium-settings/LICENSE.
+
+  Written by tools/chromium_strings.py. Do not edit by hand.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="cr_privacy_section_title">Privacy</string>
+    <string name="cr_security_section_title">Security</string>
+    <string name="cr_clear_browsing_data_title">Delete browsing data</string>
+    <string name="cr_clear_browsing_data_summary">Delete history, cookies, site data, cache…</string>
+    <string name="cr_preload_pages_title">Preload pages</string>
+    <string name="cr_preload_pages_summary">You can browse and search faster when Explorer preloads pages that it thinks you might visit</string>
+    <string name="cr_preload_none_title">No preloading</string>
+    <string name="cr_preload_none_summary">Pages load only after you open them</string>
+    <string name="cr_preload_standard_title">Standard preloading</string>
+    <string name="cr_incognito_lock_title">Lock Incognito tabs when you leave Explorer</string>
+    <string name="cr_incognito_lock_summary_on">Use screen lock to see open Incognito tabs</string>
+    <string name="cr_incognito_lock_summary_off">Turn on screen lock in Android settings</string>
+    <string name="cr_incognito_unlock">Unlock Incognito</string>
+    <string name="cr_incognito_see_other_tabs">See other tabs</string>
+    <string name="cr_safe_browsing_title">Safe Browsing</string>
+    <string name="cr_safe_browsing_summary_on">%1$s is on</string>
+    <string name="cr_safe_browsing_summary_off">Safe Browsing is off</string>
+    <string name="cr_safe_browsing_standard_title">Standard protection</string>
+    <string name="cr_safe_browsing_none_title">No protection (not recommended)</string>
+    <string name="cr_safe_browsing_off_dialog_title">Turn off Safe Browsing?</string>
+    <string name="cr_safe_browsing_off_dialog_message">Safe Browsing protects you against deceptive websites. If you turn it off, be extra careful when browsing, especially before entering passwords.</string>
+    <string name="cr_safe_browsing_off_dialog_confirm">Turn off</string>
+    <string name="cr_js_optimizer_title">JavaScript optimization &amp; security</string>
+    <string name="cr_js_optimizer_description">V8 is Explorer’s JavaScript and WebAssembly engine used to improve site performance</string>
+    <string name="cr_js_optimizer_allowed">Speed up sites with Explorer\'s V8 engine but make Explorer slightly less resistant to attacks</string>
+    <string name="cr_js_optimizer_blocked">Do not speed up sites with Explorer\'s V8 engine but make Explorer slightly more resistant to attacks</string>
+    <string name="cr_site_location_description">Sites usually use your location for relevant features or info, like local news or nearby shops</string>
+    <string name="cr_site_location_on">Sites can ask for your location</string>
+    <string name="cr_site_location_off">Don\'t allow sites to see your location</string>
+    <string name="cr_site_camera_description">Sites usually use your video camera for communication features like video chatting</string>
+    <string name="cr_site_camera_on">Sites can ask for your camera</string>
+    <string name="cr_site_camera_off">Don\'t allow sites to use your camera</string>
+    <string name="cr_site_camera_off_description">Features that need a camera won\'t work</string>
+    <string name="cr_site_mic_description">Sites usually use your microphone for communication features like video chatting</string>
+    <string name="cr_site_mic_on">Sites can ask for your microphone</string>
+    <string name="cr_site_mic_off">Don\'t allow sites to use your microphone</string>
+    <string name="cr_site_mic_off_description">Features that need a microphone won\'t work</string>
+    <string name="cr_site_loopback_description">Sites can use this feature to access other apps and services on this device</string>
+    <string name="cr_site_loopback_off">Don\'t allow sites to access other apps and services on this device</string>
+    <string name="cr_site_cookies_description">A site you visit can embed content from other sites, for example, images, ads, and text. Cookies set by these other sites are called third-party cookies.</string>
+    <string name="cr_site_cookies_on">Allow third-party cookies</string>
+    <string name="cr_site_cookies_off">Block third-party cookies</string>
+    <string name="cr_site_cookies_off_description">Features on some sites may not work</string>
+    <string name="cr_site_cookies_add">Allow a site to use third-party cookies</string>
+    <string name="cr_site_javascript_description">Sites usually use JavaScript to display interactive features, like video games or web forms</string>
+    <string name="cr_site_javascript_on">Sites can use JavaScript</string>
+    <string name="cr_site_javascript_off">Don\'t allow sites to use JavaScript</string>
+    <string name="cr_site_javascript_add_allow">Allow JavaScript for a specific site.</string>
+    <string name="cr_site_javascript_add_block">Block JavaScript for a specific site.</string>
+    <string name="cr_site_popups_description">Sites might send pop-ups to show ads, or use redirects to lead you to websites you may not want to visit</string>
+    <string name="cr_site_popups_on">Sites can send pop-ups and use redirects</string>
+    <string name="cr_site_popups_off">Don\'t allow sites to send pop-ups and use redirects</string>
+    <string name="cr_site_sound_description">Sites might play sound to provide audio for music, videos and other media</string>
+    <string name="cr_site_sound_on">Sites can play sound</string>
+    <string name="cr_site_sound_off">Don\'t allow sites to play sound</string>
+    <string name="cr_site_sound_off_description">Features that need sound won\'t work</string>
+    <string name="cr_site_sound_add_allow">Allow sound for a specific site.</string>
+    <string name="cr_site_sound_add_block">Mute sound for a specific site.</string>
+    <string name="cr_site_muted_heading">Muted</string>
+    <string name="cr_site_ads_description">Sites usually show ads so that they can provide content or services free of charge. But, some sites are known to show intrusive or misleading ads.</string>
+    <string name="cr_site_ads_on">Any site you visit can show any ad to you</string>
+    <string name="cr_site_protected_description">To play content protected by copyright, sites may need to use a content protection service.</string>
+    <string name="cr_site_protected_allow">Sites can play protected content</string>
+    <string name="cr_site_protected_ask">Sites can ask to play protected content</string>
+    <string name="cr_site_protected_block">Don\'t allow sites to play protected content</string>
+    <string name="cr_site_data_description">A site you visit can save info about what you’re doing so that it works as expected — for example, to keep you signed in to a site or to save items in your shopping cart. Often sites save this info temporarily on your device.</string>
+    <string name="cr_site_data_on">Sites can save data on your device</string>
+    <string name="cr_site_data_off">Don\'t allow sites to save data on your device (not recommended)</string>
+    <string name="cr_site_data_block_title">Sites you visit may stop working as designed</string>
+    <string name="cr_site_data_block_message">Most sites you visit probably save data to your device, often to improve your experience by saving your preferences or information you share with the site. We recommend keeping this setting on.</string>
+    <string name="cr_site_data_block_confirm">Turn off</string>
+    <string name="cr_site_data_add_allow">Allow a site to save data on your device</string>
+    <string name="cr_site_data_add_block">Block a site from saving data on your device</string>
+    <string name="cr_site_downloads_description">Sites might automatically download related files together to save you time</string>
+    <string name="cr_site_downloads_on">Sites can ask to automatically download multiple files</string>
+    <string name="cr_site_downloads_off">Don\'t allow sites to automatically download multiple files</string>
+    <string name="cr_site_downloads_add">Allow a site to download multiple files automatically.</string>
+    <string name="cr_site_auto_verify_description">Sites you visit can verify that you\'re a real person and not a bot</string>
+    <string name="cr_site_auto_verify_when_on">When on</string>
+    <string name="cr_site_auto_verify_on_1">A site you visit can save a small amount of info with Explorer, mainly to validate you\'re not a bot</string>
+    <string name="cr_site_auto_verify_on_2">As you keep browsing, sites can check with Explorer and verify with a previous site you\'ve visited that you\'re likely a real person</string>
+    <string name="cr_site_auto_verify_on_3">Browsing is faster because a site is less likely to ask you to verify you\'re a real person</string>
+    <string name="cr_site_auto_verify_consider">Things to consider</string>
+    <string name="cr_site_auto_verify_consider_1">This setting works without identifying you or allowing sites to see your browsing history, though sites can share a small amount of info as part of the verification</string>
+    <string name="cr_site_allowed_heading">Allowed</string>
+    <string name="cr_site_not_allowed_heading">Not Allowed</string>
+    <string name="cr_site_add">Add site exception</string>
+    <string name="cr_site_add_dialog_title">Add a site</string>
+    <string name="cr_site_add_button">Add</string>
+    <string name="cr_site_add_url">Site URL</string>
+    <string name="cr_site_add_toast">Site %1$s added</string>
+    <string name="cr_page_zoom_title">Default zoom</string>
+    <string name="cr_page_zoom_summary">Make text and images larger or smaller for all sites you visit</string>
+    <string name="cr_page_zoom_level">%1$d %%</string>
+    <string name="cr_page_zoom_label">Page zoom</string>
+    <string name="cr_page_zoom_menu_title">Zoom</string>
+    <string name="cr_page_zoom_decrease">Decrease zoom</string>
+    <string name="cr_page_zoom_increase">Increase zoom</string>
+    <string name="cr_page_zoom_preview_title">Preview</string>
+    <string name="cr_page_zoom_preview_text_title">The Wonderful Wizard of Oz</string>
+    <string name="cr_page_zoom_preview_text_summary">Chapter 11: The Wonderful Emerald City of Oz</string>
+    <string name="cr_page_zoom_preview_text_item">Even with eyes protected by the green spectacles Dorothy and her friends were at first dazzled by the</string>
+    <string name="cr_zoom_info_title">Saved zoom for sites</string>
+    <string name="cr_zoom_info_empty">Sites that you save a custom zoom level for will appear here</string>
+    <string name="cr_zoom_info_clear_all">Delete all</string>
+    <string name="cr_zoom_info_clear_all_warning">This will reset all the sites in your list to the default zoom</string>
+    <string name="cr_page_zoom_os_title">Match Android font size</string>
+    <string name="cr_page_zoom_os_summary">When enabled, Explorer will adjust web content size to match your Android setting</string>
+    <string name="cr_page_zoom_always_show_title">Show zoom option in main menu</string>
+    <string name="cr_page_zoom_always_show_summary">Make it easier to customize zoom for different sites</string>
+    <string name="cr_force_enable_zoom_title">Force enable zoom</string>
+    <string name="cr_force_enable_zoom_summary">Override a website’s request to prevent zooming in</string>
+    <string name="cr_reader_title">Simplified view for web pages</string>
+    <string name="cr_reader_summary">Get notified when an article can be shown in simplified view</string>
+    <string name="cr_reader_links_title">Show hyperlinks</string>
+    <string name="cr_reader_links_summary">Show links once Reading Mode is on</string>
+    <string name="cr_reader_message_title">View Reading mode?</string>
+    <string name="cr_reader_message_button">View</string>
+    <string name="cr_caret_browsing_title">Navigate pages with a text cursor when a keyboard is attached</string>
+    <string name="cr_captions_title">Captions</string>
+    <string name="cr_image_descriptions_title">Image descriptions</string>
+    <string name="cr_touchpad_title">Swipe between pages using a touchpad</string>
+    <string name="cr_touchpad_summary">Navigate back and forth by swiping with two fingers on the touchpad</string>
+    <string name="cr_archive_title">Inactive</string>
+    <string name="cr_archive_section_title">Move to inactive section</string>
+    <string name="cr_archive_never">Never</string>
+    <string name="cr_archive_7">After 7 days inactive</string>
+    <string name="cr_archive_14">After 14 days inactive</string>
+    <string name="cr_archive_21">After 21 days inactive</string>
+    <string name="cr_archive_duplicates_title">Archive duplicate tabs</string>
+    <string name="cr_archive_autodelete_title">Automatically close inactive items</string>
+    <string name="cr_contextmenu_open_in_new_tab">Open in new tab</string>
+    <string name="cr_contextmenu_open_in_incognito_tab">Open in Incognito tab</string>
+    <string name="cr_contextmenu_copy_link_address">Copy link address</string>
+    <string name="cr_contextmenu_copy_link_text">Copy link text</string>
+    <string name="cr_contextmenu_save_link">Download link</string>
+    <string name="cr_contextmenu_share_link">Share link</string>
+    <string name="cr_contextmenu_open_image_in_new_tab">Open image in new tab</string>
+    <string name="cr_contextmenu_copy_image">Copy image</string>
+    <string name="cr_contextmenu_save_image">Download image</string>
+    <string name="cr_contextmenu_share_image">Share image</string>
+    <string name="cr_hub_search_hint">Search your tabs</string>
+    <string name="cr_hub_search_hint_incognito">Search your Incognito tabs</string>
+    <string name="cr_incognito_ntp_title">You’ve gone Incognito</string>
+    <string name="cr_incognito_ntp_subtitle">Others who use this device won’t see your activity, so you can browse more privately. This won\'t change how data is collected by websites you visit and the services they use, including Google. Downloads and bookmarks will be saved.</string>
+    <string name="cr_application_version_title">Application version</string>
+    <string name="cr_os_version_title">Operating system</string>
+    <string name="cr_legal_information_title">Legal information</string>
+</resources>

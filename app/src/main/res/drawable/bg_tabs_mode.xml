@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tab switcher: the ground of the switch between tabs and private tabs. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape>
+            <solid android:color="?attr/colorSurfaceContainerHighest" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+</ripple>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Help and support: how to reach the developer, and frequent questions with their answers. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <Preference
+            android:icon="@drawable/icon_mail"
+            android:key="help_email"
+            android:summary="@string/help_email_note"
+            android:title="@string/help_email_address" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_1"
+            android:selectable="false"
+            android:summary="@string/faq_1_answer"
+            android:title="@string/faq_1_question" />
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_2"
+            android:selectable="false"
+            android:summary="@string/faq_2_answer"
+            android:title="@string/faq_2_question" />
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_3"
+            android:selectable="false"
+            android:summary="@string/faq_3_answer"
+            android:title="@string/faq_3_question" />
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_4"
+            android:selectable="false"
+            android:summary="@string/faq_4_answer"
+            android:title="@string/faq_4_question" />
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_5"
+            android:selectable="false"
+            android:summary="@string/faq_5_answer"
+            android:title="@string/faq_5_question" />
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_6"
+            android:selectable="false"
+            android:summary="@string/faq_6_answer"
+            android:title="@string/faq_6_question" />
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="faq_7"
+            android:selectable="false"
+            android:summary="@string/faq_7_answer"
+            android:title="@string/faq_7_question" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tab switcher, laid out like the one of Chromium for Android: a filled button for a
+     new tab, the switch between the tabs (shown by their number) and the private tabs, the
+     menu; below them "Search your tabs", a line, and every open tab as a card. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/tab_switcher"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp">
+
+        <ImageButton
+            android:id="@+id/tabs_new"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="center_vertical|start"
+            android:layout_marginStart="@dimen/spacing_large"
+            android:background="@drawable/bg_tabs_new"
+            android:contentDescription="@string/menu_new_tab"
+            android:src="@drawable/icon_plus"
+            app:tint="?attr/colorSurface" />
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_tabs_mode"
+            android:padding="4dp">
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/tabs_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/tabs_mode_normal"
+                    style="@style/TabSwitcherModeButton"
+                    android:contentDescription="@string/tabs_mode_normal" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/tabs_mode_private"
+                    style="@style/TabSwitcherModeButton"
+                    android:contentDescription="@string/tabs_mode_private"
+                    app:icon="@drawable/icon_private" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/tabs_menu"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="@dimen/spacing_small"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/bar_menu"
+            android:src="@drawable/icon_more_vert"
+            app:tint="?attr/colorOnSurface" />
+    </FrameLayout>
+
+    <!-- "Search your tabs": the cards are narrowed to those whose title or address has the words. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginBottom="@dimen/spacing_medium"
+        android:background="@drawable/bg_tabs_search"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_large"
+        android:paddingEnd="@dimen/spacing_small">
+
+        <EditText
+            android:id="@+id/tabs_search"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/cr_hub_search_hint"
+            android:imeOptions="actionSearch"
+            android:importantForAutofill="no"
+            android:inputType="textNoSuggestions"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant" />
+
+        <ImageButton
+            android:id="@+id/tabs_search_clear"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/search_clear"
+            android:src="@drawable/icon_cross"
+            android:visibility="gone"
+            app:tint="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- The inactive section: tabs that were not used for long (Settings > Tabs and groups).
+         Shown above the cards of the normal tabs while there are any. -->
+    <TextView
+        android:id="@+id/tabs_inactive"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:background="@drawable/bg_inactive_tabs"
+        android:drawablePadding="@dimen/spacing_medium"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:paddingStart="@dimen/spacing_large"
+        android:paddingEnd="@dimen/spacing_large"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:visibility="gone"
+        app:drawableEndCompat="@drawable/icon_right"
+        app:drawableStartCompat="@drawable/icon_history"
+        app:drawableTint="?attr/colorOnSurfaceVariant" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tabs_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingStart="@dimen/spacing_small"
+            android:paddingTop="@dimen/spacing_small"
+            android:paddingEnd="@dimen/spacing_small"
+            android:paddingBottom="@dimen/spacing_large" />
+
+        <TextView
+            android:id="@+id/tabs_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="@dimen/spacing_medium"
+            android:gravity="center"
+            android:text="@string/tabs_empty_private"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
+            app:drawableTopCompat="@drawable/icon_private" />
+
+    </FrameLayout>
+
+</LinearLayout>

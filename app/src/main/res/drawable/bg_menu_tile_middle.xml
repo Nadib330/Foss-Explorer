@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A middle tile of the library row of the main menu. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape>
+            <solid android:color="?attr/colorSurfaceBright" />
+            <corners
+                android:topLeftRadius="@dimen/menu_item_corner"
+                android:topRightRadius="@dimen/menu_item_corner"
+                android:bottomRightRadius="@dimen/menu_item_corner"
+                android:bottomLeftRadius="@dimen/menu_item_corner" />
+        </shape>
+    </item>
+</ripple>

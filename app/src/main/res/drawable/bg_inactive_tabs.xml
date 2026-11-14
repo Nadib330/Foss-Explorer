@@ -1,0 +1,9 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape>
+            <solid android:color="?attr/colorSurfaceBright" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</ripple>

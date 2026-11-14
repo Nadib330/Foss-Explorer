@@ -1,0 +1,12 @@
+<!-- The gap beside the stroke of icon_slash, drawn in the colour of the ground the icon stands on. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:pathData="M2.3,3.7L20.3,21.7"
+        android:strokeWidth="1.8"
+        android:strokeColor="@android:color/white" />
+</vector>

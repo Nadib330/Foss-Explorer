@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Offizielle Material Design Spacing-Werte -->
+    <dimen name="spacing_xxsmall">2dp</dimen>
+    <dimen name="spacing_xsmall">4dp</dimen>   <!-- Sehr klein: z.B. Text-Abstände zueinander -->
+    <dimen name="spacing_small">8dp</dimen>    <!-- Klein: z.B. vertikale Listen-Abstände -->
+    <dimen name="spacing_medium">12dp</dimen>  <!-- Deine aktuellen 10dp optimiert auf das Raster -->
+    <dimen name="spacing_large">16dp</dimen>   <!-- Standard: Seitenabstände zum Bildschirmrand -->
+    <dimen name="spacing_xlarge">24dp</dimen>  <!-- Groß: Abstand zwischen Content-Blöcken -->
+
+    <!-- Du kannst hier auch direkt feste UI-Größen definieren -->
+    <dimen name="appBar_size">80dp</dimen>
+    <dimen name="button_size">40dp</dimen>
+    <dimen name="button_settings">64dp</dimen>
+    <dimen name="icon_size">20dp</dimen>
+    <dimen name="button_size_small">34dp</dimen>
+    <dimen name="icon_size_small">18dp</dimen>
+    <dimen name="favicon_size">28dp</dimen>
+
+    <!-- Toolbar at the top of the browser screen -->
+    <dimen name="toolbar_height">64dp</dimen>
+
+    <!-- Home page -->
+    <dimen name="home_max_width">560dp</dimen>
+    <dimen name="home_logo_margin_top">48dp</dimen>
+    <dimen name="home_section_spacing">32dp</dimen>
+    <dimen name="home_search_height">56dp</dimen>
+    <dimen name="home_search_radius">28dp</dimen>
+    <dimen name="home_tile_size">48dp</dimen>
+    <dimen name="home_tile_icon_size">24dp</dimen>
+    <!-- Top and bottom bar (1.2.0) -->
+    <dimen name="bar_button_size">48dp</dimen>
+    <dimen name="address_pill_height">44dp</dimen>
+    <dimen name="bottom_bar_height">56dp</dimen>
+    <!-- Settings cards (1.2.0) -->
+    <dimen name="settings_card_margin">16dp</dimen>
+    <dimen name="settings_card_gap">2dp</dimen>
+    <dimen name="settings_card_corner">24dp</dimen>
+    <dimen name="settings_card_corner_inner">4dp</dimen>
+    <!-- Three-dot menu -->
+    <dimen name="menu_corner_radius">24dp</dimen>
+    <dimen name="menu_min_width">212dp</dimen>
+    <!-- History, bookmarks, downloads -->
+    <dimen name="library_row_height">64dp</dimen>
+    <dimen name="library_icon_size">40dp</dimen>
+    <!-- The main menu, after Firefox for Android: groups with large corners, rows 2dp apart. -->
+    <dimen name="menu_group_corner">28dp</dimen>
+    <dimen name="menu_item_corner">4dp</dimen>
+    <dimen name="menu_item_gap">2dp</dimen>
+    <dimen name="menu_group_gap">12dp</dimen>
+    <dimen name="menu_item_height">52dp</dimen>
+</resources>

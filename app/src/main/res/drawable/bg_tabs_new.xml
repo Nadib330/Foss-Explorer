@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tab switcher: the filled button for a new tab. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape>
+            <solid android:color="?attr/colorOnSurface" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+</ripple>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="@string/settings_data_all">
+        <Preference
+            android:icon="@drawable/icon_menu_save"
+            app:key="pref_backup_all"
+            app:title="@string/pref_backup_all_title"
+            app:summary="@string/pref_backup_all_summary" />
+        <Preference
+            android:icon="@drawable/icon_refresh"
+            app:key="pref_restore_all"
+            app:title="@string/pref_restore_all_title"
+            app:summary="@string/pref_restore_all_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/title_appDatabase">
+        <Preference
+            android:icon="@drawable/icon_menu_save"
+            app:key="pref_backup_db"
+            app:title="@string/pref_backup_db_title"
+            app:summary="@string/pref_backup_db_summary" />
+        <Preference
+            android:icon="@drawable/icon_refresh"
+            app:key="pref_restore_db"
+            app:title="@string/pref_restore_db_title"
+            app:summary="@string/pref_restore_db_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/album_title_bookmarks">
+        <Preference
+            android:icon="@drawable/icon_menu_save"
+            app:key="pref_export_bookmarks"
+            app:title="@string/pref_export_bookmarks_title"
+            app:summary="@string/pref_export_bookmarks_summary" />
+        <Preference
+            android:icon="@drawable/icon_refresh"
+            app:key="pref_import_bookmarks"
+            app:title="@string/pref_import_bookmarks_title"
+            app:summary="@string/pref_import_bookmarks_summary" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

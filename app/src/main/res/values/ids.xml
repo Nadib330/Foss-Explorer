@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Rows of the protection panel, which are built in code. -->
+    <item name="protection_blocked" type="id" />
+    <item name="protection_blocked_list" type="id" />
+    <item name="protection_connection" type="id" />
+    <item name="protection_clear" type="id" />
+    <item name="protection_settings" type="id" />
+</resources>

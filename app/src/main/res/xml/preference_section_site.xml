@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Site settings, grouped like Chromium for Android. One row per SiteCategory;
+     SiteSettingsScreen writes each row's state and opens its screen. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="site_group_permissions"
+        android:title="@string/site_group_permissions">
+
+        <Preference
+            android:icon="@drawable/icon_location"
+            android:key="site_location"
+            android:title="@string/site_location" />
+
+        <Preference
+            android:icon="@drawable/icon_camera"
+            android:key="site_camera"
+            android:title="@string/site_camera" />
+
+        <Preference
+            android:icon="@drawable/icon_microphone"
+            android:key="site_microphone"
+            android:title="@string/site_microphone" />
+
+        <Preference
+            android:icon="@drawable/icon_apps"
+            android:key="site_apps_on_device"
+            android:title="@string/site_apps_on_device" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="site_group_content"
+        android:title="@string/site_group_content">
+
+        <Preference
+            android:icon="@drawable/icon_cookie"
+            android:key="site_third_party_cookies"
+            android:title="@string/site_third_party_cookies" />
+
+        <Preference
+            android:icon="@drawable/icon_java"
+            android:key="site_javascript"
+            android:title="@string/site_javascript" />
+
+        <Preference
+            android:icon="@drawable/icon_popup"
+            android:key="site_popups"
+            android:title="@string/site_popups" />
+
+        <Preference
+            android:icon="@drawable/icon_audio"
+            android:key="site_sound"
+            android:title="@string/site_sound" />
+
+        <Preference
+            android:icon="@drawable/icon_adblock"
+            android:key="site_ads"
+            android:title="@string/site_ads" />
+
+        <Preference
+            android:icon="@drawable/icon_protected"
+            android:key="site_protected_content"
+            android:title="@string/site_protected_content" />
+
+        <Preference
+            android:icon="@drawable/icon_verified"
+            android:key="site_auto_verify"
+            android:title="@string/site_auto_verify" />
+
+        <Preference
+            android:icon="@drawable/icon_database"
+            android:key="site_site_data"
+            android:title="@string/site_site_data" />
+
+        <Preference
+            android:icon="@drawable/icon_download"
+            android:key="site_automatic_downloads"
+            android:title="@string/site_automatic_downloads" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="site_group_unused">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_restart"
+            android:key="site_auto_revoke"
+            android:summary="@string/site_auto_revoke_summary"
+            android:title="@string/site_auto_revoke_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+    <!-- Profiles: sets of site settings that can be switched as a whole or saved for one site.
+         They stood under "Privacy and security" before 13.2.2. -->
+    <PreferenceCategory
+        android:key="site_group_profiles"
+        android:title="@string/setting_title_profiles">
+
+        <Preference
+            android:icon="@drawable/icon_profile_standard"
+            android:key="settings_profile"
+            android:title="@string/setting_title_profiles_standard" />
+
+        <Preference
+            android:icon="@drawable/icon_menu_save"
+            android:key="edit_standard"
+            android:title="@string/setting_title_savedWebSites" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The home page: logo, search box and a grid of site tiles. Shown on top of
+     the (empty) web view while a tab is on the home address, see HomePage. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:clickable="true"
+    android:focusable="false"
+    android:visibility="gone">
+
+    <!-- The user's wallpaper and, over it, a veil that keeps the page readable
+         (Settings > Home page customization; HomeAppearance). They stay while the page scrolls. -->
+    <ImageView
+        android:id="@+id/home_wallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/home_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#59000000"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:id="@+id/home_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+    <com.rpooi3.explorer.view.MaxWidthFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:maxWidth="@dimen/home_max_width">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/spacing_large"
+            android:paddingTop="@dimen/home_logo_margin_top"
+            android:paddingBottom="@dimen/spacing_xlarge">
+
+            <!-- The name of the app; no picture beside it since 15.0.0. -->
+            <LinearLayout
+                android:id="@+id/home_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                tools:ignore="UselessParent">
+
+                <TextView
+                    android:id="@+id/home_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="@string/app_name"
+                    android:textAppearance="?attr/textAppearanceHeadlineLarge"
+                    android:textColor="?attr/colorOnSurface" />
+
+            </LinearLayout>
+
+            <!-- Search box -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/home_search"
+                style="@style/Widget.Material3.CardView.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/home_search_height"
+                android:layout_marginTop="@dimen/home_section_spacing"
+                android:clickable="true"
+                android:contentDescription="@string/main_omnibox_input_hint"
+                android:focusable="true"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:cardCornerRadius="@dimen/home_search_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/spacing_large"
+                    tools:ignore="UselessParent">
+
+                    <ImageView
+                        android:layout_width="@dimen/spacing_xlarge"
+                        android:layout_height="@dimen/spacing_xlarge"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/icon_search"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_medium"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:importantForAccessibility="no"
+                        android:maxLines="1"
+                        android:text="@string/main_omnibox_input_hint"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Site tiles, filled in by HomePageView -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/home_shortcuts_card"
+                style="@style/Widget.Material3.CardView.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/home_section_spacing"
+                android:visibility="gone"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                app:cardCornerRadius="@dimen/spacing_xlarge">
+
+                <LinearLayout
+                    android:id="@+id/home_shortcuts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_small" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    
+        <!-- The home page has no top bar, so the menu button lives here. -->
+        <ImageButton
+            android:id="@+id/home_menu"
+            android:layout_width="@dimen/bar_button_size"
+            android:layout_height="@dimen/bar_button_size"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginEnd="@dimen/spacing_xsmall"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/bar_menu"
+            android:src="@drawable/icon_more_vert"
+            app:tint="?attr/colorOnSurfaceVariant" />
+    </com.rpooi3.explorer.view.MaxWidthFrameLayout>
+
+    </ScrollView>
+
+</FrameLayout>

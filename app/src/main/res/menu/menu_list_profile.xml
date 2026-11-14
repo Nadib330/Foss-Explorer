@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_delete_list"
+        android:title="@string/menu_delete"
+        android:icon="@drawable/icon_delete"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
+        android:id="@+id/menu_help"
+        android:title="@string/app_help"
+        android:icon="@drawable/icon_help"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
+
+
+
+
+
+</menu>

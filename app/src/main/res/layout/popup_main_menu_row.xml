@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One entry of the three-dot menu. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/bar_button_size"
+    android:background="?attr/selectableItemBackground"
+    android:drawablePadding="@dimen/spacing_large"
+    android:ellipsize="end"
+    android:gravity="center_vertical|start"
+    android:maxLines="1"
+    android:paddingStart="20dp"
+    android:paddingEnd="@dimen/spacing_xlarge"
+    android:textAppearance="?attr/textAppearanceBodyLarge"
+    android:textColor="?attr/colorOnSurface"
+    app:drawableTint="?attr/colorOnSurfaceVariant" />

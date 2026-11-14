@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:ignore="ContentDescription">
+
+    <!-- HIER REINGEPACKT: Die URL, die vorher in builder.setMessage stand -->
+    <TextView
+        android:id="@+id/dialog_message_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_xlarge"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="14sp"
+        android:maxLines="5"
+        android:ellipsize="end" />
+
+    <View
+        android:id="@+id/spacer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/spacing_xlarge"
+        android:visibility="invisible" />
+
+    <View
+        android:id="@+id/scrollDividerTop"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant"
+        android:visibility="invisible"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/redirects_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="@dimen/spacing_xsmall"
+        android:layout_marginStart="@dimen/spacing_xsmall"/>
+
+    <View
+        android:id="@+id/scrollDividerBottom"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant"
+        android:visibility="invisible"/>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/spacing_large" />
+
+</LinearLayout>

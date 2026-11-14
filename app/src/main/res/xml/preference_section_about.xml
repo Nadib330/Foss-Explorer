@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > About Foss Explorer, like "About Chrome": Application version, Operating system and
+     Legal information as cards of their own, and Developer below them. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <Preference
+            android:key="about_app"
+            android:title="@string/cr_application_version_title"
+            android:selectable="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:key="about_os"
+            android:title="@string/cr_os_version_title"
+            android:selectable="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:key="section_legal"
+            android:title="@string/cr_legal_information_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:key="section_developer"
+            android:summary="@string/about_developer_name"
+            android:title="@string/about_developer_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

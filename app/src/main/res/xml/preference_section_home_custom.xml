@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Home page customization: a picture as wallpaper, a background colour, which
+     parts of the home page are shown, and the page that opens in its place.
+     HomeCustomizationScreen gives the rows their state and behaviour. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="home_custom_description"
+        android:summary="@string/home_custom_description" />
+
+    <PreferenceCategory android:key="home_group_wallpaper" android:title="@string/home_wallpaper">
+
+        <Preference
+            android:icon="@drawable/icon_image"
+            android:key="home_wallpaper_pick"
+            android:title="@string/home_wallpaper_pick" />
+
+        <Preference
+            android:icon="@drawable/icon_delete"
+            android:key="home_wallpaper_remove"
+            android:title="@string/home_wallpaper_remove" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_night"
+            android:key="home_wallpaper_dim"
+            android:summary="@string/home_wallpaper_dim_summary"
+            android:title="@string/home_wallpaper_dim"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="home_group_color" android:title="@string/home_color_group">
+
+        <Preference
+            android:icon="@drawable/icon_color"
+            android:key="home_color"
+            android:title="@string/home_color"
+            android:widgetLayout="@layout/preference_color_widget" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="home_group_content" android:title="@string/home_content_group">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_info"
+            android:key="home_show_logo"
+            android:title="@string/home_show_logo"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_apps"
+            android:key="home_show_shortcuts"
+            android:summary="@string/home_show_shortcuts_summary"
+            android:title="@string/home_show_shortcuts"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+    <!-- The one setting of the former "Home page" screen. -->
+    <PreferenceCategory android:key="home_group_start" android:title="@string/home_start_group">
+
+        <EditTextPreference
+            android:defaultValue=""
+            android:icon="@drawable/icon_fav"
+            android:key="favoriteURL"
+            android:summary="@string/setting_summary_fav"
+            android:title="@string/home_start_page" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

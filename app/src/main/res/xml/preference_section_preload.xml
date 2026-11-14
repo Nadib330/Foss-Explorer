@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Privacy and security > Preload pages (Chromium: preload_pages_preferences.xml).
+     "Extended preloading" is left out: it sends pages through Google servers, which Explorer has no access to. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="preload_description"
+        android:summary="@string/cr_preload_pages_summary" />
+
+
+    <PreferenceCategory>
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="preload_none"
+            android:summary="@string/cr_preload_none_summary"
+            android:title="@string/cr_preload_none_title" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="preload_standard"
+            android:summary="@string/preload_standard_summary"
+            android:title="@string/cr_preload_standard_title" />
+
+    </PreferenceCategory>
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="preload_note" />
+
+</PreferenceScreen>

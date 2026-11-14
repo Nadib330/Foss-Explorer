@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Three-dot menu of the tab switcher. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/tabs_menu_new_tab"
+        android:icon="@drawable/icon_tab_plus"
+        android:title="@string/menu_new_tab" />
+    <item
+        android:id="@+id/tabs_menu_new_private_tab"
+        android:icon="@drawable/icon_private"
+        android:title="@string/menu_new_private_tab" />
+    <item
+        android:id="@+id/tabs_menu_close_all"
+        android:icon="@drawable/icon_close"
+        android:title="@string/tabs_close_all" />
+    <item
+        android:id="@+id/tabs_menu_settings"
+        android:icon="@drawable/icon_settings"
+        android:title="@string/setting_label" />
+</menu>

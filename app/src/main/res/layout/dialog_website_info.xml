@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <include
+        layout="@layout/include_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_large"
+        android:layout_marginBottom="@dimen/spacing_large" />
+
+    <!-- Eindeutige ID hinzugefügt, um sie im Code für die Divider anzusprechen -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/dialog_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Klickbarer Block für altText und Teilen-Button -->
+
+            <TextView
+                android:id="@+id/text_alt_text"
+                android:paddingStart="@dimen/spacing_xlarge"
+                android:paddingEnd="@dimen/spacing_xlarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textIsSelectable="true"
+                android:paddingBottom="4dp" />
+
+            <!-- Dynamischer Abstand für altText -->
+            <View
+                android:id="@+id/spacer_alt_text"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                android:visibility="gone" />
+
+            <!-- Der Seitentitel -->
+            <TextView
+                android:id="@+id/text_title"
+                android:paddingStart="@dimen/spacing_xlarge"
+                android:paddingEnd="@dimen/spacing_xlarge"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textStyle="bold"
+                android:textIsSelectable="true"
+                android:paddingBottom="4dp" />
+
+            <!-- Der Link -->
+            <TextView
+                android:id="@+id/text_link"
+                android:paddingStart="@dimen/spacing_xlarge"
+                android:paddingEnd="@dimen/spacing_xlarge"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorPrimary"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <!-- Technischer Block -->
+            <TextView
+                android:id="@+id/text_technical_block"
+                android:paddingStart="@dimen/spacing_xlarge"
+                android:paddingEnd="@dimen/spacing_xlarge"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textIsSelectable="true"
+                android:lineSpacingMultiplier="1.25" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

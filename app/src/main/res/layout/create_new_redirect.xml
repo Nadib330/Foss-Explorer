@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/spacing_large"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Erstes Eingabefeld -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/sourceLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_xlarge"
+        android:layout_marginBottom="@dimen/spacing_medium"
+        app:boxCornerRadiusTopStart="@dimen/spacing_xlarge"
+        app:boxCornerRadiusTopEnd="@dimen/spacing_xlarge"
+        app:boxCornerRadiusBottomStart="@dimen/spacing_xlarge"
+        app:boxCornerRadiusBottomEnd="@dimen/spacing_xlarge">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/source"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Zweites Eingabefeld -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/targetLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxCornerRadiusTopStart="@dimen/spacing_xlarge"
+        app:boxCornerRadiusTopEnd="@dimen/spacing_xlarge"
+        app:boxCornerRadiusBottomStart="@dimen/spacing_xlarge"
+        app:boxCornerRadiusBottomEnd="@dimen/spacing_xlarge">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/target"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionDone"
+            android:inputType="text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>

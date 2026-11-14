@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- About > Developer. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <Preference
+            android:icon="@drawable/icon_person"
+            android:key="about_developer"
+            android:summary="@string/about_developer_name"
+            android:title="@string/about_developer_title"
+            android:selectable="false" />
+
+        <Preference
+            android:icon="@drawable/icon_web"
+            android:key="about_github"
+            android:summary="@string/about_github_summary"
+            android:title="@string/about_github_title" />
+
+        <Preference
+            android:icon="@drawable/icon_web"
+            android:key="about_codeberg"
+            android:summary="@string/about_codeberg_summary"
+            android:title="@string/about_codeberg_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

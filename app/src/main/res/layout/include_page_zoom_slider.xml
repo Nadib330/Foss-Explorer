@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minus button, slider, plus button: Chromium's page_zoom_slider.xml. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/page_zoom_decrease_zoom_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/cr_page_zoom_decrease"
+        android:src="@drawable/icon_minus"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/page_zoom_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:contentDescription="@string/cr_page_zoom_label"
+        android:stepSize="1"
+        android:valueFrom="50"
+        android:valueTo="300"
+        app:tickVisible="false" />
+
+    <ImageButton
+        android:id="@+id/page_zoom_increase_zoom_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/cr_page_zoom_increase"
+        android:src="@drawable/icon_plus"
+        app:tint="?attr/colorOnSurfaceVariant" />
+</LinearLayout>

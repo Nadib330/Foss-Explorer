@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tabs and groups > Inactive (Chromium: tab_archive_settings.xml). -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="inactive_description"
+        android:summary="@string/inactive_tabs_description" />
+
+
+    <PreferenceCategory>
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="inactive_never"
+            android:title="@string/cr_archive_never" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="inactive_7"
+            android:title="@string/cr_archive_7" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="inactive_14"
+            android:title="@string/cr_archive_14" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="inactive_21"
+            android:title="@string/cr_archive_21" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <SwitchPreferenceCompat
+            android:key="inactive_archive_duplicates"
+            android:summary="@string/inactive_duplicates_summary"
+            android:title="@string/cr_archive_duplicates_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:key="inactive_auto_close"
+            android:title="@string/cr_archive_autodelete_title"
+            android:defaultValue="true"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

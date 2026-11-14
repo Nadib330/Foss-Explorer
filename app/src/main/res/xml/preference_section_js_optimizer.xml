@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Privacy and security > JavaScript optimization & security: one of Chromium's site setting
+     screens (description, two choices, Add site exception). SettingsScreens fills in the rest. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="js_optimizer_description"
+        android:summary="@string/cr_js_optimizer_description" />
+
+
+    <PreferenceCategory>
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="js_optimizer_allowed"
+            android:title="@string/cr_js_optimizer_allowed" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="js_optimizer_blocked"
+            android:title="@string/cr_js_optimizer_blocked" />
+
+    </PreferenceCategory>
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="js_optimizer_note"
+        android:summary="@string/js_optimizer_note" />
+
+
+    <PreferenceCategory android:key="js_optimizer_add_group">
+
+        <Preference
+            android:icon="@drawable/icon_plus"
+            android:key="js_optimizer_add"
+            android:title="@string/cr_site_add" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

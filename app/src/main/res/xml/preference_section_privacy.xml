@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Privacy and security, in the order of Chromium's privacy_preferences.xml:
+     "Privacy" with Delete browsing data, Preload pages and the Incognito lock;
+     "Security" with Safe Browsing and JavaScript optimization & security. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:key="privacy_group" android:title="@string/cr_privacy_section_title">
+
+        <Preference
+            android:key="settings_clear"
+            android:summary="@string/cr_clear_browsing_data_summary"
+            android:title="@string/cr_clear_browsing_data_title" />
+
+        <Preference
+            android:key="section_preload"
+            android:title="@string/cr_preload_pages_title" />
+
+        <SwitchPreferenceCompat
+            android:key="incognito_lock"
+            android:summary="@string/cr_incognito_lock_summary_on"
+            android:title="@string/cr_incognito_lock_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="security_group" android:title="@string/cr_security_section_title">
+
+        <Preference
+            android:key="section_safe_browsing"
+            android:title="@string/cr_safe_browsing_title" />
+
+        <Preference
+            android:key="section_js_optimizer"
+            android:title="@string/cr_js_optimizer_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The first settings screen, arranged like Chrome's: one entry per topic,
+     title only. Each entry opens the settings of its topic on a screen of its
+     own; see SettingsSections for which one. Groups have no headings
+     (SettingsCards draws them as rounded blocks). -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <Preference
+            android:icon="@drawable/icon_search"
+            android:key="section_search"
+            android:title="@string/setting_title_search_engine" />
+
+        <Preference
+            android:icon="@drawable/icon_secure"
+            android:key="section_privacy"
+            android:title="@string/setting_section_privacy" />
+
+        <Preference
+            android:icon="@drawable/icon_house"
+            android:key="section_home_custom"
+            android:title="@string/setting_section_home_custom" />
+
+        <Preference
+            android:icon="@drawable/icon_tab"
+            android:key="section_tabs"
+            android:title="@string/setting_section_tabs" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:icon="@drawable/icon_theme"
+            android:key="section_appearance"
+            android:title="@string/setting_section_appearance" />
+
+        <Preference
+            android:icon="@drawable/icon_accessibility"
+            android:key="section_accessibility"
+            android:title="@string/setting_section_accessibility" />
+
+        <Preference
+            android:icon="@drawable/icon_gesture"
+            android:key="settings_gesture"
+            android:title="@string/setting_gestures" />
+
+        <Preference
+            android:icon="@drawable/icon_filter"
+            android:key="settings_filter"
+            android:title="@string/setting_filter" />
+
+        <Preference
+            android:icon="@drawable/icon_tune"
+            android:key="section_site"
+            android:title="@string/setting_section_site" />
+
+        <Preference
+            android:icon="@drawable/icon_database"
+            android:key="settings_data"
+            android:title="@string/setting_title_data" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:icon="@drawable/icon_help"
+            android:key="section_help"
+            android:title="@string/setting_section_help" />
+
+        <Preference
+            android:icon="@drawable/icon_info"
+            android:key="section_about"
+            android:title="@string/setting_section_about" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

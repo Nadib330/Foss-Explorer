@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Privacy and security > Safe Browsing (Chromium: safe_browsing_preferences.xml), with the two
+     levels Explorer has: Standard protection and No protection. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="safe_browsing_standard"
+            android:summary="@string/safe_browsing_standard_summary"
+            android:title="@string/cr_safe_browsing_standard_title" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="safe_browsing_off"
+            android:summary="@string/safe_browsing_none_summary"
+            android:title="@string/cr_safe_browsing_none_title" />
+
+    </PreferenceCategory>
+
+    <com.rpooi3.explorer.preferences.TextMessagePreference
+        android:key="safe_browsing_note"
+        android:summary="@string/safe_browsing_note" />
+
+</PreferenceScreen>

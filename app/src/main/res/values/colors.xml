@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Foss Explorer brand palette (light).
+        Material 3 tonal-spot scheme generated from the seed colour #006A6A.
+        Used when wallpaper-based dynamic colour is unavailable (Android 8 - 11)
+        or switched off in the settings.
+    -->
+    <color name="md_theme_primary">#006A6A</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#9CF1F0</color>
+    <color name="md_theme_onPrimaryContainer">#004F4F</color>
+    <color name="md_theme_secondary">#4A6363</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#CCE8E7</color>
+    <color name="md_theme_onSecondaryContainer">#324B4B</color>
+    <color name="md_theme_tertiary">#4B607C</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#D3E4FF</color>
+    <color name="md_theme_onTertiaryContainer">#334863</color>
+    <color name="md_theme_error">#BA1A1A</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_errorContainer">#FFDAD6</color>
+    <color name="md_theme_onErrorContainer">#93000A</color>
+    <color name="md_theme_background">#F4FBFA</color>
+    <color name="md_theme_onBackground">#161D1D</color>
+    <color name="md_theme_surface">#F4FBFA</color>
+    <color name="md_theme_onSurface">#161D1D</color>
+    <color name="md_theme_surfaceVariant">#DAE5E4</color>
+    <color name="md_theme_onSurfaceVariant">#3F4948</color>
+    <color name="md_theme_outline">#6F7979</color>
+    <color name="md_theme_outlineVariant">#BEC9C8</color>
+    <color name="md_theme_inversePrimary">#80D5D4</color>
+    <color name="md_theme_surfaceDim">#D5DBDA</color>
+    <color name="md_theme_surfaceBright">#F4FBFA</color>
+    <color name="md_theme_surfaceContainerLowest">#FFFFFF</color>
+    <color name="md_theme_surfaceContainerLow">#EFF5F4</color>
+    <color name="md_theme_surfaceContainer">#E9EFEE</color>
+    <color name="md_theme_surfaceContainerHigh">#E3E9E9</color>
+    <color name="md_theme_surfaceContainerHighest">#DDE4E3</color>
+
+    <!-- Translucent tints used for bookmark filters -->
+    <color name="blue">#402196f3</color>
+    <color name="brown">#40795548</color>
+    <color name="green">#404caf50</color>
+    <color name="grey">#409e9e9e</color>
+    <color name="lime">#40cddc39</color>
+    <color name="orange">#40ff9800</color>
+    <color name="pink">#40e91e63</color>
+    <color name="purple">#409c27b0</color>
+    <color name="red">#40f44336</color>
+    <color name="teal">#40009688</color>
+    <color name="yellow">#40ffc107</color>
+    <!-- The new tab page of a private tab: dark in every theme, as Chromium's Incognito page. -->
+    <color name="incognito_background">#FF1F1F1F</color>
+    <color name="incognito_text">#FFE3E3E3</color>
+    <color name="incognito_text_secondary">#FFC4C7C5</color>
+    <color name="incognito_outline">#FF5E5E5E</color>
+</resources>

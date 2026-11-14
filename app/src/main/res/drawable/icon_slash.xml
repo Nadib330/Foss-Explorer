@@ -1,0 +1,13 @@
+<!-- The stroke through an icon that stands for "off"; SiteCategoryFragment.crossedOut draws it over the icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:pathData="M3.6,2.4L21.6,20.4"
+        android:strokeWidth="1.8"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round" />
+</vector>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_settings"
+        android:defaultValue="false"
+        android:key="delete_settings"
+        android:summary="@string/settings_data_all" />
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_database"
+        android:defaultValue="false"
+        android:key="delete_database"
+        android:summary="@string/title_appDatabase" />
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_history"
+        android:defaultValue="false"
+        android:key="delete_history"
+        android:summary="@string/album_title_history" />
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_cookie"
+        android:defaultValue="false"
+        android:key="delete_cookies"
+        android:summary="@string/setting_title_cookie" />
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_dom"
+        android:defaultValue="false"
+        android:key="delete_cache"
+        android:summary="@string/clear_title_cache" />
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_web"
+        android:defaultValue="false"
+        android:key="delete_other"
+        android:summary="@string/webview_data" />
+
+    <CheckBoxPreference
+        android:icon="@drawable/icon_close"
+        android:defaultValue="false"
+        android:key="auto_delete_exit"
+        android:title="@string/clear_title_quit" />
+
+</PreferenceScreen>

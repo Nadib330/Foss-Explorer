@@ -1,0 +1,8 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="?attr/colorSurfaceBright" />
+    <corners
+        android:bottomLeftRadius="@dimen/settings_card_corner_inner"
+        android:bottomRightRadius="@dimen/settings_card_corner_inner"
+        android:topLeftRadius="@dimen/settings_card_corner"
+        android:topRightRadius="@dimen/settings_card_corner" />
+</shape>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Search engine, like Chrome's screen: one card, a row per engine with logo, name,
+     domain and the radio button at the end. Below it the engines Explorer had before, and a search
+     address of your own. SettingsScreens binds the rows. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:key="engine_group">
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_google"
+            android:summary="@string/engine_google_domain"
+            android:title="@string/engine_google" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_brave"
+            android:summary="@string/engine_brave_domain"
+            android:title="@string/engine_brave" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_bing"
+            android:summary="@string/engine_bing_domain"
+            android:title="@string/engine_bing" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_duckduckgo"
+            android:summary="@string/engine_duckduckgo_domain"
+            android:title="@string/engine_duckduckgo" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_ecosia"
+            android:summary="@string/engine_ecosia_domain"
+            android:title="@string/engine_ecosia" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_startpage"
+            android:summary="@string/engine_startpage_domain"
+            android:title="@string/engine_startpage" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="engine_group_more" android:title="@string/engine_more">
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_startpage_de"
+            android:summary="@string/engine_startpage_de_domain"
+            android:title="@string/engine_startpage_de" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_qwant"
+            android:summary="@string/engine_qwant_domain"
+            android:title="@string/engine_qwant" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_mojeek"
+            android:summary="@string/engine_mojeek_domain"
+            android:title="@string/engine_mojeek" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_searx"
+            android:summary="@string/engine_searx_domain"
+            android:title="@string/engine_searx" />
+
+        <com.rpooi3.explorer.preferences.RadioRowPreference
+            android:key="engine_custom"
+            android:summary="@string/engine_custom_domain"
+            android:title="@string/engine_custom" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

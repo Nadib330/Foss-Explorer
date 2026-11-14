@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- General App Strings -->
+    <string name="album_title_bookmarks">Bookmarks</string>
+    <string name="album_title_history">History</string>
+    <string name="album_title_tab">Opened Tabs</string>
+    <string name="app_cancel">Cancel</string>
+    <string name="app_done">Done</string>
+    <string name="app_error">Error</string>
+    <string name="app_error_copy">Please select and copy text manually</string>
+    <string name="app_error_save">Already saved.</string>
+    <string name="app_help">Help</string>
+    <string name="app_intro_a">Thanks for using Foss Explorer!</string>
+    <string name="app_intro_b">Foss Explorer is based on FOSS Browser. The wiki of that project is saved as your first bookmark and has helpful tips and links.</string>
+    <string name="app_name" translatable="false">Foss Explorer</string>
+    <string name="app_no">No</string>
+    <string name="app_ok">OK</string>
+    <string name="app_permission">You must grant permission to use this feature.</string>
+    <string name="app_permission_notification">Notifications</string>
+    <string name="create_new">New</string>
+    <string name="source">Source</string>
+    <string name="target">Target</string>
+
+    <!-- Dialogs & Prompts -->
+    <string name="app_session">… in current session?</string>
+    <string name="dialog_backGround">Open links in background …</string>
+    <string name="dialog_content_resubmission">Resubmit data?</string>
+    <string name="dialog_content_ssl_error">The certificate of the site is not trusted. Proceed anyway?</string>
+    <string name="dialog_postOnWebsite">Post on website</string>
+    <string name="dialog_postOnWebsiteHint">URL to open. Will be saved for next use.</string>
+    <string name="dialog_sign_in_password">Password</string>
+    <string name="dialog_sign_in_username">Username</string>
+    <string name="dialog_supported">Only text files supported.</string>
+    <string name="dialog_title_hint">Title:</string>
+    <string name="dialog_tracking">Possible tracking URL. Remove tracking part:</string>
+    <string name="dialog_URL_hint">URL:</string>
+
+    <!-- Main & Context Menus -->
+    <string name="home_remove_shortcut">Remove from home page</string>
+    <string name="main_menu_new_tab">New tab (background)</string>
+    <string name="main_menu_new_tabOpen">New tab (foreground)</string>
+    <string name="main_omnibox_input_hint">Search or type URL</string>
+    <string name="menu_closeTab">Close tab</string>
+    <string name="menu_dayView">Day view</string>
+    <string name="menu_delete">Delete</string>
+    <string name="menu_delete_entry">Delete entry</string>
+    <string name="menu_desktopView">Desktop view</string>
+    <string name="menu_download">Open downloads</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_fav">Save as favorite</string>
+    <string name="menu_filter">Filter by …</string>
+    <string name="menu_nightView">Night view</string>
+    <string name="menu_openFav">Open Favorite</string>
+    <string name="menu_other_searchSite">Search on site</string>
+    <string name="menu_quit">Quit</string>
+    <string name="menu_reload">Reload</string>
+    <string name="menu_restart">Restart and reload tabs</string>
+    <string name="menu_save_as">Save as …</string>
+    <string name="menu_save_bookmark">Save as bookmark</string>
+    <string name="menu_save_pdf">Save as PDF</string>
+    <string name="menu_sc">Shortcut on home screen</string>
+    <string name="menu_shareClipboard">Copy to clipboard</string>
+    <string name="menu_share_link">Share link</string>
+    <string name="menu_share_altText">Share alt text</string>
+    <string name="menu_shareOpenWith">Open with …</string>
+    <!-- Toasts & Warnings -->
+    <string name="hint_blob">Cannot download in this tab. Try a new one?</string>
+    <string name="hint_database">This will delete current data. Proceed?</string>
+    <string name="toast_input_empty">Please input something.</string>
+    <string name="toast_restart">Restart to apply changes?</string>
+    <string name="toast_storage_permission">Allow storage access, then save again.</string>
+    <string name="toast_unsecured">Website uses unsecured connection (\"http\"). Try secure connection (\"https\")?</string>
+    <string name="toast_webview_forward">Can\'t load next site.</string>
+
+    <!-- Settings (General & UI) -->
+    <string name="color_blue">Blue</string>
+    <string name="color_brown">Brown</string>
+    <string name="color_green">Green</string>
+    <string name="color_grey">Grey</string>
+    <string name="color_lime">Lime</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_red">Red</string>
+    <string name="color_teal">Teal</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="custom_searches_title">Fast search on …</string>
+    <string name="setting_filter">Bookmark filter</string>
+    <string name="setting_label">Settings</string>
+    <string name="setting_theme">Theme</string>
+    <string name="setting_theme_system">System</string>
+    <string name="setting_title_dynColors">Dynamic colors</string>
+    <string name="setting_summary_fav">Opens at start and in new tabs. Leave empty to use the home page.</string>
+    <string name="setting_title_screenOn">Keep screen on</string>
+    <string name="setting_title_ui">Behavior/UI</string>
+
+    <!-- Settings (Privacy, Security & Core Functions) -->
+    <string name="hint_DRM_Media">Allow DRM protected media playback?</string>
+    <string name="privacy_redirect_title">Redirects</string>
+    <string name="privacy_redirect_use">Use redirects</string>
+    <string name="setting_title_adblock">AdBlock</string>
+    <string name="setting_title_camera">Allow camera usage</string>
+    <string name="setting_title_cookie">Cookies</string>
+    <string name="setting_title_cookie_thirdParty">Third Party Cookies</string>
+    <string name="setting_title_deny_cookie_banners">Cookie Banner Blocker</string>
+    <string name="setting_title_dom">DOM Storage</string>
+    <string name="setting_title_fingerPrint">Fingerprint protection</string>
+    <string name="setting_title_images">Images</string>
+    <string name="setting_title_javascript">JavaScript</string>
+    <string name="setting_title_javascript_popUp">Popups</string>
+    <string name="setting_title_location">Location</string>
+    <string name="setting_title_microphone">Allow microphone usage</string>
+    <string name="setting_title_save_data">Request \'Save data\'</string>
+    <string name="setting_title_search_engine">Search engine</string>
+    <string name="setting_title_trackingURL">Tracking-URL popup</string>
+    <string name="webview_data">Other webview data</string>
+    <!-- Settings Profiles -->
+    <string name="setting_title_profiles_Security">Security</string>
+    <string name="setting_title_profiles_dataUsage">Data usage</string>
+    <string name="setting_title_profiles_privacy">Privacy</string>
+    <string name="setting_title_profiles_standard">Standard</string>
+    <string name="setting_title_profiles_standard_always">Switch to standard profile for new domains and tabs.</string>
+
+    <!-- Gestures & Long Press -->
+    <string name="setting_gestures">Gestures</string>
+    <string name="setting_gesture_01">Nothing</string>
+    <string name="setting_gesture_02">Forward in history</string>
+    <string name="setting_gesture_03">Back in history</string>
+    <string name="setting_gesture_04">Scroll to top</string>
+    <string name="setting_gesture_05">Scroll to bottom</string>
+    <string name="setting_gesture_06">Switch to left tab</string>
+    <string name="setting_gesture_07">Switch to right tab</string>
+    <string name="setting_gesture_08">Show overview</string>
+    <string name="setting_gesture_09">Open new tab</string>
+    <string name="setting_gesture_10">Close tab</string>
+    <string name="setting_gesture_11">Show fast toggle</string>
+    <string name="setting_gesture_12">Info dialog</string>
+    <string name="setting_gesture_down">Swipe down</string>
+    <string name="setting_gesture_left">Swipe left</string>
+    <string name="setting_gesture_right">Swipe right</string>
+    <string name="setting_gesture_up">Swipe up</string>
+    <string name="setting_title_longPress">Long press</string>
+
+    <!-- Backup & Clear Settings -->
+    <string name="app_always">Always</string>
+    <string name="app_never">Never</string>
+    <string name="app_restart">On restart</string>
+    <string name="clear_title_cache">Clear cache</string>
+    <string name="clear_title_quit">Clear on exit</string>
+    <string name="pref_backup_all_summary">Creates a full backup of all data (ZIP archive)</string>
+    <string name="pref_backup_all_title">Backup all</string>
+    <string name="pref_backup_db_summary">Backs up the browser databases only (ZIP archive)</string>
+    <string name="pref_backup_db_title">Backup database</string>
+    <string name="pref_export_bookmarks_summary">Exports your bookmarks as an HTML file</string>
+    <string name="pref_export_bookmarks_title">Export bookmarks</string>
+    <string name="pref_import_bookmarks_summary">Imports bookmarks from an HTML file</string>
+    <string name="pref_import_bookmarks_title">Import bookmarks</string>
+    <string name="pref_restore_all_summary">Restores all data from a previous backup</string>
+    <string name="pref_restore_all_title">Restore all</string>
+    <string name="pref_restore_db_summary">Restores only the databases from a backup</string>
+    <string name="pref_restore_db_title">Restore database</string>
+    <string name="setting_title_data">Backup</string>
+    <string name="setting_title_savedWebSites">Saved websites</string>
+    <string name="settings_data_all">All data</string>
+    <string name="title_appDatabase">Database</string>
+    <!-- 1.2.0: top bar, bottom bar, menu, private tabs, settings search -->
+    <string name="bar_back">Back</string>
+    <string name="bar_menu">Menu</string>
+    <string name="bar_home">Home</string>
+    <string name="menu_new_tab">New tab</string>
+    <string name="menu_new_private_tab">New private tab</string>
+    <string name="menu_downloads">Downloads</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_hide_bars">Hide toolbars</string>
+    <string name="private_tab">Private tab</string>
+    <string name="private_tab_isolated">Private tab: history, cookies and site data are not kept.</string>
+    <string name="private_tab_shared">Private tab: history is not saved. On this device cookies are shared with normal tabs.</string>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_empty">No settings found</string>
+    <string name="settings_search_clear">Clear search</string>
+    <string name="gesture_group_tabs">Tabs button (bottom bar)</string>
+    <string name="gesture_group_menu">Menu button (top bar)</string>
+    <!-- 11.3.0: address field -->
+    <string name="search_clear">Clear</string>
+    <!-- 11.3.0: history, bookmarks, downloads -->
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+    <string name="library_search">Search</string>
+    <string name="library_filter_all">All</string>
+    <string name="library_more_actions">More actions</string>
+    <string name="library_open_new_tab">Open in new tab</string>
+    <string name="library_open_private_tab">Open in private tab</string>
+    <string name="library_copy_link">Copy link</string>
+    <string name="library_search_hint">Search</string>
+    <string name="history_search_hint">Search history</string>
+    <string name="history_empty">Pages you visit appear here</string>
+    <string name="history_clear_data">Clear browsing data…</string>
+    <string name="history_remove">Remove from history</string>
+    <string name="bookmarks_search_hint">Search bookmarks</string>
+    <string name="bookmarks_empty">Bookmarks you add appear here</string>
+    <string name="bookmarks_move">Move to…</string>
+    <string name="bookmarks_no_category">No category</string>
+    <string name="bookmarks_edit_title">Edit bookmark</string>
+    <string name="bookmarks_sort_name">Sort by name</string>
+    <string name="bookmarks_sort_category">Sort by category</string>
+    <string name="bookmarks_sort_site">Sort by website</string>
+    <string name="bookmarks_delete_all">Delete all bookmarks</string>
+    <string name="bookmarks_delete_all_message">All bookmarks are removed from this device. This cannot be undone.</string>
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_search_hint">Search downloads</string>
+    <string name="downloads_empty">Files you download appear here</string>
+    <string name="downloads_filter_video">Video</string>
+    <string name="downloads_filter_audio">Audio</string>
+    <string name="downloads_filter_images">Images</string>
+    <string name="downloads_filter_documents">Documents</string>
+    <string name="downloads_filter_other">Other</string>
+    <string name="downloads_storage">%1$s downloaded • %2$s free on this device</string>
+    <string name="downloads_running">Downloading…</string>
+    <string name="downloads_running_percent">Downloading… %1$d%%</string>
+    <string name="downloads_waiting">Waiting…</string>
+    <string name="downloads_failed">Download failed</string>
+    <string name="downloads_not_finished">This download has not finished yet.</string>
+    <string name="downloads_open">Open</string>
+    <string name="downloads_share">Share</string>
+    <string name="downloads_cancel">Cancel download</string>
+    <string name="downloads_no_app">No app on this device can open this file.</string>
+    <string name="downloads_delete_title">Delete download?</string>
+    <string name="downloads_delete_message">“%1$s” is removed from this device.</string>
+    <string name="downloads_delete_failed">The file could not be deleted.</string>
+    <!-- 11.3.0: settings -->
+    <string name="setting_section_privacy">Privacy and security</string>
+    <string name="setting_section_home_custom">Home page customization</string>
+    <string name="setting_section_tabs">Tabs and groups</string>
+    <string name="setting_section_appearance">Appearance</string>
+    <string name="setting_section_site">Site settings</string>
+    <string name="setting_section_help">Help and support</string>
+    <string name="setting_section_about">About Foss Explorer</string>
+    <string name="site_group_permissions">Permissions</string>
+    <string name="site_group_content">Content</string>
+    <string name="site_location">Location</string>
+    <string name="site_camera">Camera</string>
+    <string name="site_microphone">Microphone</string>
+    <string name="site_apps_on_device">Apps on device</string>
+    <string name="site_third_party_cookies">Third-party cookies</string>
+    <string name="site_javascript">JavaScript</string>
+    <string name="site_popups">Pop-ups and redirects</string>
+    <string name="site_sound">Sound</string>
+    <string name="site_ads">Ads</string>
+    <string name="site_protected_content">Protected content</string>
+    <string name="site_auto_verify">Auto-verify</string>
+    <string name="site_site_data">On-device site data</string>
+    <string name="site_automatic_downloads">Automatic downloads</string>
+    <string name="site_state_ask">Ask first</string>
+    <string name="site_state_allowed">Allowed</string>
+    <string name="site_state_blocked">Blocked</string>
+    <string name="site_state_muted">Muted</string>
+    <string name="site_state_unavailable">Not available</string>
+    <string name="site_apps_on_device_on">Sites can connect to apps and services on this device</string>
+    <string name="site_ads_off">Block ads and trackers on sites, using the filter list</string>
+    <string name="site_ads_filter_list">Filter list</string>
+    <string name="site_unavailable_title">Not available in Explorer</string>
+    <string name="site_unavailable_text">Explorer shows websites with Android System WebView, which does not offer this to sites. It stays off for every site, so there is nothing to choose here.</string>
+    <string name="site_add_exception_allow">Allow for a specific site</string>
+    <string name="site_add_exception_block">Block for a specific site</string>
+    <string name="site_remove">Remove</string>
+    <string name="site_prompt_allow">Allow</string>
+    <string name="site_prompt_block">Block</string>
+    <string name="site_prompt_location">%1$s wants to use your device\'s location</string>
+    <string name="site_prompt_camera">%1$s wants to use your camera</string>
+    <string name="site_prompt_microphone">%1$s wants to use your microphone</string>
+    <string name="site_prompt_downloads">%1$s wants to download multiple files</string>
+    <string name="site_download_blocked">%1$s was blocked from downloading multiple files</string>
+    <string name="site_auto_revoke_title">Automatically remove permissions</string>
+    <string name="site_auto_revoke_summary">To protect your data, let Explorer remove permissions from sites that you haven\'t visited recently</string>
+    <string name="setting_title_profiles">Profiles</string>
+    <string name="tabs_mode_normal">Tabs</string>
+    <string name="tabs_mode_private">Private tabs</string>
+    <string name="tabs_close_tab">Close tab</string>
+    <string name="tabs_close_all">Close all tabs</string>
+    <string name="tabs_close_all_private">Close private tabs</string>
+    <string name="tabs_close_all_question">Close all tabs?</string>
+    <string name="tabs_close_all_private_question">Close all private tabs?</string>
+    <string name="tabs_close_all_message">The pages in them are not kept.</string>
+    <string name="tabs_close_all_confirm">Close all</string>
+    <string name="tabs_empty_private">No private tabs open</string>
+    <string name="tabs_empty_normal">No tabs open</string>
+    <string name="offline_heading">No internet</string>
+    <string name="offline_suggestions_header">Try:</string>
+    <string name="offline_suggestion_airplane">Turning off airplane mode</string>
+    <string name="offline_suggestion_data">Turning on mobile data or Wi-Fi</string>
+    <string name="offline_suggestion_signal">Checking the signal in your area</string>
+    <string name="dino_heading">Press space to play</string>
+    <string name="menu_state_on">On</string>
+    <string name="menu_state_off">Off</string>
+    <string name="menu_desktop_site">Desktop site</string>
+    <string name="bar_reload">Reload this page</string>
+    <string name="help_email_note">You can email me if it is extremely necessary. But I\'m sorry I may not respond.</string>
+    <string name="help_email_address" translatable="false">rpooi3@duck.com</string>
+    <string name="help_email_subject">Foss Explorer %1$s</string>
+    <string name="help_email_no_app">No e-mail app found. The address was copied.</string>
+    <string name="faq_1_question">How do I make Foss Explorer my default browser?</string>
+    <string name="faq_1_answer">Open the settings of your device, go to Apps, then Default apps, then Browser app, and choose Foss Explorer.</string>
+    <string name="faq_2_question">Where are my downloads?</string>
+    <string name="faq_2_answer">The three-dot menu has a Downloads entry that lists what this browser downloaded. The files are in the Downloads folder of your device.</string>
+    <string name="faq_3_question">What is a private tab?</string>
+    <string name="faq_3_answer">A private tab does not write to the history and is not restored when the browser starts again. Whether it also keeps its cookies apart from normal tabs depends on the WebView of your device; a message says which applies when you open one.</string>
+    <string name="faq_4_question">How do I block ads?</string>
+    <string name="faq_4_answer">Open Site settings, then Ads. While the switch there is off, ads and trackers are blocked with the filter list you choose on the same screen. With \"Add site exception\" you can allow them for a single site.</string>
+    <string name="faq_5_question">Why do websites think I use Google Chrome?</string>
+    <string name="faq_5_answer">Many websites work badly, or not at all, with browsers they do not know. Foss Explorer therefore introduces itself as Chrome on Android, with the Android version of your device. The Desktop site switch in the three-dot menu makes it introduce itself as Chrome on a computer instead.</string>
+    <string name="faq_6_question">I hid the bars. How do I get them back?</string>
+    <string name="faq_6_answer">Tap the small round button in the top corner of the page.</string>
+    <string name="faq_7_question">How do I move my bookmarks to another device?</string>
+    <string name="faq_7_answer">Use Backup in the settings to save your data to a file, copy the file to the other device, and restore it there with Backup.</string>
+    <string name="about_fork_title">Code from FOSS Browser</string>
+    <string name="about_fork_summary">I started Foss Explorer as a fork of FOSS Browser by Gaukler Faun. Since then I have rebuilt its screens after Chromium and Firefox, I keep history and bookmarks in a database laid out like Firefox\'s, and I keep the list of open tabs the way Chromium does. I still use FOSS Browser\'s code for the bookmark filter, the gestures and the backup, and for the parts that load and filter pages: the web view inside a tab, the ad and cookie-banner blockers and the site profiles. That code stays under the AGPL, and I list it under Open source components.</string>
+    <string name="about_developer_title">Developer</string>
+    <string name="about_developer_name" translatable="false">rpooi3</string>
+    <string name="about_github_title" translatable="false">GitHub</string>
+    <string name="about_github_summary" translatable="false">github.com/nadib330</string>
+    <string name="about_codeberg_title" translatable="false">Codeberg</string>
+    <string name="about_codeberg_summary" translatable="false">codeberg.org/rpooi3</string>
+    <string name="about_source_title">Source code of Foss Explorer</string>
+    <string name="about_source_url" translatable="false">https://codeberg.org/rpooi3/FOSS_Explorer</string>
+    <string name="about_source_upstream_title">Source code of FOSS Browser</string>
+    <string name="about_source_upstream_url" translatable="false">https://codeberg.org/Gaukler_Faun/FOSS_Browser</string>
+    <string name="about_license_title">Open source license</string>
+    <string name="about_license_summary">Foss Explorer\'s own code: GNU General Public License, version 3 (GPL-3.0). Code taken from FOSS Browser: GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later).</string>
+    <string name="about_third_party_unreadable">The license text could not be read.</string>
+
+    <!-- 13.2.2: settings laid out after Chromium. Chromium's own texts are in strings_chromium.xml;
+         these are the texts Explorer needs besides them. -->
+    <string name="setting_section_accessibility">Accessibility</string>
+    <string name="settings_expand">Expand</string>
+    <string name="settings_collapse">Collapse</string>
+    <string name="site_list_heading" translatable="false">%1$s (%2$d)</string>
+    <string name="site_prompt_protected">%1$s wants to play protected content</string>
+    <string name="preload_standard_summary">Pages that the site you are on names as a likely next page are loaded ahead. Nothing is sent through Google servers.</string>
+    <string name="preload_unsupported">The Android System WebView on this device cannot preload pages. Update it to use standard preloading.</string>
+    <string name="safe_browsing_standard_summary">Warns you before you open a site that Google Safe Browsing lists as dangerous. Android System WebView does the check.</string>
+    <string name="safe_browsing_none_summary">Does not protect you against dangerous websites.</string>
+    <string name="safe_browsing_note">Safe Browsing is a Google service that Explorer uses through Android System WebView. On a device without Google Play services it may not work, whatever is chosen here.</string>
+    <string name="js_optimizer_note">Android System WebView does not let an app switch the V8 optimizer off. It stays on for every site, so the second choice and site exceptions cannot be used in Explorer.</string>
+    <string name="inactive_tabs_description">Choose when tabs are automatically moved to the inactive section. You find the inactive section at the top of the tab switcher.</string>
+    <string name="inactive_duplicates_summary">Tabs that show a page another tab shows already are moved to the inactive section. One tab per page stays.</string>
+    <plurals name="inactive_auto_close_summary">
+        <item quantity="one">Inactive tabs are closed after %1$d day</item>
+        <item quantity="other">Inactive tabs are closed after %1$d days</item>
+    </plurals>
+    <plurals name="tabs_inactive">
+        <item quantity="one">%1$d inactive tab</item>
+        <item quantity="other">%1$d inactive tabs</item>
+    </plurals>
+    <string name="tabs_inactive_close_all">Close all</string>
+    <string name="accessibility_caret_unavailable">Not available: Android System WebView does not offer caret browsing to apps</string>
+    <string name="accessibility_image_descriptions_unavailable">Not available: the descriptions come from a Google service that only Chrome can use</string>
+    <string name="accessibility_captions_missing">This device has no caption settings.</string>
+    <string name="reader_unavailable">This page cannot be shown in simplified view.</string>
+    <string name="engine_google" translatable="false">Google</string>
+    <string name="engine_google_domain" translatable="false">google.com</string>
+    <string name="engine_brave" translatable="false">Brave</string>
+    <string name="engine_brave_domain" translatable="false">search.brave.com</string>
+    <string name="engine_bing" translatable="false">Microsoft Bing</string>
+    <string name="engine_bing_domain" translatable="false">bing.com</string>
+    <string name="engine_duckduckgo" translatable="false">DuckDuckGo</string>
+    <string name="engine_duckduckgo_domain" translatable="false">duckduckgo.com</string>
+    <string name="engine_ecosia" translatable="false">Ecosia</string>
+    <string name="engine_ecosia_domain" translatable="false">ecosia.org</string>
+    <string name="engine_startpage" translatable="false">Startpage</string>
+    <string name="engine_startpage_domain" translatable="false">startpage.com</string>
+    <string name="engine_startpage_de" translatable="false">Startpage (Deutsch)</string>
+    <string name="engine_startpage_de_domain" translatable="false">startpage.com</string>
+    <string name="engine_qwant" translatable="false">Qwant</string>
+    <string name="engine_qwant_domain" translatable="false">qwant.com</string>
+    <string name="engine_mojeek" translatable="false">Mojeek</string>
+    <string name="engine_mojeek_domain" translatable="false">mojeek.com</string>
+    <string name="engine_searx" translatable="false">Searx</string>
+    <string name="engine_searx_domain" translatable="false">searx.be</string>
+    <string name="engine_more">More search engines</string>
+    <string name="engine_custom">Custom search engine</string>
+    <string name="engine_custom_domain">Use the address of a search page of your choice</string>
+    <string name="engine_custom_hint" translatable="false">https://example.com/search?q=</string>
+    <string name="engine_custom_message">Enter the address of the search page. What you search for is added at its end.</string>
+    <string name="engine_custom_invalid">That is not a web address.</string>
+    <string name="about_application_version" translatable="false">Foss Explorer %1$s</string>
+    <string name="about_legal_summary">Copyright %1$s rpooi3 and the FOSS Browser contributors. Free software under GPL-3.0 and AGPL-3.0.</string>
+    <string name="about_license_gpl">GNU General Public License, version 3</string>
+    <string name="about_license_agpl">GNU Affero General Public License, version 3</string>
+    <string name="about_components_title">Open source components</string>
+    <string name="about_components_summary">The parts by others that Foss Explorer contains, and their licenses</string>
+
+    <!-- 14.2.3 -->
+    <!-- The question before a download. Texts of Firefox for Android (android-components,
+         feature-downloads; MPL-2.0, see third_party/firefox). -->
+    <string name="download_prompt_title">Download file?</string>
+    <string name="download_prompt_title_size">Download file? (%1$s)</string>
+    <string name="download_prompt_download">Download</string>
+    <string name="download_prompt_close">Close</string>
+    <string name="context_menu_embedded_image">Picture embedded in the page</string>
+    <string name="home_custom_description">Give the home page a look of your own. The page you see in a new tab changes; websites do not.</string>
+    <string name="home_wallpaper">Wallpaper</string>
+    <string name="home_wallpaper_pick">Choose a picture</string>
+    <string name="home_wallpaper_none">No wallpaper. Tap to choose a picture from your device.</string>
+    <string name="home_wallpaper_set">A picture of yours is the wallpaper. Tap to choose another.</string>
+    <string name="home_wallpaper_remove">Remove wallpaper</string>
+    <string name="home_wallpaper_failed">This picture could not be read.</string>
+    <string name="home_wallpaper_dim">Darken the wallpaper</string>
+    <string name="home_wallpaper_dim_summary">Keeps the name and the menu button readable on a bright picture</string>
+    <string name="home_color_group">Color</string>
+    <string name="home_color">Background color</string>
+    <string name="home_color_covered">%1$s. Hidden while a wallpaper is set.</string>
+    <string name="home_color_default">Theme</string>
+    <string name="home_color_cream">Cream</string>
+    <string name="home_color_sand">Sand</string>
+    <string name="home_color_olive">Olive</string>
+    <string name="home_color_white">White</string>
+    <string name="home_color_rose">Rose</string>
+    <string name="home_color_sky">Sky</string>
+    <string name="home_color_mint">Mint</string>
+    <string name="home_color_lavender">Lavender</string>
+    <string name="home_color_teal">Teal</string>
+    <string name="home_color_navy">Navy</string>
+    <string name="home_color_black">Black</string>
+    <string name="home_content_group">Content</string>
+    <string name="home_show_logo">Show the name</string>
+    <string name="home_show_shortcuts">Show shortcuts</string>
+    <string name="home_show_shortcuts_summary">The tiles of your bookmarks and the sites you visit</string>
+    <string name="home_start_group">Start page</string>
+    <string name="home_start_page">Open a web page instead</string>
+
+    <!-- 15.0.0 -->
+    <string name="tabs_search_empty">No tabs match your search</string>
+    <!-- The new tab page of a private tab. Chromium's texts (new_tab_otr_not_saved, new_tab_otr_visible,
+         new_tab_otr_third_party_cookie_sublabel; BSD), "Chrome" replaced by "Explorer", their markup taken apart. -->
+    <string name="incognito_ntp_not_saved">Explorer won’t save:</string>
+    <string name="incognito_ntp_not_saved_emphasis">won’t save</string>
+    <string name="incognito_ntp_not_saved_history">Your browsing history</string>
+    <string name="incognito_ntp_not_saved_cookies">Cookies and site data</string>
+    <string name="incognito_ntp_not_saved_forms">Information entered in forms</string>
+    <string name="incognito_ntp_visible">Your activity might still be visible to:</string>
+    <string name="incognito_ntp_visible_emphasis">might still be visible</string>
+    <string name="incognito_ntp_visible_sites">Websites you visit</string>
+    <string name="incognito_ntp_visible_employer">Your employer or school</string>
+    <string name="incognito_ntp_visible_isp">Your internet service provider</string>
+    <string name="incognito_cookies_sublabel">When on, sites can’t use cookies that track you across the web. Features on some sites may break.</string>
+    <!-- The panel behind the shield. Texts of Firefox for Android (fenix strings.xml; MPL-2.0, see third_party/firefox). -->
+    <string name="protection_panel_banner_not_secure_title">Be careful on this site</string>
+    <string name="protection_panel_banner_not_secure_description">Your connection is not secure.</string>
+    <string name="protection_panel_banner_not_protected_title">You turned off protections</string>
+    <string name="protection_panel_banner_not_protected_description">%1$s is off-duty. We suggest turning protections back on.</string>
+    <string name="protection_panel_banner_protected_title">%1$s is on guard</string>
+    <plurals name="protection_panel_banner_protected_blocked_trackers_description">
+        <item quantity="one">%1$d tracker blocked on this site.</item>
+        <item quantity="other">%1$d trackers blocked on this site.</item>
+    </plurals>
+    <string name="protection_panel_banner_protected_no_blocked_trackers_description">You’re protected.</string>
+    <string name="protection_panel_etp_toggle_label">Enhanced Tracking Protection</string>
+    <string name="protection_panel_etp_toggle_enabled_description_2">If something looks broken on this site, try turning it off.</string>
+    <string name="protection_panel_etp_toggle_disabled_description_2">Turning on tracking protection is recommended.</string>
+    <string name="protection_panel_etp_disabled_no_trackers_blocked">Trackers aren’t blocked</string>
+    <string name="protection_panel_privacy_and_security_settings_2">Privacy Settings</string>
+    <plurals name="trackers_blocked_panel_total_num_trackers_blocked_2">
+        <item quantity="one">%1$d tracker blocked on this site</item>
+        <item quantity="other">%1$d trackers blocked on this site</item>
+    </plurals>
+    <string name="connection_security_panel_secure">Secure connection</string>
+    <string name="connection_security_panel_not_secure">Connection not secure</string>
+    <string name="clear_site_data">Clear cookies and site data</string>
+    <string name="clear_site_data_dialog_description">Removing cookies and site data for %1$s might log you out of websites and clear shopping carts.</string>
+    <string name="clear_site_data_dialog_positive_button_text">Clear</string>
+    <string name="clear_site_data_dialog_negative_button_text">Cancel</string>
+</resources>

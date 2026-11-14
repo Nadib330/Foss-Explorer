@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The new tab page of a private tab, laid out like Chromium's Incognito page
+     (incognito_description_layout.xml): dark, the sign, "You've gone Incognito", what is not
+     saved and who can still see what you do, and the card "Block third-party cookies".
+     Always dark, whatever the theme. Filled in by IncognitoPage. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/incognito_page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/incognito_background"
+    android:clickable="true"
+    android:fillViewport="true"
+    android:focusable="false"
+    android:visibility="gone">
+
+    <com.rpooi3.explorer.view.MaxWidthFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:maxWidth="@dimen/home_max_width">
+
+        <LinearLayout
+            android:id="@+id/new_tab_incognito_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="32dp"
+            android:paddingTop="56dp"
+            android:paddingEnd="32dp"
+            android:paddingBottom="32dp">
+
+            <ImageView
+                android:id="@+id/new_tab_incognito_icon"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_gravity="center_horizontal"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_private"
+                app:tint="@color/incognito_text_secondary" />
+
+            <TextView
+                android:id="@+id/new_tab_incognito_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center_horizontal"
+                android:text="@string/cr_incognito_ntp_title"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/incognito_text" />
+
+            <TextView
+                android:id="@+id/new_tab_incognito_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="@string/cr_incognito_ntp_subtitle"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/incognito_text_secondary" />
+
+            <TextView
+                android:id="@+id/new_tab_incognito_features"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:lineSpacingMultiplier="1.3"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/incognito_text_secondary" />
+
+            <TextView
+                android:id="@+id/new_tab_incognito_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingMultiplier="1.3"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/incognito_text_secondary" />
+
+            <!-- Shown on a device whose WebView cannot keep the cookies of private tabs apart. -->
+            <TextView
+                android:id="@+id/new_tab_incognito_shared"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingMultiplier="1.3"
+                android:text="@string/private_tab_shared"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/incognito_text"
+                android:visibility="gone" />
+
+            <!-- Chromium's cookie card. -->
+            <LinearLayout
+                android:id="@+id/cookie_controls_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_incognito_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/cookie_controls_card_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cr_site_cookies_off"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/incognito_text" />
+
+                    <TextView
+                        android:id="@+id/cookie_controls_card_subtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/incognito_cookies_sublabel"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/incognito_text_secondary" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/cookie_controls_card_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:contentDescription="@string/cr_site_cookies_off" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.rpooi3.explorer.view.MaxWidthFrameLayout>
+</ScrollView>

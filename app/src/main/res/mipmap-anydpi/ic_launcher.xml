@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app icon: the logo in two layers (tools/make_icon.py), so that Android can cut it to
+     the outline the launcher uses. Cut round, it is the logo as drawn. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background"/>
+    <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+    <monochrome android:drawable="@drawable/icon_monochrome"/>
+</adaptive-icon>

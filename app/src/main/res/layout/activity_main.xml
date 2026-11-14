@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/main"
+    android:background="?attr/colorSurfaceContainer"
+    tools:ignore="ContentDescription">
+
+    <!-- Top bar. The address bar and the find-in-page bar share this place. -->
+    <FrameLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height"
+        android:layout_alignParentTop="true">
+
+        <include layout="@layout/include_appbar" />
+
+        <include layout="@layout/include_searchbar" />
+
+    </FrameLayout>
+
+    <!-- Bottom bar: home, new tab, tabs. -->
+    <include
+        layout="@layout/include_bottombar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottom_bar_height"
+        android:layout_alignParentBottom="true" />
+
+    <!-- Web pages, between the two bars. Fills the whole height while the
+         bars are hidden (their visibility is then "gone"). -->
+    <FrameLayout
+        android:id="@+id/main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomBar"
+        android:layout_below="@id/topBar"
+        android:layout_alignWithParentIfMissing="true" />
+
+    <include
+        layout="@layout/include_home"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomBar"
+        android:layout_below="@id/topBar"
+        android:layout_alignWithParentIfMissing="true" />
+
+    <!-- The new tab page of a private tab, in place of the home page. -->
+    <include
+        layout="@layout/include_incognito_ntp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomBar"
+        android:layout_below="@id/topBar"
+        android:layout_alignWithParentIfMissing="true" />
+
+    <!-- Brings hidden bars back. Only visible while they are hidden. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_showAppBar"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:backgroundTint="?attr/colorSurfaceContainerHighest"
+        android:importantForAccessibility="no"
+        android:src="@drawable/icon_hide"
+        android:visibility="gone"
+        app:backgroundTint="?attr/colorOutline"
+        app:borderWidth="0.5dp"
+        app:fabCustomSize="@dimen/button_size"
+        app:maxImageSize="@dimen/icon_size" />
+
+    <!-- The tab switcher covers the page and both bars while it is open. -->
+    <include layout="@layout/include_tab_switcher" />
+
+    <!-- Address and search entry; on top of everything while it is open. -->
+    <include layout="@layout/include_search_panel" />
+
+    <!-- Over everything while private tabs are locked. -->
+    <include layout="@layout/include_incognito_lock" />
+
+</RelativeLayout>

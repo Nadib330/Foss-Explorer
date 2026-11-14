@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- About > Legal information (Chromium: legal_information_preferences.xml): the licences of the
+     app, the components it carries, and where the source code is. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <Preference
+            android:key="about_license"
+            android:summary="@string/about_license_summary"
+            android:title="@string/about_license_title" />
+
+        <Preference
+            android:key="about_license_gpl"
+            android:title="@string/about_license_gpl" />
+
+        <Preference
+            android:key="about_license_agpl"
+            android:title="@string/about_license_agpl" />
+
+        <Preference
+            android:key="about_third_party"
+            android:summary="@string/about_components_summary"
+            android:title="@string/about_components_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory>
+
+        <Preference
+            android:key="about_fork"
+            android:summary="@string/about_fork_summary"
+            android:title="@string/about_fork_title"
+            android:selectable="false" />
+
+        <Preference
+            android:key="about_source"
+            android:summary="@string/about_source_url"
+            android:title="@string/about_source_title" />
+
+        <Preference
+            android:key="about_source_upstream"
+            android:summary="@string/about_source_upstream_url"
+            android:title="@string/about_source_upstream_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

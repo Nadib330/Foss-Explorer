@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One page or file in the history, bookmarks or downloads list. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/library_row_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/spacing_large"
+    android:paddingEnd="@dimen/spacing_xsmall">
+
+    <ImageView
+        android:id="@+id/library_icon"
+        android:layout_width="@dimen/library_icon_size"
+        android:layout_height="@dimen/library_icon_size"
+        android:background="@drawable/bg_library_icon"
+        android:importantForAccessibility="no"
+        android:padding="@dimen/spacing_small"
+        android:scaleType="fitCenter" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingVertical="@dimen/spacing_small">
+
+        <TextView
+            android:id="@+id/library_item_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAlignment="viewStart"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/library_item_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAlignment="viewStart"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/library_item_action"
+        android:layout_width="@dimen/bar_button_size"
+        android:layout_height="@dimen/bar_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="?attr/colorOnSurfaceVariant"
+        tools:ignore="ContentDescription" />
+    <!-- Icon and description of the button depend on the screen; the list sets both for every row. -->
+</LinearLayout>

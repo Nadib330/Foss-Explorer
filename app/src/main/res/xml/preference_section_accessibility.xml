@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Accessibility, row for row Chromium's accessibility_preferences.xml. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.rpooi3.explorer.preferences.PageZoomPreference
+        android:key="page_zoom_default_zoom" />
+
+    <PreferenceCategory android:key="accessibility_group">
+
+        <Preference
+            android:key="section_saved_zoom"
+            android:title="@string/cr_zoom_info_title" />
+
+        <SwitchPreferenceCompat
+            android:key="page_zoom_include_os_adjustment"
+            android:summary="@string/cr_page_zoom_os_summary"
+            android:title="@string/cr_page_zoom_os_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:key="page_zoom_always_show"
+            android:summary="@string/cr_page_zoom_always_show_summary"
+            android:title="@string/cr_page_zoom_always_show_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:key="force_enable_zoom"
+            android:summary="@string/cr_force_enable_zoom_summary"
+            android:title="@string/cr_force_enable_zoom_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:key="reader_for_accessibility"
+            android:summary="@string/cr_reader_summary"
+            android:title="@string/cr_reader_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:key="reader_enable_links"
+            android:summary="@string/cr_reader_links_summary"
+            android:title="@string/cr_reader_links_title"
+            android:defaultValue="true"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:key="caret_browsing"
+            android:summary="@string/accessibility_caret_unavailable"
+            android:title="@string/cr_caret_browsing_title"
+            android:defaultValue="false"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <Preference
+            android:key="captions"
+            android:title="@string/cr_captions_title" />
+
+        <Preference
+            android:key="image_descriptions"
+            android:summary="@string/accessibility_image_descriptions_unavailable"
+            android:title="@string/cr_image_descriptions_title" />
+
+        <SwitchPreferenceCompat
+            android:key="touchpad_overscroll_history_navigation"
+            android:summary="@string/cr_touchpad_summary"
+            android:title="@string/cr_touchpad_title"
+            android:defaultValue="true"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

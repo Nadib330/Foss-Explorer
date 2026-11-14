@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App icon for themed icons: ring and needle alone.
+     Written by tools/make_icon.py from art/Explorer_Logo5.jpg. Do not edit by hand. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M54.000,54.000 m-16.312,0 a16.312,16.312 0 1,0 32.625,0 a16.312,16.312 0 1,0 -32.625,0 Z"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3.330" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M64.373,44.438 L56.542,56.498 L44.392,63.608 L51.502,51.502 Z" />
+</vector>
