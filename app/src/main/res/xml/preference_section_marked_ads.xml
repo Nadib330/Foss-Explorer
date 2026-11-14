@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > xGuard > Marked ads (16.1.0). The ads the user marked on the page with a long
+     press and "Mark as ad and hide". SettingsScreens.bindMarkedAds() adds one row per mark and
+     opens the dialog that unmarks it; the last row adds an address by hand. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="marked_ads_group"
+        android:title="@string/marked_ads_title">
+
+        <Preference
+            android:icon="@drawable/icon_plus"
+            android:key="marked_ads_add"
+            android:summary="@string/marked_ads_add_summary"
+            android:title="@string/marked_ads_add_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > xGuard (15.2.1). The screen behind the settings tile of the same name and
+     behind "xGuard settings" in the panel under the shield of the top bar.
+
+     The ad blocker's settings live here now: the switch that turns blocking on for the
+     active profile and the filter list that was nested in Site settings > Ads before.
+     The tracker blocker and the tracking analysis are new, and so is the note at the end.
+
+     SettingsScreens.bindXGuard() fills the rows in; the switch for ads is not persistent,
+     because the ad blocker's choice is kept per profile ("<profile>_adBlock"), the way the
+     profile screen and the engine already read it. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:key="xguard_group_protection"
+        android:title="@string/xguard_group_protection">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_adblock"
+            android:key="xguard_block_ads"
+            android:persistent="false"
+            android:summary="@string/xguard_block_ads_summary_on"
+            android:title="@string/xguard_block_ads_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_shield"
+            android:key="xguard_tracking_blocker"
+            android:summary="@string/xguard_tracking_blocker_summary_off"
+            android:title="@string/xguard_tracking_blocker_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:dependency="xguard_tracking_blocker"
+            android:icon="@drawable/icon_tracking"
+            android:key="xguard_block_analytics"
+            android:summary="@string/xguard_block_analytics_summary"
+            android:title="@string/xguard_block_analytics_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:dependency="xguard_tracking_blocker"
+            android:icon="@drawable/icon_share"
+            android:key="xguard_block_social"
+            android:summary="@string/xguard_block_social_summary"
+            android:title="@string/xguard_block_social_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+    <!-- What xGuard knows: how many hosts, and of what kind. -->
+    <PreferenceCategory
+        android:key="xguard_group_lists"
+        android:title="@string/xguard_group_filter_list">
+
+        <Preference
+            android:icon="@drawable/icon_info"
+            android:key="xguard_trackers_known"
+            android:selectable="false"
+            android:title="@string/xguard_trackers_known" />
+
+        <ListPreference
+            android:icon="@drawable/icon_filter"
+            android:key="ab_hosts"
+            android:title="@string/site_ads_filter_list"
+            app:useSimpleSummaryProvider="false" />
+
+        <Preference
+            android:icon="@drawable/icon_refresh"
+            android:key="xguard_filter_update"
+            android:title="@string/xguard_filter_update_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="xguard_group_sites"
+        android:title="@string/xguard_group_sites">
+
+        <Preference
+            android:icon="@drawable/icon_web"
+            android:key="xguard_site_exceptions"
+            android:summary="@string/xguard_site_exceptions_summary"
+            android:title="@string/xguard_site_exceptions_title" />
+
+    </PreferenceCategory>
+
+    <!-- 16.1.0: the ads marked on a page by a long press, in a screen of their own. -->
+    <PreferenceCategory
+        android:key="xguard_group_marked"
+        android:title="@string/marked_ads_title">
+
+        <Preference
+            android:icon="@drawable/icon_adblock"
+            android:key="section_marked_ads"
+            android:title="@string/marked_ads_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="xguard_group_analysis"
+        android:title="@string/xguard_group_analysis">
+
+        <Preference
+            android:icon="@drawable/icon_search_site"
+            android:key="xguard_analysis_row"
+            android:title="@string/xguard_analysis_row_title" />
+
+        <Preference
+            android:icon="@drawable/icon_delete"
+            android:key="xguard_analysis_clear"
+            android:summary="@string/xguard_analysis_clear_summary"
+            android:title="@string/xguard_analysis_clear_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="xguard_group_note">
+
+        <Preference
+            android:key="xguard_note"
+            android:selectable="false"
+            android:summary="@string/xguard_note_text"
+            android:title="@string/xguard_note_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

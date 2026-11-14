@@ -1,0 +1,195 @@
+# xGuard: the tracker hosts that Foss Explorer knows by name.
+# Part of Foss Explorer, GPL-3.0.
+#
+# One entry per line: <category> <host>
+# The categories are the groups xGuard's settings switch:
+#   analytics    - analytics and measurement beacons
+#   advertising  - ad exchanges, DSPs and retargeting pixels
+#   social       - social plugins and their tracking pixels
+#   fingerprint  - session replay and browser fingerprinting
+#
+# Hosts only, no paths: a host also covers the domains below it, so
+# "doubleclick.net" blocks "ad.doubleclick.net" and "stats.g.doubleclick.net".
+# The list is kept with the app so that xGuard works before the first filter
+# list download and without a network connection.
+
+# --- analytics -------------------------------------------------------------------------------
+analytics   google-analytics.com
+analytics   analytics.google.com
+analytics   ssl.google-analytics.com
+analytics   googletagmanager.com
+analytics   googletagservices.com
+analytics   matomo.cloud
+analytics   piwik.pro
+analytics   statcounter.com
+analytics   quantserve.com
+analytics   quantcount.com
+analytics   scorecardresearch.com
+analytics   imrworldwide.com
+analytics   nielsen.com
+analytics   comscore.com
+analytics   chartbeat.com
+analytics   chartbeat.net
+analytics   parsely.com
+analytics   newrelic.com
+analytics   nr-data.net
+analytics   bugsnag.com
+analytics   sentry.io
+analytics   segment.io
+analytics   segment.com
+analytics   mixpanel.com
+analytics   amplitude.com
+analytics   heap.io
+analytics   heapanalytics.com
+analytics   kissmetrics.com
+analytics   clicky.com
+analytics   hubspot.com
+analytics   hs-analytics.net
+analytics   hubspotlinks.com
+analytics   moatads.com
+analytics   moatpixel.com
+analytics   adloox.com
+analytics   doubleverify.com
+analytics   iasds01.com
+analytics   adsafeprotected.com
+analytics   stats.wp.com
+analytics   pixel.wp.com
+analytics   mc.yandex.ru
+analytics   hit.gemius.pl
+analytics   static.chartbeat.com
+
+# --- advertising -----------------------------------------------------------------------------
+advertising doubleclick.net
+advertising googleadservices.com
+advertising googlesyndication.com
+advertising adservice.google.com
+advertising 2mdn.net
+advertising adnxs.com
+advertising adnxs-simple.com
+advertising appnexus.com
+advertising adsrvr.org
+advertising rubiconproject.com
+advertising pubmatic.com
+advertising openx.net
+advertising casalemedia.com
+advertising criteo.com
+advertising criteo.net
+advertising smartadserver.com
+advertising smartclip.net
+advertising taboola.com
+advertising outbrain.com
+advertising revcontent.com
+advertising mgid.com
+advertising zergnet.com
+advertising adform.net
+advertising adsymptotic.com
+advertising adcolony.com
+advertising unityads.unity3d.com
+advertising applovin.com
+advertising inmobi.com
+advertising vungle.com
+advertising chartboost.com
+advertising ironsrc.com
+advertising tapjoy.com
+advertising supersonicads.com
+advertising fyber.com
+advertising adtelligent.com
+advertising adroll.com
+advertising tribalfusion.com
+advertising media.net
+advertising contextweb.com
+advertising pulsepoint.com
+advertising sovrn.com
+advertising lijit.com
+advertising gumgum.com
+advertising teads.tv
+advertising spotxchange.com
+advertising spotx.tv
+advertising tremorhub.com
+advertising springserve.com
+advertising advertising.com
+advertising convertro.com
+advertising yieldmo.com
+advertising sharethrough.com
+advertising triplelift.com
+advertising indexexchange.com
+advertising 33across.com
+advertising districtm.io
+advertising emxdgt.com
+advertising bidswitch.net
+advertising ipredictive.com
+advertising simpli.fi
+advertising semasio.net
+advertising zeotap.com
+advertising bluekai.com
+advertising demdex.net
+advertising omtrdc.net
+advertising everesttech.net
+advertising krxd.net
+advertising rlcdn.com
+advertising liadm.com
+advertising pippio.com
+advertising tapad.com
+advertising exelator.com
+advertising turnoverr.com
+advertising agkn.com
+advertising mathtag.com
+advertising px.ads.linkedin.com
+advertising bat.bing.com
+advertising ads.yahoo.com
+advertising gemini.yahoo.com
+advertising aax.amazon-adsystem.com
+advertising amazon-adsystem.com
+advertising assoc-amazon.com
+advertising adnami.io
+advertising adpushup.com
+advertising adskeeper.co.uk
+advertising propellerads.com
+advertising popads.net
+advertising popcash.net
+advertising exoclick.com
+advertising trafficjunky.net
+advertising hilltopads.net
+advertising onclckds.com
+advertising adhese.com
+advertising audienzz.ch
+advertising yielded.io
+
+# --- social ----------------------------------------------------------------------------------
+social      connect.facebook.net
+social      facebook.net
+social      pixel.facebook.com
+social      platform.twitter.com
+social      syndication.twitter.com
+social      analytics.twitter.com
+social      ads-twitter.com
+social      platform.linkedin.com
+social      snap.licdn.com
+social      platform.instagram.com
+social      assets.pinterest.com
+social      analytics.tiktok.com
+social      business-api.tiktok.com
+social      alb.reddit.com
+social      top-fwz1.mail.ru
+social      platform.tumblr.com
+
+# --- fingerprint -----------------------------------------------------------------------------
+fingerprint hotjar.com
+fingerprint static.hotjar.com
+fingerprint script.hotjar.com
+fingerprint mouseflow.com
+fingerprint smartlook.com
+fingerprint inspectlet.com
+fingerprint clarity.ms
+fingerprint luckyorange.com
+fingerprint sessioncam.com
+fingerprint clicktale.net
+fingerprint crazyegg.com
+fingerprint userzoom.com
+fingerprint fingerprintjs.com
+fingerprint fpjs.io
+fingerprint fpapi.io
+fingerprint iovation.com
+fingerprint threatmetrix.com
+fingerprint maximizer.live
+fingerprint adsbetnet.com
