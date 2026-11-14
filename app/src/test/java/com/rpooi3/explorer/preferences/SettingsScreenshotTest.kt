@@ -8,7 +8,6 @@ import android.view.View
 import android.widget.EditText
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Activity
-import com.rpooi3.explorer.activity.Settings_Gesture
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,7 +49,7 @@ class SettingsScreenshotTest {
 
     @Test
     @Config(sdk = [34], qualifiers = PHONE)
-    fun settings_gestures() = capture("settings-gestures", Settings_Gesture::class.java)
+    fun settings_markedAds() = capture("settings-marked-ads", Settings_Activity::class.java, "section_marked_ads")
 
     @Test
     @Config(sdk = [34], qualifiers = PHONE)
@@ -94,12 +93,6 @@ class SettingsScreenshotTest {
     @Test
     @Config(sdk = [34], qualifiers = PHONE)
     fun settings_site_ads() = capture("settings-site-ads", Settings_Activity::class.java, siteCategory = "ads")
-
-    /** Site settings > Auto-verify: something WebView does not offer, shown as Chromium has it. */
-    @Test
-    @Config(sdk = [34], qualifiers = TALL)
-    fun settings_site_autoVerify() =
-        capture("settings-site-auto-verify", Settings_Activity::class.java, siteCategory = "auto_verify")
 
     /** Site settings > Sound: both lists, "Muted" and "Allowed". */
     @Test
@@ -151,10 +144,6 @@ class SettingsScreenshotTest {
     @Test
     @Config(sdk = [34], qualifiers = PHONE)
     fun settings_safeBrowsing() = capture("settings-privacy-safe-browsing", Settings_Activity::class.java, "section_safe_browsing")
-
-    @Test
-    @Config(sdk = [34], qualifiers = PHONE)
-    fun settings_jsOptimizer() = capture("settings-privacy-js-optimizer", Settings_Activity::class.java, "section_js_optimizer")
 
     @Test
     @Config(sdk = [34], qualifiers = PHONE)

@@ -29,7 +29,6 @@ import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.rpooi3.explorer.R
-import com.rpooi3.explorer.accessibility.PageZoom
 import com.rpooi3.explorer.browser.BrowserContainer
 import com.rpooi3.explorer.browser.NinjaDownloadListener
 import com.rpooi3.explorer.home.HomeAppearance
@@ -64,6 +63,17 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], qualifiers = "w411dp-h891dp-notnight-xxhdpi")
 class Release1423Test {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -153,7 +163,8 @@ class Release1423Test {
         fun ids(group: Int) = (groups.getChildAt(group) as ViewGroup).let { g -> (0 until g.childCount).map { g.getChildAt(it).id } }
         assertEquals(4, groups.childCount)
         assertEquals("tabs", listOf(R.id.main_new_tab, R.id.main_new_private_tab), ids(0))
-        assertEquals("tools", listOf(R.id.main_share, R.id.main_desktop_site), ids(1))
+        // 16.1.0 (item 19): "Zoom" is in the tools whenever a website is in front.
+        assertEquals("tools", listOf(R.id.main_share, R.id.main_zoom, R.id.main_desktop_site), ids(1))
         assertEquals("library", listOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), ids(2))
         assertEquals(listOf(R.id.main_settings), ids(3))
 
@@ -164,10 +175,13 @@ class Release1423Test {
             }
         }
         assertEquals(
-            setOf("New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Desktop site", "Settings"),
+            setOf(
+                "New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Zoom", "Desktop site",
+                "Settings",
+            ),
             labels.toSet(),
         )
-        assertEquals(8, labels.size)
+        assertEquals(9, labels.size)
 
         // Groups are rounded and cut their rows; rows lie one below the other, 2dp apart.
         val tools = groups.getChildAt(1) as LinearLayout
@@ -234,7 +248,8 @@ class Release1423Test {
             assertEquals(MainMenuSheet.DISABLED_ALPHA, share.alpha, 0f)
             activity.mainMenu.dismiss()
         }
-        prefs.edit().putBoolean(PageZoom.KEY_ALWAYS_SHOW, true).remove("openTabs").commit()
+        // 16.1.0: "Zoom" is always among the tools on a website; no setting is needed for it.
+        prefs.edit().remove("openTabs").commit()
         browser {
             open("https://example.org/")
             val tools = openMenu().findViewById<LinearLayout>(R.id.main_menu_groups).getChildAt(1) as ViewGroup
@@ -301,7 +316,8 @@ class Release1423Test {
         sheet.findViewById<EditText>(R.id.download_filename)!!.setText("  my report  ")
         sheet.findViewById<View>(R.id.download_button)!!.performClick()
         idle()
-        assertEquals("a name without an ending gets one", "my report.bin", manager.onlyRequest().title.toString())
+        // 16.1.0 (item 5): the name typed without an ending gets the ending of the file, not ".bin".
+        assertEquals("a name without an ending gets the one of the file", "my report.pdf", manager.onlyRequest().title.toString())
 
         // An empty name does not start anything, and the question stays.
         NinjaDownloadListener.saveAs(activity, web, "https://example.org/files/report.pdf", null, "application/pdf", 10L)
@@ -321,23 +337,31 @@ class Release1423Test {
 
     @Test
     fun theLongPressMenu_hasChromiumsEntries_inChromiumsOrder() {
+        // 16.1.0: "Mark as ad and hide" ends the menu, in a group of its own.
         assertEquals(
-            listOf(listOf(Item.OPEN_IN_NEW_TAB, Item.OPEN_IN_INCOGNITO_TAB, Item.COPY_LINK_ADDRESS, Item.COPY_LINK_TEXT, Item.SAVE_LINK, Item.SHARE_LINK)),
+            listOf(
+                listOf(Item.OPEN_IN_NEW_TAB, Item.OPEN_IN_INCOGNITO_TAB, Item.COPY_LINK_ADDRESS, Item.COPY_LINK_TEXT, Item.SAVE_LINK, Item.SHARE_LINK),
+                listOf(Item.MARK_AS_AD),
+            ),
             LinkContextMenu.groups(link, privateTab = false),
         )
         assertEquals(
-            listOf(listOf(Item.OPEN_IMAGE_IN_NEW_TAB, Item.COPY_IMAGE, Item.SAVE_IMAGE, Item.SHARE_IMAGE)),
+            listOf(
+                listOf(Item.OPEN_IMAGE_IN_NEW_TAB, Item.COPY_IMAGE, Item.SAVE_IMAGE, Item.SHARE_IMAGE),
+                listOf(Item.MARK_AS_AD),
+            ),
             LinkContextMenu.groups(picture, privateTab = false),
         )
         val both = LinkContextMenu.groups(pictureLink, privateTab = false)
-        assertEquals("a picture that is a link has both groups, the link first", 2, both.size)
+        assertEquals("a picture that is a link has both groups, the link first, and the mark at the end", 3, both.size)
         assertFalse("no text, nothing to copy", Item.COPY_LINK_TEXT in both[0])
         assertFalse("a private tab opens private tabs anyway", Item.OPEN_IN_INCOGNITO_TAB in LinkContextMenu.groups(link, privateTab = true)[0])
         assertTrue(LinkContextMenu.groups(Target(null, null, null), false).isEmpty())
         assertEquals(
             listOf(
-                "Open in new tab", "Open in Incognito tab", "Copy link address", "Copy link text", "Download link", "Share link",
+                "Open in new tab", "Open in private tab", "Copy link address", "Copy link text", "Download link", "Share link",
                 "Open image in new tab", "Copy image", "Download image", "Share image",
+                "Mark as ad and hide",
             ),
             Item.entries.map { context.getString(it.label) },
         )
@@ -356,7 +380,10 @@ class Release1423Test {
         url.performClick()
         assertTrue("a tap shows the address whole", url.maxLines > 1)
         assertEquals(
-            listOf("Open in new tab", "Open in Incognito tab", "Copy link address", "Copy link text", "Download link", "Share link"),
+            listOf(
+                "Open in new tab", "Open in private tab", "Copy link address", "Copy link text", "Download link", "Share link",
+                "Mark as ad and hide",
+            ),
             contextRows(dialog).map { it.text.toString() },
         )
         for (row in contextRows(dialog)) assertEquals("text only, as in Chromium", 0, row.compoundDrawablesRelative.count { it != null })
@@ -364,10 +391,10 @@ class Release1423Test {
 
         val both = activity.showLinkContextMenu(web, pictureLink)!!
         idle()
-        assertEquals(9, contextRows(both).size)
+        assertEquals("five for the link, four for the picture, one mark", 10, contextRows(both).size)
         assertEquals(View.GONE, both.findViewById<View>(R.id.context_menu_title)!!.visibility)
         val rows = both.findViewById<LinearLayout>(R.id.context_menu_rows)!!
-        assertEquals("a line under the header and one between the groups", 2, (0 until rows.childCount).count {
+        assertEquals("a line under the header and one per group", 3, (0 until rows.childCount).count {
             rows.getChildAt(it) is com.google.android.material.divider.MaterialDivider
         })
         both.dismiss()
@@ -403,9 +430,8 @@ class Release1423Test {
         assertEquals("https://example.org/article", chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)!!.getStringExtra(Intent.EXTRA_TEXT))
 
         choose(link, "Download link")
-        assertEquals("the download question", "article.bin", latestSheet().findViewById<EditText>(R.id.download_filename)!!.text.toString().let {
-            if (it.contains('.')) it else "$it.bin"
-        })
+        // 16.1.0 (item 5): the address gives the name; no ".bin" is appended to it.
+        assertEquals("the download question", "article", latestSheet().findViewById<EditText>(R.id.download_filename)!!.text.toString())
         latestSheet().dismiss()
 
         choose(picture, "Open image in new tab")
@@ -414,7 +440,7 @@ class Release1423Test {
         assertEquals("cat.png", latestSheet().findViewById<EditText>(R.id.download_filename)!!.text.toString())
         latestSheet().dismiss()
 
-        choose(link, "Open in Incognito tab")
+        choose(link, "Open in private tab")
         assertTrue("a private tab, in front", web.isPrivateTab)
         assertEquals("https://example.org/article", web.url)
 
@@ -422,7 +448,7 @@ class Release1423Test {
         val before = tabs().size
         val dialog = activity.showLinkContextMenu(web, link)!!
         idle()
-        assertFalse(contextRows(dialog).any { it.text.toString() == "Open in Incognito tab" })
+        assertFalse(contextRows(dialog).any { it.text.toString() == "Open in private tab" })
         contextRows(dialog).first { it.text.toString() == "Open in new tab" }.performClick()
         idle()
         assertEquals(before + 1, tabs().size)
@@ -571,16 +597,20 @@ class Release1423Test {
 
     @Test
     fun theLicences_nameEverything_andSayWhatIsStillFossBrowsers() {
+        // 16.1.0 (item 21): the card "Code from FOSS Browser" is gone from Legal information. The
+        // components asset says which parts are still FOSS Browser's, and the upstream source row
+        // opens its repository.
         settings("section_legal") {
-            assertEquals("Code from FOSS Browser", pref("about_fork").title.toString())
-            val summary = pref("about_fork").summary.toString()
-            for (part in listOf("bookmark filter", "gestures", "backup", "web view inside a tab", "ad and cookie-banner blockers", "AGPL")) {
-                assertTrue(part, summary.contains(part))
-            }
+            assertNull("the fork card is gone", fragment.findPreference<Preference>("about_fork"))
+            assertEquals("Source code of FOSS Browser", pref("about_source_upstream").title.toString())
+            assertEquals(
+                "FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components. Opens the repository.",
+                pref("about_source_upstream").summary.toString(),
+            )
         }
         val components = SettingsScreens.readAsset(context, "licenses/components.txt")!!
         for (part in listOf(
-            "FOSS Browser", "the bookmark filter, the gestures and the backup", "the web view inside a tab that loads the pages",
+            "FOSS Browser: the browser at its base", "the web view inside a tab that loads the pages",
             "Chromium: offline page and dinosaur game", "Chromium: settings, context menu, tabs and Incognito page",
             "Firefox for Android: main menu, download prompt and protection panel", "Mozilla Public License Version 2.0",
             "Readability", "AndroidX", "Material Components for Android", "Kotlin standard library",

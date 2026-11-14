@@ -48,6 +48,17 @@ import org.robolectric.shadows.ShadowNetworkCapabilities
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], qualifiers = "w411dp-h891dp-notnight-xxhdpi")
 class Release1212Test {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
 

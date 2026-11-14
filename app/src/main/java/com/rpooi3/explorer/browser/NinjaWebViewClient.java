@@ -85,6 +85,14 @@ public class NinjaWebViewClient extends WebViewClient {
         // Accessibility: "Force enable zoom" and the offer of the simplified view.
         com.rpooi3.explorer.accessibility.PageHooks.onPageFinished(ninjaWebView, url);
 
+        // 16.1.0, item 20: the marked ads that are elements of the page itself (a picture, a
+        // frame, a link) are hidden here, before the user sees them moving in.
+        final String hideMarked = com.rpooi3.explorer.privacy.MarkedAds.hideScript(context);
+        if (!hideMarked.isEmpty()) view.evaluateJavascript(hideMarked, null);
+
+        // xGuard: the page is done, so its tracking analysis can be read (and kept, unless private).
+        com.rpooi3.explorer.privacy.TrackingAnalysis.onPageFinished(ninjaWebView);
+
         if (ninjaWebView.isSaveData())
             view.evaluateJavascript("var links=document.getElementsByTagName('video'); for(let i=0;i<links.length;i++){links[i].pause()};", null);
 
@@ -140,6 +148,7 @@ public class NinjaWebViewClient extends WebViewClient {
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         // A new page: what was blocked on the page before is not counted for it.
         com.rpooi3.explorer.privacy.TrackingProtection.onPageStarted(ninjaWebView);
+        com.rpooi3.explorer.privacy.TrackingAnalysis.onPageStarted(ninjaWebView);
 
         // Hier definierst du alle Problem-Seiten, bei denen der Android-Treiber abstürzt
         boolean isProblemSite = url.contains("ntv.de") ||
@@ -567,8 +576,13 @@ public class NinjaWebViewClient extends WebViewClient {
 
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        final String url = request.getUrl().toString();
+        final String host = request.getUrl().getHost();
+        // xGuard's tracking analysis sees every request of the page, blocked or not.
+        com.rpooi3.explorer.privacy.TrackingAnalysis.onRequest(ninjaWebView, url, request.isForMainFrame());
+
         // Site setting "Apps on device": a website does not get to load from this device itself.
-        if (!request.isForMainFrame() && !ninjaWebView.mayLoadFrom(request.getUrl().getHost()))
+        if (!request.isForMainFrame() && !ninjaWebView.mayLoadFrom(host))
             return new WebResourceResponse(
                     BrowserUnit.MIME_TYPE_TEXT_PLAIN,
                     BrowserUnit.URL_ENCODING,
@@ -577,16 +591,46 @@ public class NinjaWebViewClient extends WebViewClient {
                     java.util.Collections.emptyMap(),
                     new ByteArrayInputStream(new byte[0])
             );
-        if (ninjaWebView.isAdBlock() && adBlock.isAd(request.getUrl().toString())) {
-            // Counted for the shield of the top bar.
-            com.rpooi3.explorer.privacy.TrackingProtection.onBlocked(ninjaWebView, request.getUrl().toString());
-            return new WebResourceResponse(
-                    BrowserUnit.MIME_TYPE_TEXT_PLAIN,
-                    BrowserUnit.URL_ENCODING,
-                    new ByteArrayInputStream("".getBytes())
-            );
+
+        // 16.1.0, item 20: what the user marked as an ad is stopped like the filter list stops
+        // an ad, on every site and whatever the site's protection is set to. A mark is an
+        // instruction of the user, not a guess of the list.
+        if (com.rpooi3.explorer.privacy.MarkedAds.blocks(context, url)) {
+            com.rpooi3.explorer.privacy.TrackingProtection.onBlocked(ninjaWebView, url);
+            com.rpooi3.explorer.privacy.TrackingAnalysis.onBlocked(ninjaWebView);
+            return blockedResponse();
+        }
+
+        // xGuard, as the panel behind the shield of the top bar shows it: with the site's
+        // protection on, the filter list of the ad blocker and the tracker blocker both work.
+        if (ninjaWebView.isAdBlock()) {
+            if (adBlock.isAd(url)) {
+                // Counted for xGuard's panel.
+                com.rpooi3.explorer.privacy.TrackingProtection.onBlocked(ninjaWebView, url);
+                com.rpooi3.explorer.privacy.TrackingAnalysis.onBlocked(ninjaWebView);
+                return blockedResponse();
+            }
+            // Trackers xGuard knows by name; which kinds are stopped is a setting of its own.
+            final String kind = com.rpooi3.explorer.privacy.TrackerList.kindOf(context, host);
+            if (kind != null) {
+                com.rpooi3.explorer.privacy.TrackingAnalysis.onTracker(ninjaWebView, host, kind);
+                if (com.rpooi3.explorer.privacy.TrackerList.isKindOn(sp, kind)) {
+                    com.rpooi3.explorer.privacy.TrackingProtection.onBlocked(ninjaWebView, url);
+                    com.rpooi3.explorer.privacy.TrackingAnalysis.onBlocked(ninjaWebView);
+                    return blockedResponse();
+                }
+            }
         }
         return super.shouldInterceptRequest(view, request);
+    }
+
+    /** What a blocked request gets: an empty answer, so the page carries on without it. */
+    private static WebResourceResponse blockedResponse() {
+        return new WebResourceResponse(
+                BrowserUnit.MIME_TYPE_TEXT_PLAIN,
+                BrowserUnit.URL_ENCODING,
+                new ByteArrayInputStream("".getBytes())
+        );
     }
     @Override
     public void onFormResubmission(WebView view, @NonNull final Message doNotResend, final Message resend) {

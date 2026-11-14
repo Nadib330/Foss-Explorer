@@ -1,22 +1,24 @@
-Open source components in Foss Explorer
-=======================================
+Open source components in Explorer
+==================================
 
-Foss Explorer's own code is under the GNU General Public License, version 3.
+Explorer's own code is under the GNU General Public License, version 3.
 It contains the parts by others listed here, each under its own license.
 
-FOSS Browser
-  I started Foss Explorer as a fork of FOSS Browser. Since then I have rebuilt
-  its screens (home page, menus, tab switcher, history, bookmarks, downloads,
-  settings) after Chromium and Firefox, moved history and bookmarks into a
-  database laid out like Firefox's, and I keep the list of open tabs the way
-  Chromium does. I still use FOSS Browser's code for:
-    - the bookmark filter, the gestures and the backup;
+FOSS Browser: the browser at its base
+  Explorer was first written on top of FOSS Browser by Gaukler Faun, and parts
+  of that code are still in the app. Since then its screens (home page, menus,
+  tab switcher, history, bookmarks, downloads, settings) have been rebuilt or
+  written anew after Chromium and Firefox, history and bookmarks moved into a
+  database laid out like Firefox's, and the list of open tabs follows the way
+  Chromium keeps it. FOSS Browser's gestures and its bookmark filter are gone.
+  What is still FOSS Browser's:
     - the web view inside a tab that loads the pages (NinjaWebView and its
       WebView clients) and a large part of the browser screen that drives it;
-    - the ad blocker, the cookie-banner blocker and the custom redirects;
-    - the site profiles and the list of saved websites;
+    - the ad blocker with its filter list, the cookie-banner blocker and the
+      custom redirects;
+    - the site profiles that keep the per-site settings, and helper code;
     - the cache of site icons;
-    - saving downloads, deleting browsing data, and helper code.
+    - saving downloads, deleting browsing data, and the backup.
   LICENSE.md in the source code lists the files and how much of each.
   Copyright Gaukler Faun and the FOSS Browser contributors.
   GNU Affero General Public License, version 3 or later.

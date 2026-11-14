@@ -37,6 +37,17 @@ import org.robolectric.shadows.ShadowDialog
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34])
 class BrowserChromeTest {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(ApplicationProvider.getApplicationContext())
 

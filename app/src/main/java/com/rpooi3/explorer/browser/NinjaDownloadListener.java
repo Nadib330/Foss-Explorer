@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
+import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.widget.EditText;
@@ -27,6 +28,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.time.format.DateTimeFormatter;
 
 import com.rpooi3.explorer.R;
@@ -47,23 +49,119 @@ public class NinjaDownloadListener implements DownloadListener {
         this.webView = webView;
     }
 
-    private static String prepareInitialFilename(WebView webView, String url, String customName, String mimeType) {
-        if (customName != null && !customName.isEmpty()) return customName;
-        // Lokale Erzeugung für Blobs und Data-URIs mit Zeitstempel
-        if (url != null && (url.startsWith("blob:") || url.startsWith("data:"))) {
+    /**
+     * The name the sheet offers. The server's own name wins (Content-Disposition), then the
+     * last part of the address, then a name made of the site and the time. The extension is
+     * never invented as ".bin" while the address or the type says what the file is — that
+     * was the bug of 15.2.1 and before, which renamed every download.
+     */
+    private static String prepareInitialFilename(WebView webView, String url, String customName,
+                                                 String contentDisposition, String mimeType) {
+        if (customName != null && !customName.trim().isEmpty()) return customName.trim();
+        String safeUrl = url == null ? "" : url;
+        if (safeUrl.startsWith("blob:") || safeUrl.startsWith("data:")) {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String domain = webView != null ? HelperUtils.domain(webView.getUrl()) : "download";
-            String ext = mimeType != null && mimeType.contains("pdf") ? "pdf" :
-                    mimeType != null && mimeType.contains("image/png") ? "png" :
-                    mimeType != null && mimeType.contains("image/jpeg") ? "jpg" : "bin";
-            return domain + "_" + timestamp + "." + ext;
+            if (domain == null || domain.isEmpty()) domain = "download";
+            String ext = extensionOfMimeType(mimeType);
+            return domain + "_" + timestamp + (ext.isEmpty() ? "" : "." + ext);
         }
-        // Standard-Erkennung für reguläre HTTP/HTTPS Web-Links
-        String guessed = URLUtil.guessFileName(url, null, mimeType);
-        if (guessed.contains("?")) guessed = guessed.substring(0, guessed.indexOf("?"));
-        if (guessed.contains("#")) guessed = guessed.substring(0, guessed.indexOf("#"));
-        return guessed;
+        // What the server says the file is called, and what the address says, if it says more.
+        String fromServer = nameFromDisposition(contentDisposition);
+        String fromUrl = nameFromUrl(safeUrl);
+        String name;
+        if (fromServer != null && !fromServer.isEmpty()) name = fromServer;
+        else if (fromUrl != null && !fromUrl.isEmpty()) name = fromUrl;
+        else name = URLUtil.guessFileName(safeUrl, contentDisposition, mimeType);
+        name = decodeName(name);
+        // 16.1.0 (item 5): a name without an extension takes the real one, from the address or
+        // from the type; nothing is invented.
+        if (!hasExtension(name)) {
+            String ext = extensionOf(nameFromUrl(safeUrl));
+            if (ext.isEmpty()) ext = extensionOfMimeType(mimeType);
+            if (!ext.isEmpty()) name = name + "." + ext;
+        }
+        // The WebView's guess ends in ".bin" when it knows nothing about the file. That ending is
+        // dropped rather than kept: a file called "report" stays "report", and where the address
+        // or the type does give an extension, that one is used.
+        if (name.toLowerCase(Locale.ROOT).endsWith(".bin") && name.length() > 4) {
+            String ext = extensionOf(nameFromUrl(safeUrl));
+            if (ext.isEmpty()) ext = extensionOfMimeType(mimeType);
+            String base = name.substring(0, name.length() - 4);
+            name = ext.isEmpty() ? base : base + "." + ext;
+        }
+        return name;
     }
+
+    /** The file name the server announced ("attachment; filename=..."), decoded; null if none. */
+    private static String nameFromDisposition(String contentDisposition) {
+        if (contentDisposition == null || contentDisposition.isEmpty()) return null;
+        // filename*=UTF-8''name and filename="name"
+        java.util.regex.Matcher extended = java.util.regex.Pattern
+                .compile("filename\\*\\s*=\\s*[^']*''([^;]+)", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(contentDisposition);
+        if (extended.find()) return safeDecode(extended.group(1).trim().replace("\"", ""));
+        java.util.regex.Matcher plain = java.util.regex.Pattern
+                .compile("filename\\s*=\\s*\"?([^\";]+)\"?", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(contentDisposition);
+        if (plain.find()) return safeDecode(plain.group(1).trim());
+        return null;
+    }
+
+    /** The last part of [url], without the query, decoded; null if it is not a name. */
+    private static String nameFromUrl(String url) {
+        if (url == null || url.isEmpty()) return null;
+        try {
+            String path = url;
+            int query = path.indexOf('?');
+            if (query >= 0) path = path.substring(0, query);
+            int hash = path.indexOf('#');
+            if (hash >= 0) path = path.substring(0, hash);
+            int slash = path.lastIndexOf('/');
+            if (slash >= 0) path = path.substring(slash + 1);
+            String name = safeDecode(path).trim();
+            if (name.isEmpty() || name.equals(".") || name.equals("..")) return null;
+            if (!name.contains(".")) return null;
+            return name;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String safeDecode(String text) {
+        try {
+            return android.net.Uri.decode(text);
+        } catch (Exception e) {
+            return text;
+        }
+    }
+
+    private static String decodeName(String name) {
+        String decoded = safeDecode(name);
+        return decoded == null || decoded.isEmpty() ? name : decoded;
+    }
+
+    /** The extension of [name] in lower case, without the dot; empty if it has none. */
+    private static String extensionOf(String name) {
+        if (name == null) return "";
+        int dot = name.lastIndexOf('.');
+        if (dot < 0 || dot == name.length() - 1) return "";
+        String ext = name.substring(dot + 1).toLowerCase(Locale.ROOT);
+        return ext.matches("[a-z0-9]{1,8}") ? ext : "";
+    }
+
+    private static boolean hasExtension(String name) {
+        return !extensionOf(name).isEmpty();
+    }
+
+    /** The extension of [mimeType] ("image/png" -> "png"); empty if Android does not know it. */
+    private static String extensionOfMimeType(String mimeType) {
+        if (mimeType == null) return "";
+        String type = mimeType.split(";")[0].trim();
+        String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
+        return ext == null ? "" : ext.toLowerCase(Locale.ROOT);
+    }
+
     // Erforderliche Interface-Methode vollständig implementiert
     @Override
     public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
@@ -74,12 +172,12 @@ public class NinjaDownloadListener implements DownloadListener {
             if (webView instanceof NinjaWebView tab && tab.isFurtherDownload()) {
                 final String site = tab.getUrl();
                 SitePermissions.request(activity, SiteCategory.AUTOMATIC_DOWNLOADS, site, !tab.isPrivateTab(), allowed -> {
-                    if (allowed) saveAs(activity, webView, url, null, mimeType, contentLength);
+                    if (allowed) saveAs(activity, webView, url, null, contentDisposition, mimeType, contentLength);
                     else CatToast.show(activity, activity.getString(R.string.site_download_blocked, SiteSettings.site(site)));
                 });
                 return;
             }
-            saveAs(activity, webView, url, null, mimeType, contentLength);
+            saveAs(activity, webView, url, null, contentDisposition, mimeType, contentLength);
         } else {
             Log.e("Foss Explorer", "Context is not an Activity, cannot show saveAs dialog.");
         }
@@ -87,7 +185,13 @@ public class NinjaDownloadListener implements DownloadListener {
 
     /** Asks before a download whose size is not known (a link the user chose to save). */
     public static void saveAs(final Activity activity, final WebView webView, final String url, final String name, final String mimeType) {
-        saveAs(activity, webView, url, name, mimeType, -1);
+        saveAs(activity, webView, url, name, null, mimeType, -1);
+    }
+
+    /** As above, with the name the server announced in [contentDisposition]. */
+    public static void saveAs(final Activity activity, final WebView webView, final String url, final String name,
+                              final String contentDisposition, final String mimeType) {
+        saveAs(activity, webView, url, name, contentDisposition, mimeType, -1);
     }
 
     /**
@@ -99,9 +203,14 @@ public class NinjaDownloadListener implements DownloadListener {
      */
     public static void saveAs(final Activity activity, final WebView webView, final String url, final String name,
                               final String mimeType, final long contentLength) {
+        saveAs(activity, webView, url, name, null, mimeType, contentLength);
+    }
+
+    public static void saveAs(final Activity activity, final WebView webView, final String url, final String name,
+                              final String contentDisposition, final String mimeType, final long contentLength) {
         if (url == null) return;
         try {
-            final String filename = prepareInitialFilename(webView, url, name, mimeType);
+            final String filename = prepareInitialFilename(webView, url, name, contentDisposition, mimeType);
             final BottomSheetDialog sheet = new BottomSheetDialog(activity);
             final View view = View.inflate(activity, R.layout.sheet_download, null);
             final TextView title = view.findViewById(R.id.download_title);
@@ -112,7 +221,9 @@ public class NinjaDownloadListener implements DownloadListener {
             nameView.setText(filename);
             view.findViewById(R.id.download_close).setOnClickListener(v -> sheet.dismiss());
             view.findViewById(R.id.download_button).setOnClickListener(v -> {
-                final String chosen = cleanFileName(nameView.getText().toString());
+                // 16.1.0 (item 5): the name keeps the extension of the file. A name the user typed
+                // without one gets the extension of the file rather than a made-up ".bin".
+                final String chosen = keepExtension(cleanFileName(nameView.getText().toString()), filename);
                 if (chosen.isEmpty()) {
                     CatToast.show(activity, activity.getString(R.string.toast_input_empty), 3);
                     return;
@@ -129,18 +240,29 @@ public class NinjaDownloadListener implements DownloadListener {
         }
     }
 
-    /** A name a file can have: no line breaks or path separators; ".bin" if it has no extension. */
+    /**
+     * A name a file can have: no line breaks or path separators. The name the user chose is
+     * kept as it is, extension and all; a name without an extension stays without one.
+     */
     static String cleanFileName(final String typed) {
         String name = typed == null ? "" : typed.replaceAll("[\\r\\n\\t]", " ").replace("/", "_").replace("\\", "_").trim();
-        if (name.isEmpty() || name.equals(".")) return "";
-        final int dot = name.lastIndexOf('.');
-        if (dot <= 0 || dot == name.length() - 1) name = (dot == name.length() - 1 ? name.substring(0, dot) : name) + ".bin";
+        if (name.isEmpty() || name.equals(".") || name.equals("..")) return "";
+        // A trailing dot would make Android hide the file.
+        while (name.endsWith(".")) name = name.substring(0, name.length() - 1);
         return name;
+    }
+
+    /** [chosen] with the extension of [initial] if the user typed a name without one. */
+    static String keepExtension(final String chosen, final String initial) {
+        if (chosen == null || chosen.isEmpty() || hasExtension(chosen)) return chosen;
+        final String ext = extensionOf(initial);
+        return ext.isEmpty() ? chosen : chosen + "." + ext;
     }
 
     /** Saves [url] to Downloads as [finalFileName]: pages' own data by script, everything else by the system's download manager. */
     static void startDownload(final Activity activity, final WebView webView, final String url, final String finalFileName, final String mimeType) {
-        final String extInput = finalFileName.substring(finalFileName.lastIndexOf('.'));
+        final int lastDot = finalFileName.lastIndexOf('.');
+        final String extInput = lastDot > 0 ? finalFileName.substring(lastDot) : "";
         // Android 8/9 need the storage permission before anything can be written to Downloads.
         if (!StorageCompat.ensureDownloadsWritable(activity)) return;
         // VERARBEITUNG NACH DEM OK-KLICK
@@ -184,8 +306,10 @@ public class NinjaDownloadListener implements DownloadListener {
                 r.addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url));
                 r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 r.setTitle(finalFileName);
-                String cleanExt = extInput.length() > 1 ? extInput.substring(1).toLowerCase() : "";
-                r.setMimeType(android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(cleanExt));
+                String cleanExt = extInput.length() > 1 ? extInput.substring(1).toLowerCase(Locale.ROOT) : "";
+                String type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(cleanExt);
+                // Without an extension the type the server announced keeps the file openable.
+                r.setMimeType(type != null ? type : mimeType);
                 r.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, finalFileName);
                 DownloadManager m = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
                 if (m != null) m.enqueue(r);

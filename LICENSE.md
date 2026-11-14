@@ -1,13 +1,13 @@
 # License
 
-Foss Explorer is free software. It began as a fork of FOSS Browser, and a
+Explorer is free software. It is built on the code of FOSS Browser, and a
 little under half of its code is still FOSS Browser's (the section "What is still FOSS
 Browser's code" below says which). So two licences of the GNU family apply to
 it, and the licences of the parts taken from Chromium, Firefox and Mozilla:
 
 | Part | Licence | Text |
 | ---- | ------- | ---- |
-| Everything written for Foss Explorer (the fork's own code, layouts, texts, tests, tools) | **GNU General Public License, version 3 (GPL-3.0)** | [COPYING](COPYING) |
+| Everything written for Explorer (its own code, layouts, texts, tests, tools) | **GNU General Public License, version 3 (GPL-3.0)** | [COPYING](COPYING) |
 | Everything taken from [FOSS Browser](https://codeberg.org/Gaukler_Faun/FOSS_Browser) | GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later) | [COPYING.AGPL](COPYING.AGPL) |
 | The offline page and its dinosaur game, from the Chromium project | BSD 3-clause | [third_party/chromium-neterror/LICENSE](third_party/chromium-neterror/LICENSE) |
 | Settings texts, row layouts and icons, from the Chromium project | BSD 3-clause | [third_party/chromium-settings/LICENSE](third_party/chromium-settings/LICENSE) |
@@ -17,18 +17,20 @@ it, and the licences of the parts taken from Chromium, Firefox and Mozilla:
 | Readability, from Mozilla (the simplified view) | Apache License 2.0 | [third_party/readability/LICENSE.md](third_party/readability/LICENSE.md) |
 | AndroidX, Material Components, the Kotlin standard library and Material Design Icons, which the build adds | Apache License 2.0 | (in the app under Settings, About, Legal information, Open source components) |
 | Search engine logos | trademarks of their owners, not licensed by this project | see "Search engine logos" below |
-| App icon and logo (`art/Explorer_Logo5.jpg` and what `tools/make_icon.py` makes of it) | part of Foss Explorer, GPL-3.0 | [COPYING](COPYING) |
+| App icon and logo (`art/Explorer_Logo5.jpg` and what `tools/make_icon.py` makes of it) | part of Explorer, GPL-3.0 | [COPYING](COPYING) |
 
 ## What is still FOSS Browser's code
 
-Foss Explorer does not look like FOSS Browser any more: the home page, the
+Explorer does not look like FOSS Browser any more: the home page, the
 bars and menus, the tab switcher, history, bookmarks, downloads and the
 settings were written anew, after Chromium and Firefox. Under these screens a
 good part of FOSS Browser is still at work, and it stays under the AGPL:
 
-- **Bookmark filter, gestures and backup**, used as FOSS Browser wrote them
-  (`Settings_Filter`, `Settings_Gesture`, `Settings_Backup`, their fragments,
-  `BackupUtils`, `CustomItemsUtils`, `SwipeTouchListener`).
+- **Backup and the list of saved websites**, used as FOSS Browser wrote them
+  (`Settings_Backup`, `Fragment_settings_Backup`, `BackupUtils`,
+  `CustomItemsUtils`, `Settings_ProfileList`, `List_standard`). FOSS Browser's
+  gestures and its bookmark filter were removed in 16.1.0, together with the
+  screens and classes behind them.
 - **The web view inside a tab**: `NinjaWebView` and its clients
   `NinjaWebViewClient`, `NinjaWebChromeClient`, `NinjaDownloadListener`,
   `WebAppInterface`, and three quarters of `BrowserActivity`, the screen that
@@ -47,8 +49,10 @@ good part of FOSS Browser is still at work, and it stays under the AGPL:
   `BrowserUnit`).
 
 Measured with `tools/upstream_audit.py`, which asks git where every line of
-`app/src/main/java` comes from: of 18,377 lines in 103 files, **8,500 lines
-(46 %) in 44 files are FOSS Browser's**. File by file:
+`app/src/main/java` comes from; the numbers are those of 15.2.1, before the
+gestures and the bookmark filter were removed in 16.1.0: of 18,377 lines in
+103 files, **8,500 lines (46 %) in 44 files are FOSS Browser's**.
+File by file:
 
 | File (under `com/rpooi3/explorer/`) | Lines from FOSS Browser | Share |
 | --- | --- | --- |
@@ -78,16 +82,12 @@ Measured with `tools/upstream_audit.py`, which asks git where every line of
 | `activity/Settings_Clear.java` | 94 of 100 | 94 % |
 | `view/AdapterTabs.java` | 92 of 99 | 92 % |
 | `unit/CustomItemsUtils.java` | 85 of 87 | 97 % |
-| `view/SwipeTouchListener.java` | 69 of 71 | 97 % |
 | `browser/List_standard.java` | 62 of 66 | 93 % |
 | `browser/WebAppInterface.java` | 62 of 71 | 87 % |
 | `activity/Settings_Backup.java` | 61 of 66 | 92 % |
 | `view/AdapterMenu.java` | 61 of 64 | 95 % |
 | `database/Record.java` | 59 of 61 | 96 % |
 | `activity/Settings_Profile.java` | 58 of 63 | 92 % |
-| `fragment/Fragment_settings_Gesture.java` | 58 of 61 | 95 % |
-| `activity/Settings_Filter.java` | 57 of 62 | 91 % |
-| `activity/Settings_Gesture.java` | 57 of 62 | 91 % |
 | `activity/Settings_Activity.java` | 51 of 111 | 45 % |
 | `preferences/BasePreferenceFragment.java` | 48 of 73 | 65 % |
 | `view/AdapterProfileList.java` | 47 of 49 | 95 % |
@@ -95,36 +95,35 @@ Measured with `tools/upstream_audit.py`, which asks git where every line of
 | `activity/ActivityCustomSearches.java` | 18 of 19 | 94 % |
 | `activity/ActivityShare.java` | 18 of 19 | 94 % |
 | `view/CatToast.java` | 13 of 25 | 52 % |
-| `fragment/Fragment_settings_Filter.java` | 10 of 13 | 76 % |
 
-The other 59 files contain no line of FOSS Browser. Layouts and other
-resources of FOSS Browser are in use as well, mostly for the screens named
-above. Whether to call Foss Explorer a fork is a matter of words; that it is a
-work derived from FOSS Browser, and has to keep its licence and its authors'
-names, follows from this list.
+The other files contain no line of FOSS Browser. Layouts and other resources
+of FOSS Browser are in use as well, mostly for the screens named above.
+Explorer is not a copy of FOSS Browser any more, but it is a work derived from
+it, and has to keep its licence and its authors' names; that follows from this
+list.
 
 ## Why not GPL-3.0 for all of it
 
 FOSS Browser is published by Gaukler Faun and its contributors under the
 AGPL, version 3 or later (see `LICENSE.md` in the upstream repository). Only
 the holders of that copyright can publish their code under another licence. A
-fork cannot do it for them, so that code stays under the AGPL here.
+derivative work cannot do it for them, so that code stays under the AGPL here.
 
-What a fork can choose is the licence of what it adds. That is GPL-3.0, as the
-developer of Foss Explorer decided for release 12.1.2. The two licences were
+What such a work can choose is the licence of what it adds. That is GPL-3.0, as the
+developer of Explorer decided for release 12.1.2. The two licences were
 written to work together: section 13 of each allows a GPL-3.0 work and an
 AGPL-3.0 work to be combined into one program and distributed as such. Each
 part keeps its own licence in the combination.
 
 ## What this means in practice
 
-- Anyone may use, study, change and pass on Foss Explorer.
+- Anyone may use, study, change and pass on Explorer.
 - Who passes it on, changed or not, has to pass on the source code as well,
   under these same licences.
 - A file that existed in FOSS Browser and was changed here contains code under
   both licences. Treat such a file as AGPL-3.0-or-later, unless you take only
-  the lines added by Foss Explorer.
-- Files that exist only in Foss Explorer are GPL-3.0. Under
+  the lines added by Explorer.
+- Files that exist only in Explorer are GPL-3.0. Under
   `app/src/main/java/com/rpooi3/explorer/` these are the packages `site`,
   `home`, `library`, `downloads`, `compat`, `theme`, `privacy`,
   `accessibility`, `tabs` and `search`, and the
@@ -152,9 +151,9 @@ part keeps its own licence in the combination.
   FOSS Browser code. For an app installed on a phone it does not come into
   play.
 
-Foss Explorer is a modified version of FOSS Browser. Copyright of the original
+Explorer is a modified version of FOSS Browser's code. Copyright of the original
 work remains with Gaukler Faun and the FOSS Browser contributors.
-Modifications for Foss Explorer were first made in November 2026. Foss
+Modifications for Explorer were first made in November 2026. Foss
 Explorer is not affiliated with or endorsed by the upstream project.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -176,7 +175,7 @@ Kotlin port of Chromium's `TabList` and `TabModel` and carries Chromium's
 notice. The tab switcher (`include_tab_switcher.xml`, `item_tab_card.xml`,
 `view/TabSwitcher.kt`) and the new tab page of a private tab
 (`include_incognito_ntp.xml`, `home/IncognitoPage.kt`) follow Chromium's
-arrangement and use its texts; they are written for Foss Explorer.
+arrangement and use its texts; they are written for Explorer.
 
 **Mozilla application-services: the Places database**
 `third_party/application-services/`, from
@@ -187,7 +186,7 @@ contributors. Mozilla Public License, version 2.0.
 unchanged; `database/places/PlacesHash.kt` is a Kotlin port of `hash.rs` and
 is under the MPL as well. `database/places/PlacesDatabase.kt`,
 `database/places/Places.kt` and `database/RecordAction.kt` are written for
-Foss Explorer. Firefox's component itself (Rust, a native library) is not
+Explorer. Firefox's component itself (Rust, a native library) is not
 part of the app; `third_party/application-services/README.md` says what that
 means.
 
@@ -196,14 +195,14 @@ The panel behind the shield of the top bar (`view/ProtectionPanel.kt`,
 `sheet_protection.xml`) follows the protection panel of Firefox for Android
 and uses its texts (`protection_panel_*`, `connection_security_panel_*`,
 `clear_site_data*`, `trackers_blocked_panel_*` in `strings.xml`; MPL-2.0, see
-`third_party/firefox`). The code is written for Foss Explorer.
+`third_party/firefox`). The code is written for Explorer.
 
 **Chromium context menu**
 The menu of a long press on a link or a picture (`view/LinkContextMenu.kt`,
 `res/layout/dialog_context_menu.xml`) has the entries, the order and the texts
 of the context menu of Chromium for Android; the texts are in
 `strings_chromium.xml` with the other Chromium texts (`cr_contextmenu_*`). The
-code and the layout are written for Foss Explorer.
+code and the layout are written for Explorer.
 
 **Firefox for Android: main menu and download prompt**
 `third_party/firefox/`, from <https://github.com/mozilla-firefox/firefox> at
@@ -227,7 +226,7 @@ replaced by "Explorer"), the drawables `app/src/main/res/drawable/cr_*.xml`
 `preference_radio_row.xml`, `preference_page_zoom.xml`,
 `include_page_zoom_slider.xml`, `dialog_page_zoom.xml`,
 `preference_text_message.xml` and `preference_expand_widget.xml`, which
-follow Chromium's arrangement and are written for Foss Explorer. The licence
+follow Chromium's arrangement and are written for Explorer. The licence
 text can be read in the app under Settings, About, Legal information, "Open
 source components".
 

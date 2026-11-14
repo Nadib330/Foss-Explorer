@@ -13,6 +13,7 @@ import android.os.Build
 import android.provider.Settings
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import com.rpooi3.explorer.site.SiteCategoryFragment
 import androidx.preference.PreferenceCategory
@@ -22,10 +23,17 @@ import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.rpooi3.explorer.R
+import com.rpooi3.explorer.activity.Settings_Activity
+import com.rpooi3.explorer.browser.AdBlock
 import com.rpooi3.explorer.accessibility.PageZoom
 import com.rpooi3.explorer.privacy.IncognitoLock
+import com.rpooi3.explorer.privacy.MarkedAds
 import com.rpooi3.explorer.privacy.PrivacySettings
+import com.rpooi3.explorer.privacy.TrackerList
+import com.rpooi3.explorer.privacy.TrackingAnalysis
 import com.rpooi3.explorer.search.SearchEngines
+import com.rpooi3.explorer.site.SiteCategory
+import com.rpooi3.explorer.site.SiteSettings
 import com.rpooi3.explorer.tabs.InactiveTabs
 import com.rpooi3.explorer.view.CatToast
 
@@ -49,6 +57,8 @@ object SettingsScreens {
         bindTabs(fragment)
         bindAccessibility(fragment)
         bindSavedZoom(fragment)
+        bindXGuard(fragment)
+        bindMarkedAds(fragment)
         bindSearchEngines(fragment)
         bindAbout(fragment)
     }
@@ -215,12 +225,8 @@ object SettingsScreens {
             links?.isEnabled = value == true
             true
         }
-        // Not offered to apps by Android System WebView: shown as Chromium has them, switched off.
-        fragment.findPreference<SwitchPreferenceCompat>("caret_browsing")?.apply {
-            isChecked = false
-            isEnabled = false
-        }
-        fragment.findPreference<Preference>("image_descriptions")?.isEnabled = false
+        // 16.1.0: "Navigate pages with a text cursor when a keyboard is attached" and
+        // "Get image descriptions from Google" are no longer in the list (item 15).
     }
 
     private fun bindSavedZoom(fragment: PreferenceFragmentCompat) {
@@ -353,6 +359,236 @@ object SettingsScreens {
             .setNegativeButton(R.string.app_cancel, null)
             .setPositiveButton(R.string.app_ok) { _, _ -> onDone(input.text?.toString().orEmpty()) }
             .show()
+    }
+
+    // xGuard ---------------------------------------------------------------------------------
+
+    /** The filter list whose entry is the list the ad blocker works with. */
+    private const val FILTER_LIST = "ab_hosts"
+
+    /** The list Explorer has always fetched first, kept as the default (StevenBlack's unified hosts). */
+    private const val DEFAULT_FILTER_LIST = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+
+    /**
+     * Settings > xGuard (15.2.1): the ad blocker's switch and filter list, which moved here
+     * from the profile and from Site settings > Ads, the tracker blocker by kind, and the
+     * tracking analysis of pages.
+     */
+    private fun bindXGuard(fragment: PreferenceFragmentCompat) {
+        val context = fragment.requireContext()
+        // Only the xGuard screen has these rows; every other screen is left alone.
+        if (fragment.findPreference<Preference>("xguard_trackers_known") == null) return
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+
+        // The ad blocker: one switch for the profile in use, stored as the engine reads it.
+        fragment.findPreference<SwitchPreferenceCompat>("xguard_block_ads")?.let { row ->
+            fun refresh() {
+                row.isChecked = SiteSettings.isOn(prefs, SiteCategory.ADS)
+                row.setSummary(
+                    if (row.isChecked) R.string.xguard_block_ads_summary_on
+                    else R.string.xguard_block_ads_summary_off,
+                )
+            }
+            refresh()
+            row.setOnPreferenceChangeListener { _, value ->
+                val on = value == true
+                SiteSettings.setOn(prefs, SiteCategory.ADS, on)
+                // Turning blocking on fetches the filter list, as the profile screen did.
+                if (on) AdBlock(context).triggerHostsDownload(context)
+                fragment.view?.post { refresh() }
+                true
+            }
+        }
+
+        // What xGuard knows, and what of it is in force.
+        fun kindCounts(): String = TrackerList.entries(context).values
+            .groupingBy { it }.eachCount().entries.sortedWith(compareBy({ -it.value }, { it.key }))
+            .joinToString(", ") { (kind, count) -> TrackingAnalysis.kindName(context, kind) + " " + count }
+
+        fragment.findPreference<Preference>("xguard_trackers_known")?.summary =
+            context.getString(R.string.xguard_trackers_known_summary, TrackerList.count(context), kindCounts())
+
+        val trackerSwitch = fragment.findPreference<SwitchPreferenceCompat>("xguard_tracking_blocker")
+        trackerSwitch?.let { row ->
+            fun refresh() {
+                row.isChecked = TrackerList.isOn(prefs)
+                row.summary = if (row.isChecked) {
+                    val kinds = TrackerList.blockedKinds(prefs)
+                        .joinToString(", ") { TrackingAnalysis.kindName(context, it) }
+                    context.getString(R.string.xguard_tracking_blocker_summary_on, TrackerList.count(context), kinds)
+                } else {
+                    context.getString(R.string.xguard_tracking_blocker_summary_off)
+                }
+            }
+            refresh()
+            row.setOnPreferenceChangeListener { _, value ->
+                prefs.edit { putBoolean(TrackerList.KEY_TRACKING_BLOCKER, value == true) }
+                fragment.view?.post { refresh() }
+                true
+            }
+        }
+
+        // The kinds with a switch of their own.
+        listOf(
+            "xguard_block_analytics" to TrackerList.KEY_BLOCK_ANALYTICS,
+            "xguard_block_social" to TrackerList.KEY_BLOCK_SOCIAL,
+        ).forEach { (key, stored) ->
+            fragment.findPreference<SwitchPreferenceCompat>(key)?.setOnPreferenceChangeListener { row, value ->
+                prefs.edit { putBoolean(stored, value == true) }
+                fragment.view?.post { bindXGuard(fragment) }
+                true
+            }
+        }
+
+        // The filter list, which sat in Site settings > Ads before 15.2.1.
+        fragment.findPreference<ListPreference>(FILTER_LIST)?.let { list ->
+            list.setEntries(R.array.setting_entries_adBlock)
+            list.setEntryValues(R.array.setting_values_adBlock)
+            if (list.value.isNullOrEmpty()) list.value = DEFAULT_FILTER_LIST
+            list.summaryProvider = Preference.SummaryProvider<ListPreference> {
+                val date = AdBlock.getHostsDate(context).orEmpty().trim()
+                val name = it.entry?.toString().orEmpty()
+                if (date.isEmpty()) name else "$date:\n$name"
+            }
+            list.setOnPreferenceChangeListener { _, _ ->
+                // The new list is fetched once the new value is stored.
+                fragment.view?.post { AdBlock(context).triggerHostsDownload(context) }
+                true
+            }
+        }
+
+        fragment.findPreference<Preference>("xguard_filter_update")?.let { row ->
+            val date = AdBlock.getHostsDate(context).orEmpty().trim()
+            row.summary = if (date.isEmpty()) context.getString(R.string.xguard_filter_update_summary_off)
+            else context.getString(R.string.xguard_filter_update_summary_on, date)
+            row.setOnPreferenceClickListener {
+                AdBlock(context).triggerHostsDownload(context)
+                CatToast.show(context, R.string.xguard_filter_update_toast, 0)
+                true
+            }
+        }
+
+        // Which sites may load ads and trackers: the exceptions Chromium lists for "Ads".
+        fragment.findPreference<Preference>("xguard_site_exceptions")?.setOnPreferenceClickListener {
+            context.startActivity(
+                Intent(context, Settings_Activity::class.java)
+                    .putExtra(Settings_Activity.EXTRA_SITE_CATEGORY, SiteCategory.ADS.key),
+            )
+            true
+        }
+
+        // How many ads the user marked, and the screen that manages them.
+        fragment.findPreference<Preference>("section_marked_ads")?.summary =
+            if (MarkedAds.count(context) == 0) context.getString(R.string.marked_ads_none)
+            else context.getString(R.string.marked_ads_summary, MarkedAds.count(context))
+
+        // The tracking analysis of the last page, and forgetting it.
+        fragment.findPreference<Preference>("xguard_analysis_row")?.let { row ->
+            row.summary = TrackingAnalysis.lastReportSummary(context)
+            row.setOnPreferenceClickListener {
+                val activity = fragment.activity
+                if (activity != null) TrackingAnalysis.showLastReport(activity)
+                true
+            }
+        }
+        fragment.findPreference<Preference>("xguard_analysis_clear")?.setOnPreferenceClickListener {
+            TrackingAnalysis.clear(context)
+            CatToast.show(context, R.string.xguard_analysis_cleared_toast, 0)
+            fragment.findPreference<Preference>("xguard_analysis_row")?.summary =
+                TrackingAnalysis.lastReportSummary(context)
+            bindXGuard(fragment)
+            true
+        }
+    }
+
+    // Marked ads -----------------------------------------------------------------------------
+
+    /**
+     * Settings > xGuard > Marked ads (16.1.0): one row per ad marked on a page, which opens the
+     * question to unmark it, and the row that adds an address by hand.
+     */
+    private fun bindMarkedAds(fragment: PreferenceFragmentCompat) {
+        if (fragment.arguments?.getString("section") != "section_marked_ads") return
+        val context = fragment.requireContext()
+        val screen = fragment.preferenceScreen ?: return
+        val group = screen.findPreference<PreferenceCategory>("marked_ads_group") ?: return
+        // The rows of the marks are built again on every bind.
+        for (i in group.preferenceCount - 1 downTo 0) {
+            val row = group.getPreference(i)
+            if (row.key?.startsWith("marked_ad:") == true || row.key == "marked_ads_none" || row.key == "marked_ads_note") {
+                group.removePreference(row)
+            }
+        }
+        val marks = MarkedAds.list(context)
+        if (marks.isEmpty()) {
+            group.addPreference(
+                Preference(context).apply {
+                    key = "marked_ads_none"
+                    isPersistent = false
+                    isSelectable = false
+                    setIcon(R.drawable.icon_info)
+                    summary = context.getString(R.string.marked_ads_none)
+                },
+            )
+        }
+        marks.forEach { mark ->
+            group.addPreference(
+                Preference(context).apply {
+                    key = "marked_ad:$mark"
+                    isPersistent = false
+                    setIcon(R.drawable.icon_adblock)
+                    title = mark
+                    setOnPreferenceClickListener {
+                        MaterialAlertDialogBuilder(context)
+                            .setTitle(R.string.marked_ads_dialog_title)
+                            .setMessage(context.getString(R.string.marked_ads_dialog_message, mark))
+                            .setNegativeButton(R.string.app_cancel, null)
+                            .setPositiveButton(R.string.marked_ads_unmark) { _, _ ->
+                                MarkedAds.remove(context, mark)
+                                CatToast.show(context, context.getString(R.string.marked_ads_removed, mark), 0)
+                                bindMarkedAds(fragment)
+                            }
+                            .show()
+                        true
+                    }
+                },
+            )
+        }
+        group.addPreference(
+            Preference(context).apply {
+                key = "marked_ads_note"
+                isPersistent = false
+                isSelectable = false
+                setIcon(R.drawable.icon_shield)
+                summary = context.getString(R.string.marked_ads_empty_note)
+            },
+        )
+        // "Mark a link as an ad": a dialog with a field, as Chromium asks for an exception.
+        fragment.findPreference<Preference>("marked_ads_add")?.setOnPreferenceClickListener {
+            val view = View.inflate(context, R.layout.dialog_edit_text, null)
+            val input = view.findViewById<TextInputEditText>(R.id.textInput)
+            input.setHint(R.string.cr_site_add_url)
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.marked_ads_add_title)
+                .setMessage(R.string.marked_ads_add_message)
+                .setView(view)
+                .setNegativeButton(R.string.app_cancel, null)
+                .setPositiveButton(R.string.cr_site_add_button) { _, _ ->
+                    val address = input.text?.toString()?.trim()
+                    val added = MarkedAds.add(context, address)
+                    when {
+                        added -> {
+                            CatToast.show(context, context.getString(R.string.marked_ads_added, address.orEmpty()), 0)
+                            bindMarkedAds(fragment)
+                        }
+                        MarkedAds.isMarked(context, address) ->
+                            CatToast.show(context, context.getString(R.string.marked_ads_already, address.orEmpty()), 0)
+                        else -> CatToast.show(context, R.string.marked_ads_invalid, 0)
+                    }
+                }
+                .show()
+            true
+        }
     }
 
     // About ----------------------------------------------------------------------------------

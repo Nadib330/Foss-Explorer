@@ -21,8 +21,8 @@ import org.xmlpull.v1.XmlPullParser
  * title only, like Chrome's; each topic opens on a full screen of its own.
  *
  * A [Section] is a topic whose settings are shown by the settings screen
- * itself. A few topics (gestures, bookmark filter, backup) have had their own
- * screens all along; the first screen opens those directly.
+ * itself. Backup has had a screen of its own all along; the first screen opens
+ * it directly. Gestures and the bookmark filter are gone since 16.1.0.
  */
 object SettingsSections {
 
@@ -37,6 +37,7 @@ object SettingsSections {
     val ALL: List<Section> = listOf(
         Section("section_search", R.string.setting_title_search_engine, R.xml.preference_section_search),
         Section("section_privacy", R.string.setting_section_privacy, R.xml.preference_section_privacy),
+        Section("section_xguard", R.string.setting_section_xguard, R.xml.preference_section_xguard),
         Section("section_home_custom", R.string.setting_section_home_custom, R.xml.preference_section_home_custom),
         Section("section_tabs", R.string.setting_section_tabs, R.xml.preference_section_tabs),
         Section("section_appearance", R.string.setting_section_appearance, R.xml.preference_section_appearance),
@@ -51,7 +52,7 @@ object SettingsSections {
     val SUB: List<Section> = listOf(
         Section("section_preload", R.string.cr_preload_pages_title, R.xml.preference_section_preload),
         Section("section_safe_browsing", R.string.cr_safe_browsing_title, R.xml.preference_section_safe_browsing),
-        Section("section_js_optimizer", R.string.cr_js_optimizer_title, R.xml.preference_section_js_optimizer),
+        Section("section_marked_ads", R.string.marked_ads_title, R.xml.preference_section_marked_ads),
         Section("section_inactive_tabs", R.string.cr_archive_title, R.xml.preference_section_inactive_tabs),
         Section("section_saved_zoom", R.string.cr_zoom_info_title, R.xml.preference_section_saved_zoom),
         Section("section_legal", R.string.cr_legal_information_title, R.xml.preference_section_legal),
@@ -75,8 +76,6 @@ object SettingsSections {
 
     /** Topics with a screen of their own: entry key to the settings that screen shows. */
     private val ownScreens: Map<String, Int> = mapOf(
-        "settings_gesture" to R.xml.preference_gesture,
-        "settings_filter" to R.xml.preference_filter,
         "settings_data" to R.xml.preference_backup,
     )
 
@@ -86,8 +85,13 @@ object SettingsSections {
     const val DEVELOPER_EMAIL = "rpooi3@duck.com"
     const val URL_GITHUB = "https://github.com/nadib330"
     const val URL_CODEBERG = "https://codeberg.org/rpooi3"
-    const val URL_SOURCE = "https://codeberg.org/rpooi3/FOSS_Explorer"
+    const val URL_SOURCE = "https://github.com/nadib330/Foss-Explorer/"
+    /** "Send feedback" opens a new issue; the row says what it does, not where it goes. */
+    const val URL_FEEDBACK = "https://github.com/nadib330/Foss-Explorer/issues/new"
     const val URL_SOURCE_UPSTREAM = "https://codeberg.org/Gaukler_Faun/FOSS_Browser"
+    /** The browsers this app is made of: Chromium's engine as Android System WebView brings it, and Firefox. */
+    const val URL_SOURCE_CHROMIUM = "https://chromium.googlesource.com/chromium/src/"
+    const val URL_SOURCE_FIREFOX = "https://github.com/mozilla-firefox/firefox"
     /** Both licences of the app are published here: GPL-3.0 and AGPL-3.0. See LICENSING.md. */
     const val CHROMIUM_LICENSE_ASSET = "offline/LICENSE.chromium.txt"
     const val URL_LICENSE = "https://www.gnu.org/licenses/licenses.html"
@@ -155,6 +159,9 @@ object SettingsSections {
             "about_github" to URL_GITHUB,
             "about_codeberg" to URL_CODEBERG,
             "about_source" to URL_SOURCE,
+            "about_feedback" to URL_FEEDBACK,
+            "about_source_chromium" to URL_SOURCE_CHROMIUM,
+            "about_source_firefox" to URL_SOURCE_FIREFOX,
             "about_source_upstream" to URL_SOURCE_UPSTREAM,
             "about_license" to URL_LICENSE,
         ).forEach { (key, url) ->

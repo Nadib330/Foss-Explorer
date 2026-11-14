@@ -15,7 +15,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
@@ -24,7 +23,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Activity
-import com.rpooi3.explorer.browser.AdBlock
 import com.rpooi3.explorer.preferences.BasePreferenceFragment
 
 /** Settings > Site settings: the list of categories (`preference_section_site.xml`). */
@@ -135,7 +133,23 @@ class SiteCategoryFragment : BasePreferenceFragment() {
         }
 
         if (category == SiteCategory.ADS) {
-            PreferenceCategory(context).also { screen.addPreference(it) }.addPreference(filterList(context))
+            // 15.2.1: the ad blocker's settings are xGuard's now; this row leads there.
+            PreferenceCategory(context).also { screen.addPreference(it) }.addPreference(
+                Preference(context).apply {
+                    key = KEY_XGUARD
+                    isPersistent = false
+                    setIcon(R.drawable.icon_shield)
+                    setTitle(R.string.site_ads_filter_list_xguard)
+                    setSummary(R.string.site_ads_filter_list_xguard_summary)
+                    setOnPreferenceClickListener {
+                        context.startActivity(
+                            Intent(context, Settings_Activity::class.java)
+                                .putExtra(Settings_Activity.EXTRA_SECTION, "section_xguard"),
+                        )
+                        true
+                    }
+                },
+            )
         }
 
         addSites(screen, allowed = false)
@@ -216,27 +230,6 @@ class SiteCategoryFragment : BasePreferenceFragment() {
                 summary = bullets(R.string.cr_site_auto_verify_consider_1)
             },
         )
-    }
-
-    /** The list the ad blocker works with; Explorer's ad setting besides the switch. */
-    private fun filterList(context: Context): Preference = ListPreference(context).apply {
-        key = "ab_hosts"
-        setIcon(R.drawable.icon_filter)
-        setTitle(R.string.site_ads_filter_list)
-        setEntries(R.array.setting_entries_adBlock)
-        setEntryValues(R.array.setting_values_adBlock)
-        setDefaultValue(DEFAULT_FILTER_LIST)
-        summaryProvider = Preference.SummaryProvider<ListPreference> {
-            // The date the list was fetched comes first; before the first download there is none.
-            val date = AdBlock.getHostsDate(context).orEmpty().trim()
-            val name = it.entry?.toString().orEmpty()
-            if (date.isEmpty()) name else "$date:\n$name"
-        }
-        setOnPreferenceChangeListener { _, _ ->
-            // The new value is stored after this returns; fetch the list then.
-            listView.post { AdBlock(context).triggerHostsDownload(context) }
-            true
-        }
     }
 
     private fun addSites(screen: androidx.preference.PreferenceScreen, allowed: Boolean) {
@@ -346,7 +339,7 @@ class SiteCategoryFragment : BasePreferenceFragment() {
         const val KEY_ADD = "site_category_add"
         const val KEY_ALLOWED = "site_category_allowed"
         const val KEY_BLOCKED = "site_category_blocked"
-        private const val DEFAULT_FILTER_LIST = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+        const val KEY_XGUARD = "site_category_xguard"
 
         /**
          * [icon] with a stroke through it, the way Material draws "off" icons:

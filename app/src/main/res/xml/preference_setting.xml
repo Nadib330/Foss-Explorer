@@ -19,6 +19,12 @@
             android:key="section_privacy"
             android:title="@string/setting_section_privacy" />
 
+        <!-- 15.2.1: the shield is called xGuard and has a topic of its own. -->
+        <Preference
+            android:icon="@drawable/icon_shield"
+            android:key="section_xguard"
+            android:title="@string/setting_section_xguard" />
+
         <Preference
             android:icon="@drawable/icon_house"
             android:key="section_home_custom"
@@ -43,15 +49,7 @@
             android:key="section_accessibility"
             android:title="@string/setting_section_accessibility" />
 
-        <Preference
-            android:icon="@drawable/icon_gesture"
-            android:key="settings_gesture"
-            android:title="@string/setting_gestures" />
 
-        <Preference
-            android:icon="@drawable/icon_filter"
-            android:key="settings_filter"
-            android:title="@string/setting_filter" />
 
         <Preference
             android:icon="@drawable/icon_tune"

@@ -21,7 +21,6 @@ import com.rpooi3.explorer.R
 object ExplorerTheme {
 
     private const val KEY_THEME = "sp_theme"
-    private const val KEY_DYNAMIC_COLOR = "useDynamicColor"
 
     private const val THEME_SYSTEM = "1"
     private const val THEME_LIGHT = "2"
@@ -31,12 +30,15 @@ object ExplorerTheme {
     @JvmStatic
     fun isDynamicColorAvailable(): Boolean = DynamicColors.isDynamicColorAvailable()
 
-    /** Whether wallpaper colours are both available and wanted by the user. */
+    /**
+     * Whether wallpaper colours are both available and wanted.
+     *
+     * 16.1.0 (item 10): dynamic colour is always on. The switch is gone from the appearance
+     * settings; the colour of the wallpaper is used whenever the system offers it (Android 12
+     * and later), and the preference an older version may have stored is ignored.
+     */
     @JvmStatic
-    fun usesDynamicColor(context: Context): Boolean =
-        isDynamicColorAvailable() &&
-            PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(KEY_DYNAMIC_COLOR, true)
+    fun usesDynamicColor(context: Context): Boolean = isDynamicColorAvailable()
 
     /** Applies the stored light/dark preference to the whole process. */
     @JvmStatic

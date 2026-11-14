@@ -11,6 +11,7 @@ import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Activity
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -59,14 +60,16 @@ class ExplorerThemeTest {
 
     @Test
     @Config(sdk = [34])
-    fun android14_brandPaletteWhenDynamicColourIsSwitchedOff() {
+    fun android14_dynamicColourCannotBeSwitchedOff() {
+        // 16.1.0 (item 10): the switch is gone and whatever an older version stored is ignored.
         prefs.edit().putBoolean("useDynamicColor", false).commit()
 
-        assertFalse(ExplorerTheme.usesDynamicColor(context))
+        assertTrue("wallpaper colours stay on", ExplorerTheme.usesDynamicColor(context))
         Robolectric.buildActivity(Settings_Activity::class.java).setup().use { controller ->
             val activity = controller.get()
 
-            assertEquals(
+            assertNotEquals(
+                "not the static brand palette",
                 ContextCompat.getColor(activity, R.color.md_theme_primary),
                 activity.resolveColor(androidx.appcompat.R.attr.colorPrimary)
             )

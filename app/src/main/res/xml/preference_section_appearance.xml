@@ -15,11 +15,6 @@
             android:title="@string/setting_theme"
             app:useSimpleSummaryProvider="true" />
 
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:icon="@drawable/icon_color"
-            android:key="useDynamicColor"
-            android:summary="@string/setting_title_dynColors" />
 
     </PreferenceCategory>
 

@@ -1,5 +1,96 @@
 # Changelog
 
+## 16.1.0
+
+### First start
+- **Firefox for Android's welcome** opens on the first start: four pages that
+  are stepped through with "Next", "Skip" in the corner, dots that say where
+  the user is, and "Start browsing" at the end, which also offers the system's
+  screen for the default browser. FOSS Browser's first-start dialog is gone,
+  and with it the default gestures it wrote.
+- **Google is the search engine of a new installation.**
+
+### Browser
+- The **gestures of FOSS Browser are gone**: no swipes on the buttons, no long
+  presses on the bars and no gesture settings. What is left is what Chromium
+  for Android has: a swipe in from the left edge goes back, one from the right
+  edge goes forward, with the round arrow following the finger.
+- The tab switcher opens and closes with **Chromium's transition**: the page
+  steps back and fades as the grid comes forward, and comes back when a tab is
+  chosen.
+- **Zoom** is always in the three-dot menu on a website, as in Chromium: the
+  sheet has the value, a minus, a slider and a plus, and remembers a zoom for
+  each site. The switch that used to hide the entry is gone.
+- A long press on a link or a picture offers **"Mark as ad and hide"**. The
+  marked address is stopped like a host of the filter list on every page, and
+  the element is hidden, also on the pages that follow.
+- **Downloads keep their name and their extension.** No ".bin" is appended any
+  more; the name comes from the server, then from the address, and a name typed
+  without an extension gets the extension of the file.
+- Private tabs say **"You've gone private browsing mode"**, the tab switcher
+  says **"Search your private tabs"**, and the app calls them "private tabs"
+  throughout.
+
+### Settings
+- **About**: a **Send feedback** row that opens a new issue on GitHub.
+- **Legal information**: the card "Code from FOSS Browser" is gone; the rows
+  say what they lead to instead of showing an address, and a tap opens it.
+- **xGuard > Marked ads**: the ads marked on pages, with a row per mark that
+  unmarks it and a row that adds an address by hand.
+- Removed: **Gestures**, the **bookmark filter**, **JavaScript optimization &
+  security**, the site setting **Auto-verify** and the **profile settings**
+  (Standard profile, Saved websites), and in Accessibility the text cursor,
+  the image descriptions and the switch for the zoom entry.
+- **Appearance** has no switch for dynamic colour any more: the colours of the
+  wallpaper are always used where Android offers them.
+- **Search engine**: the German Startpage is no longer in the list; an
+  installation that chose it keeps working and falls back to Google.
+- The app calls itself **Explorer** everywhere, the source code is linked at
+  `https://github.com/nadib330/Foss-Explorer/`, and `README.md`, `LICENSE.md`
+  and the components list say which parts are still FOSS Browser's.
+
+### Tests
+- `Release1610Test` covers the welcome, the marked ads, the edge swipes, the
+  zoom entry, the download names and the rows of About and Legal information;
+  the tests that named the removed settings were brought up to date.
+
+## 15.2.1
+
+### xGuard
+- The shield of the top bar is called **xGuard**. The panel behind it says so:
+  its heading, "xGuard is on guard", "xGuard is off-duty", and the row that
+  leads to the settings, which is "xGuard settings" now.
+
+### Settings
+- New topic on the first settings screen: **xGuard**, with a screen of its own.
+  The ad blocker's settings moved there from the profile and from
+  Site settings > Ads: the switch "Block ads and trackers" (kept per profile,
+  as the engine reads it) and the filter list with its update. Site
+  settings > Ads keeps the choice for a site, the exceptions, and a row that
+  leads to xGuard.
+
+### Tracking protection
+- **Tracker blocker**: xGuard knows which hosts are trackers and what kind
+  they are (analytics, advertising, social, fingerprinting). Analytics and
+  advertising are stopped, social plugins can be switched on, and the whole
+  blocker has a switch. The list ships with the app, so it works before the
+  first filter list download and without a network connection.
+- **Tracking analysis**: every request a page makes is written down — how many
+  went to other sites than the page's own, which of those hosts are known
+  trackers and what xGuard did with them. The panel behind the shield shows the
+  analysis of the page in front; the xGuard screen shows the last page it saw
+  and can forget it. Private tabs are never written down.
+
+### Legal information
+- The source code of **Chromium** and of **Firefox** are linked above FOSS
+  Browser's: the engines and browsers this app is built on.
+
+### Tests
+- `Release1521Test` covers the new screen, the tracker list, the analysis and
+  the order of the source links; the tests of 15.0.0 that named the shield were
+  brought up to date.
+
+
 ## 15.0.0
 
 ### Private tabs

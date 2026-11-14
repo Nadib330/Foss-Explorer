@@ -44,6 +44,17 @@ import java.util.concurrent.TimeUnit
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], qualifiers = "w411dp-h891dp-notnight-xxhdpi")
 class SiteSettingsTest {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -77,7 +88,8 @@ class SiteSettingsTest {
         settings(Settings_Activity.EXTRA_SECTION, "section_site") { activity, fragment ->
             assertEquals("Site settings", activity.findViewById<Toolbar>(R.id.toolbar).title.toString())
             val groups = fragment.groups()
-            assertEquals(4, groups.size)
+            // 16.1.0 (item 8): the profile group (Standard profile, Saved websites) is gone.
+            assertEquals(3, groups.size)
 
             assertEquals("Permissions", groups[0].title.toString())
             assertEquals(
@@ -96,7 +108,7 @@ class SiteSettingsTest {
             assertEquals(
                 listOf(
                     "Third-party cookies", "JavaScript", "Pop-ups and redirects", "Sound", "Ads",
-                    "Protected content", "Auto-verify", "On-device site data", "Automatic downloads",
+                    "Protected content", "On-device site data", "Automatic downloads",
                 ),
                 groups[1].titles(),
             )
@@ -111,10 +123,9 @@ class SiteSettingsTest {
             assertTrue("on unless switched off, as in Chromium", toggle.isChecked)
             toggle.performClick()
             assertFalse(prefs.getBoolean(SiteSettings.AUTO_REVOKE, true))
-            // The profiles moved here from "Privacy and security", which is Chromium's screen now.
-            assertEquals("Profiles", groups[3].title.toString())
-            assertNotNull(fragment.findPreference<Preference>("settings_profile"))
-            assertNotNull(fragment.findPreference<Preference>("edit_standard"))
+            // 16.1.0 (item 8): the profiles left Site settings with their group.
+            assertNull(fragment.findPreference<Preference>("settings_profile"))
+            assertNull(fragment.findPreference<Preference>("edit_standard"))
         }
     }
 
@@ -147,7 +158,6 @@ class SiteSettingsTest {
             assertEquals("ads are blocked while the ad blocker is on", "Blocked", state(SiteCategory.ADS))
             assertEquals("Muted", state(SiteCategory.SOUND))
             assertEquals("Ask first", state(SiteCategory.AUTOMATIC_DOWNLOADS))
-            assertEquals("Not available", state(SiteCategory.AUTO_VERIFY))
         }
     }
 
@@ -286,7 +296,10 @@ class SiteSettingsTest {
                 "Block ads and trackers on sites, using the filter list",
                 fragment.radio(SiteCategoryFragment.KEY_OFF).title.toString(),
             )
-            assertNotNull("Explorer's own ad setting", fragment.findPreference<Preference>("ab_hosts"))
+            // 15.2.1: the ad blocker's settings moved to Settings > xGuard; this screen keeps the
+            // choice and the exceptions, and leads to xGuard.
+            assertNull("the filter list moved to xGuard", fragment.findPreference<Preference>("ab_hosts"))
+            assertNotNull("the row to xGuard is here", fragment.findPreference<Preference>("site_category_xguard"))
 
             fragment.radio(SiteCategoryFragment.KEY_ON).performClick()
             idle()
@@ -340,22 +353,11 @@ class SiteSettingsTest {
     }
 
     @Test
-    fun autoVerify_isShownAsChromiumHasIt_butCannotBeSwitched() {
-        assertEquals(listOf(SiteCategory.AUTO_VERIFY), SiteCategory.entries.filter { it.kind == SiteCategory.Kind.UNAVAILABLE })
-        category(SiteCategory.AUTO_VERIFY) { _, fragment ->
-            assertEquals(
-                "Sites you visit can verify that you're a real person and not a bot",
-                fragment.findPreference<Preference>(SiteCategoryFragment.KEY_DESCRIPTION)!!.summary.toString(),
-            )
-            val switch = fragment.findPreference<SwitchPreferenceCompat>(SiteCategoryFragment.KEY_SWITCH)!!
-            assertFalse(switch.isEnabled)
-            assertFalse(switch.isChecked)
-            assertEquals("Not available in Explorer", fragment.findPreference<Preference>(SiteCategoryFragment.KEY_NOTE)!!.title.toString())
-            assertEquals("When on", fragment.findPreference<Preference>("site_category_when_on")!!.title.toString())
-            assertEquals("Things to consider", fragment.findPreference<Preference>("site_category_consider")!!.title.toString())
-            assertNull(fragment.findPreference<Preference>(SiteCategoryFragment.KEY_ADD))
-        }
-        assertEquals(State.BLOCK, SiteSettings.state(context, SiteCategory.AUTO_VERIFY, "https://example.org/"))
+    fun autoVerify_isGone() {
+        // 16.1.0 (item 8): "Auto-verify" is no longer a site setting, and with it the last entry
+        // that only showed what Chromium has and WebView does not.
+        assertTrue("no auto-verify row", SiteCategory.entries.none { it.rowKey == "site_auto_verify" })
+        assertTrue("no unavailable entry is left", SiteCategory.entries.none { it.kind == SiteCategory.Kind.UNAVAILABLE })
     }
 
     @Test

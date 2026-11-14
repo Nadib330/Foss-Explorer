@@ -22,10 +22,10 @@
     <string name="cr_preload_none_title">No preloading</string>
     <string name="cr_preload_none_summary">Pages load only after you open them</string>
     <string name="cr_preload_standard_title">Standard preloading</string>
-    <string name="cr_incognito_lock_title">Lock Incognito tabs when you leave Explorer</string>
-    <string name="cr_incognito_lock_summary_on">Use screen lock to see open Incognito tabs</string>
+    <string name="cr_incognito_lock_title">Lock private tabs when you leave Explorer</string>
+    <string name="cr_incognito_lock_summary_on">Use screen lock to see open private tabs</string>
     <string name="cr_incognito_lock_summary_off">Turn on screen lock in Android settings</string>
-    <string name="cr_incognito_unlock">Unlock Incognito</string>
+    <string name="cr_incognito_unlock">Unlock private tabs</string>
     <string name="cr_incognito_see_other_tabs">See other tabs</string>
     <string name="cr_safe_browsing_title">Safe Browsing</string>
     <string name="cr_safe_browsing_summary_on">%1$s is on</string>
@@ -145,7 +145,7 @@
     <string name="cr_archive_duplicates_title">Archive duplicate tabs</string>
     <string name="cr_archive_autodelete_title">Automatically close inactive items</string>
     <string name="cr_contextmenu_open_in_new_tab">Open in new tab</string>
-    <string name="cr_contextmenu_open_in_incognito_tab">Open in Incognito tab</string>
+    <string name="cr_contextmenu_open_in_incognito_tab">Open in private tab</string>
     <string name="cr_contextmenu_copy_link_address">Copy link address</string>
     <string name="cr_contextmenu_copy_link_text">Copy link text</string>
     <string name="cr_contextmenu_save_link">Download link</string>
@@ -155,8 +155,8 @@
     <string name="cr_contextmenu_save_image">Download image</string>
     <string name="cr_contextmenu_share_image">Share image</string>
     <string name="cr_hub_search_hint">Search your tabs</string>
-    <string name="cr_hub_search_hint_incognito">Search your Incognito tabs</string>
-    <string name="cr_incognito_ntp_title">You’ve gone Incognito</string>
+    <string name="cr_hub_search_hint_incognito">Search your private tabs</string>
+    <string name="cr_incognito_ntp_title">You’ve gone private browsing mode</string>
     <string name="cr_incognito_ntp_subtitle">Others who use this device won’t see your activity, so you can browse more privately. This won\'t change how data is collected by websites you visit and the services they use, including Google. Downloads and bookmarks will be saved.</string>
     <string name="cr_application_version_title">Application version</string>
     <string name="cr_os_version_title">Operating system</string>

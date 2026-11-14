@@ -19,7 +19,6 @@ import kotlin.math.roundToInt
 object PageZoom {
     const val KEY_DEFAULT = "page_zoom_default_zoom_percent"
     const val KEY_OS_ADJUSTMENT = "page_zoom_include_os_adjustment"
-    const val KEY_ALWAYS_SHOW = "page_zoom_always_show"
     const val KEY_FORCE_ENABLE = "force_enable_zoom"
 
     /** The font size setting of versions before 13.2.2 ("100", "125" …). */

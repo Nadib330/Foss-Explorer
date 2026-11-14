@@ -51,6 +51,17 @@ import org.robolectric.shadows.ShadowDialog
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], qualifiers = "w411dp-h891dp-notnight-xxhdpi")
 class Release1500Test {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -126,7 +137,8 @@ class Release1500Test {
         assertTrue(web.isPrivateTab)
         assertEquals(View.VISIBLE, incognito.visibility)
         assertEquals("not the normal new tab page", View.GONE, home.visibility)
-        assertEquals("You’ve gone Incognito", view<TextView>(R.id.new_tab_incognito_title).text.toString())
+        // 16.1.0 (item 2): the app says "private", not "Incognito".
+        assertEquals("You’ve gone private browsing mode", view<TextView>(R.id.new_tab_incognito_title).text.toString())
         assertTrue(view<TextView>(R.id.new_tab_incognito_subtitle).text.startsWith("Others who use this device won’t see your activity"))
         val warning = view<TextView>(R.id.new_tab_incognito_warning).text.toString()
         assertEquals(
@@ -276,7 +288,7 @@ class Release1500Test {
 
         view<MaterialButtonToggleGroup>(R.id.tabs_mode).check(R.id.tabs_mode_private)
         idle()
-        assertEquals("Search your Incognito tabs", search.hint.toString())
+        assertEquals("Search your private tabs", search.hint.toString())
     }
 
     @Test
@@ -310,7 +322,8 @@ class Release1500Test {
 
         val panel = panel()
         assertEquals("example.org", panel.findViewById<TextView>(R.id.protection_site_host)!!.text.toString())
-        assertEquals("Foss Explorer is on guard", panel.findViewById<TextView>(R.id.protection_banner_title)!!.text.toString())
+        // 15.2.1: the shield is called xGuard, so the banner names it.
+        assertEquals("xGuard is on guard", panel.findViewById<TextView>(R.id.protection_banner_title)!!.text.toString())
         assertEquals("2 trackers blocked on this site.", panel.findViewById<TextView>(R.id.protection_banner_text)!!.text.toString())
         assertTrue(panel.findViewById<MaterialSwitch>(R.id.protection_toggle)!!.isChecked)
         assertEquals(
@@ -321,7 +334,7 @@ class Release1500Test {
         assertEquals("2 trackers blocked on this site", label(R.id.protection_blocked))
         assertEquals("Secure connection", label(R.id.protection_connection))
         assertEquals("Clear cookies and site data", label(R.id.protection_clear))
-        assertEquals("Privacy Settings", label(R.id.protection_settings))
+        assertEquals("xGuard settings", label(R.id.protection_settings))
 
         // A tap on the number lists who was blocked.
         val list = panel.findViewById<TextView>(R.id.protection_blocked_list)!!
@@ -331,7 +344,8 @@ class Release1500Test {
         assertEquals("ads.tracker.example  \u00d72\nmetrics.example", list.text.toString())
 
         panel.findViewById<View>(R.id.protection_settings)!!.performClick()
-        assertEquals("ads", shadowOf(activity).nextStartedActivity.getStringExtra(Settings_Activity.EXTRA_SITE_CATEGORY))
+        // 15.2.1: it opens xGuard's own settings, not the Ads page of the site settings.
+        assertEquals("section_xguard", shadowOf(activity).nextStartedActivity.getStringExtra(Settings_Activity.EXTRA_SECTION))
     }
 
     @Test
@@ -354,7 +368,8 @@ class Release1500Test {
         val off = panel()
         assertEquals("You turned off protections", off.findViewById<TextView>(R.id.protection_banner_title)!!.text.toString())
         assertEquals(
-            "Foss Explorer is off-duty. We suggest turning protections back on.",
+            // 15.2.1: the shield is called xGuard, and the banner says so.
+            "xGuard is off-duty. We suggest turning protections back on.",
             off.findViewById<TextView>(R.id.protection_banner_text)!!.text.toString(),
         )
         assertFalse(off.findViewById<MaterialSwitch>(R.id.protection_toggle)!!.isChecked)
@@ -409,7 +424,7 @@ class Release1500Test {
     fun theHomePage_showsTheNameOnly() = browser {
         val logo = view<ViewGroup>(R.id.home_logo)
         assertEquals(1, logo.childCount)
-        assertEquals("Foss Explorer", (logo.getChildAt(0) as TextView).text.toString())
+        assertEquals("Explorer", (logo.getChildAt(0) as TextView).text.toString())
         fun pictures(group: ViewGroup): Int = (0 until group.childCount).sumOf {
             when (val child = group.getChildAt(it)) {
                 is ImageView -> 1
@@ -421,26 +436,25 @@ class Release1500Test {
     }
 
     @Test
-    fun theNoteOnFossBrowser_isWrittenInTheFirstPerson() {
+    fun theNoteOnFossBrowser_isGone_andTheSourceOfItIsNamed() {
+        // 16.1.0 (item 21): no card calls Explorer a fork any more. What is still FOSS Browser's
+        // is named in the components list, and Legal information opens its repository.
         val intent = Intent(context, Settings_Activity::class.java).putExtra(Settings_Activity.EXTRA_SECTION, "section_legal")
         Robolectric.buildActivity(Settings_Activity::class.java, intent).setup().use { controller ->
             shadowOf(Looper.getMainLooper()).idle()
             val fragment = controller.get().supportFragmentManager.findFragmentById(R.id.content_frame) as PreferenceFragmentCompat
-            val note = fragment.findPreference<Preference>("about_fork")!!
-            assertEquals("Code from FOSS Browser", note.title.toString())
-            val text = note.summary.toString()
-            assertTrue(text, text.startsWith("I started Foss Explorer as a fork of FOSS Browser"))
-            for (part in listOf("I have rebuilt", "I keep history and bookmarks", "I still use FOSS Browser's code", "I list it")) {
-                assertTrue(part, text.contains(part))
-            }
-            assertFalse("no longer told from outside", text.contains("Foss Explorer began"))
+            assertNull("the fork card is gone", fragment.findPreference<Preference>("about_fork"))
+            val upstream = fragment.findPreference<Preference>("about_source_upstream")!!
+            assertEquals("Source code of FOSS Browser", upstream.title.toString())
+            assertTrue(upstream.summary.toString().startsWith("FOSS Browser by Gaukler Faun."))
         }
     }
 
     @Test
-    fun theVersion_is15_0_0() {
-        assertEquals("15.0.0", SettingsSections.versionName(context))
+    fun theVersion_is16_1_0() {
+        // 16.1.0 replaced 15.2.1; what changed is described in Release1610Test.
+        assertEquals("16.1.0", SettingsSections.versionName(context))
         @Suppress("DEPRECATION")
-        assertEquals(8, context.packageManager.getPackageInfo(context.packageName, 0).versionCode)
+        assertEquals(10, context.packageManager.getPackageInfo(context.packageName, 0).versionCode)
     }
 }

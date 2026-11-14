@@ -51,6 +51,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -87,6 +88,7 @@ import com.rpooi3.explorer.library.LibraryActivity;
 import com.rpooi3.explorer.view.LinkContextMenu;
 import com.rpooi3.explorer.view.MainMenuSheet;
 import com.rpooi3.explorer.view.ProtectionPanel;
+import com.rpooi3.explorer.privacy.MarkedAds;
 import com.rpooi3.explorer.privacy.TrackingProtection;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.FileProvider;
@@ -159,7 +161,6 @@ import com.rpooi3.explorer.view.TabSwitcher;
 import com.rpooi3.explorer.view.NewTabAnimation;
 import com.rpooi3.explorer.view.NinjaWebView;
 import com.rpooi3.explorer.view.AdapterRecord;
-import com.rpooi3.explorer.view.SwipeTouchListener;
 import com.rpooi3.explorer.privacy.PrivateTabs;
 import com.rpooi3.explorer.view.TopBarController;
 import com.rpooi3.explorer.accessibility.PageHooks;
@@ -399,6 +400,12 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
         // The overview lists the open tabs. History and bookmarks have their own screens.
         overViewTab = getString(R.string.album_title_tab);
+
+        // 16.1.0: Firefox for Android's welcome (item 4) replaces the old dialog (item 3).
+        // It shows once: WelcomeActivity writes the flag when it is left.
+        if (null == savedInstanceState && !sp.getBoolean(WelcomeActivity.KEY_SEEN, false)) {
+            startActivity(new Intent(this, WelcomeActivity.class));
+        }
 
         // 3. UI-Layout & Kantenloses Design (Edge-to-Edge)
         EdgeToEdge.enable(this);
@@ -1100,16 +1107,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             if (null != ninjaWebView) ProtectionPanel.show(this, ninjaWebView, this::updateShield);
         });
         buttonMenu.setOnClickListener(view -> showMainMenu());
-        buttonMenu.setOnLongClickListener(view -> {
-            performGesture("setting_gesture_tabButton", ninjaWebView.getUrl());
-            return true;
-        });
-        buttonMenu.setOnTouchListener(new SwipeTouchListener(context) {
-            public void onSwipeTop() { performGesture("setting_gesture_nav_up", ninjaWebView.getUrl()); }
-            public void onSwipeBottom() { performGesture("setting_gesture_nav_down", ninjaWebView.getUrl()); }
-            public void onSwipeRight() { performGesture("setting_gesture_nav_right", ninjaWebView.getUrl()); }
-            public void onSwipeLeft() { performGesture("setting_gesture_nav_left", ninjaWebView.getUrl()); }
-        });
 
         // Bottom bar: home, new tab, tabs.
         findViewById(R.id.button_home).setOnClickListener(v -> ninjaWebView.loadUrl(HomePage.startUrl(sp)));
@@ -1118,16 +1115,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         tabCount = findViewById(R.id.tab_count);
         final View buttonTabs = findViewById(R.id.button_tabs);
         buttonTabs.setOnClickListener(v -> showOverviewPage(R.id.page_0));
-        buttonTabs.setOnLongClickListener(v -> {
-            performGesture("setting_gesture_overViewButton", ninjaWebView.getUrl());
-            return true;
-        });
-        buttonTabs.setOnTouchListener(new SwipeTouchListener(context) {
-            public void onSwipeTop() { performGesture("setting_gesture_tb_up", ninjaWebView.getUrl()); }
-            public void onSwipeBottom() { performGesture("setting_gesture_tb_down", ninjaWebView.getUrl()); }
-            public void onSwipeRight() { performGesture("setting_gesture_tb_right", ninjaWebView.getUrl()); }
-            public void onSwipeLeft() { performGesture("setting_gesture_tb_left", ninjaWebView.getUrl()); }
-        });
 
         list_search = dialogViewSearch.findViewById(R.id.list_search);
         progressBar = findViewById(R.id.menu_progress_bar);
@@ -1294,7 +1281,40 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         hideSearch();
         moveInactiveTabs();
         tabSwitcher.show();
+        // Chromium: the page steps back as the grid comes forward.
+        animateContentForSwitcher(true);
         updateIncognitoLock();
+    }
+
+    /** How long Chromium's page-to-switcher transition runs, and how far the page recedes. */
+    private static final long SWITCHER_ANIMATION_MS = 200L;
+    private static final float SWITCHER_CONTENT_SCALE = 0.92f;
+    private static final float SWITCHER_CONTENT_ALPHA = 0.6f;
+
+    /**
+     * 16.1.0: Chromium's transition between a page and the tab switcher. The page scales down
+     * a little and fades while the cards come up over it, and scales back up when a tab is
+     * chosen. A private tab leaves its page dark while the switcher is open.
+     */
+    private void animateContentForSwitcher(final boolean intoSwitcher) {
+        final View content = findViewById(R.id.main_content);
+        if (null == content) return;
+        content.animate().cancel();
+        final float scale = intoSwitcher ? SWITCHER_CONTENT_SCALE : 1f;
+        final float alpha = intoSwitcher ? SWITCHER_CONTENT_ALPHA : 1f;
+        content.animate()
+                .scaleX(scale).scaleY(scale).alpha(alpha)
+                .setDuration(SWITCHER_ANIMATION_MS)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .start();
+        final View home = findViewById(R.id.home_page);
+        if (null != home) {
+            home.animate().cancel();
+            home.animate().scaleX(scale).scaleY(scale).alpha(alpha)
+                    .setDuration(SWITCHER_ANIMATION_MS)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                    .start();
+        }
     }
 
     /** Whether the tab switcher is open. */
@@ -1461,11 +1481,13 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         });
         popup.getMenu().findItem(R.id.main_share).setEnabled(canShareCurrentPage());
         popup.getMenu().findItem(R.id.main_desktop_site).setChecked(null != ninjaWebView && ninjaWebView.isDesktopSite());
-        // Settings > Accessibility > "Show zoom option in main menu". Only websites have a zoom of their own.
+        // 16.1.0: "Zoom" is always in the menu on a website, as in Chromium; the sheet it opens
+        // is Chromium's zoom control (value, minus, slider, plus) for the site in front.
+        final boolean website = null != ninjaWebView
+                && !ninjaWebView.isShowingOwnPage() && !ninjaWebView.isShowingHomePage();
         final android.view.MenuItem zoom = popup.getMenu().findItem(R.id.main_zoom);
-        zoom.setVisible(sp.getBoolean(PageZoom.KEY_ALWAYS_SHOW, false));
-        zoom.setEnabled(null != ninjaWebView && ReaderMode.isCandidate(ninjaWebView.getUrl())
-                && !ninjaWebView.isShowingOwnPage() && !ninjaWebView.isShowingHomePage());
+        zoom.setVisible(website);
+        zoom.setEnabled(website);
         mainMenu = popup;
         popup.show();
     }
@@ -1520,6 +1542,17 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             public void shareLink(final String title, @NonNull final String url) {
                 BrowserActivity.this.shareLink(null == title || title.trim().isEmpty() ? HelperUtils.domain(url) : title.trim(), url);
             }
+
+            @Override
+            public void markAsAd(@NonNull final String url) {
+                MarkedAds.add(BrowserActivity.this, url);
+                CatToast.show(BrowserActivity.this,
+                        getString(R.string.marked_ads_added, url), 0);
+                // The page is cleaned up at once: the script hides what is marked.
+                final String script = MarkedAds.hideScript(BrowserActivity.this);
+                if (!script.isEmpty() && null != tab) tab.evaluateJavascript(script, null);
+                updateShield();
+            }
         });
     }
 
@@ -1560,6 +1593,110 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     public void hideOverview() {
         if (null != tabSwitcher) tabSwitcher.hide();
         dialogOverview.cancel();
+        // The page comes back to its size as the cards go away (16.1.0).
+        animateContentForSwitcher(false);
+    }
+
+    /* ------------------------------------------------------------------------------------
+     * 16.1.0 (items 13 and 14): the configurable gestures are gone. Chromium for Android
+     * has no gesture menu either; it navigates with a swipe in from the edge of the screen.
+     * The swipe starts in a narrow strip at the left or the right edge, has to be clearly
+     * horizontal, and runs once per touch. A small circle with an arrow follows it, as in
+     * Chromium, so the user sees what is about to happen.
+     * ------------------------------------------------------------------------------------ */
+
+    /** Width of the strip at each edge where a swipe starts, in dp; and the distance to travel. */
+    private static final float EDGE_SWIPE_START_DP = 20f;
+    private static final float EDGE_SWIPE_TRIGGER_DP = 80f;
+
+    private float edgeSwipeX, edgeSwipeY;
+    private boolean edgeSwipeTracked, edgeSwipeDone;
+    private ImageView edgeSwipeHint;
+
+    @Override
+    public boolean dispatchTouchEvent(final MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN: {
+                final float density = getResources().getDisplayMetrics().density;
+                final float width = getResources().getDisplayMetrics().widthPixels;
+                final float start = EDGE_SWIPE_START_DP * density;
+                edgeSwipeTracked = event.getX() <= start || event.getX() >= width - start;
+                edgeSwipeX = event.getX();
+                edgeSwipeY = event.getY();
+                edgeSwipeDone = false;
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (!edgeSwipeTracked) break;
+                final float density = getResources().getDisplayMetrics().density;
+                final float dx = event.getX() - edgeSwipeX;
+                final float dy = event.getY() - edgeSwipeY;
+                if (Math.abs(dx) < EDGE_SWIPE_TRIGGER_DP * density * 0.5f) break;
+                if (Math.abs(dx) < Math.abs(dy) * 2f) break;
+                showEdgeSwipeHint(dx > 0, Math.min(1f, Math.abs(dx) / (EDGE_SWIPE_TRIGGER_DP * density)));
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                hideEdgeSwipeHint();
+                if (edgeSwipeTracked && !edgeSwipeDone && null != ninjaWebView) {
+                    final float density = getResources().getDisplayMetrics().density;
+                    final float dx = event.getX() - edgeSwipeX;
+                    final float dy = event.getY() - edgeSwipeY;
+                    if (Math.abs(dx) > EDGE_SWIPE_TRIGGER_DP * density && Math.abs(dx) > Math.abs(dy) * 2f) {
+                        edgeSwipeDone = true;
+                        if (dx > 0) {
+                            // Swipe from the left edge to the right: back, as in Chromium.
+                            if (ninjaWebView.canGoBack()) ninjaWebView.goBack();
+                        } else if (ninjaWebView.canGoForward()) {
+                            ninjaWebView.goForward();
+                        }
+                    }
+                }
+                edgeSwipeTracked = false;
+                break;
+            }
+            case MotionEvent.ACTION_CANCEL:
+                hideEdgeSwipeHint();
+                edgeSwipeTracked = false;
+                break;
+            default:
+                break;
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    /** The arrow Chromium shows while a back or forward swipe is in progress. */
+    private void showEdgeSwipeHint(final boolean back, final float progress) {
+        if (null == edgeSwipeHint) {
+            final float density = getResources().getDisplayMetrics().density;
+            final int size = (int) (36 * density);
+            edgeSwipeHint = new ImageView(this);
+            edgeSwipeHint.setImageResource(back ? R.drawable.icon_left : R.drawable.icon_right);
+            edgeSwipeHint.setBackgroundResource(R.drawable.bg_edge_swipe_hint);
+            final int padding = (int) (8 * density);
+            edgeSwipeHint.setPadding(padding, padding, padding, padding);
+            edgeSwipeHint.setAlpha(0f);
+            final ViewGroup root = findViewById(android.R.id.content);
+            root.addView(edgeSwipeHint, new ViewGroup.LayoutParams(size, size));
+        }
+        final float density = getResources().getDisplayMetrics().density;
+        final float margin = 24 * density;
+        final float centreY = getResources().getDisplayMetrics().heightPixels / 2f;
+        edgeSwipeHint.setX(back ? margin : getResources().getDisplayMetrics().widthPixels
+                - margin - edgeSwipeHint.getWidth());
+        edgeSwipeHint.setY(centreY - edgeSwipeHint.getHeight() / 2f);
+        edgeSwipeHint.setScaleX(0.6f + 0.4f * progress);
+        edgeSwipeHint.setScaleY(0.6f + 0.4f * progress);
+        edgeSwipeHint.setAlpha(0.35f + 0.45f * progress);
+        edgeSwipeHint.setVisibility(VISIBLE);
+    }
+
+    private void hideEdgeSwipeHint() {
+        if (null == edgeSwipeHint) return;
+        edgeSwipeHint.animate().alpha(0f).setDuration(120L)
+                .withEndAction(() -> {
+                    if (null != edgeSwipeHint) edgeSwipeHint.setVisibility(GONE);
+                }).start();
     }
 
     private void setSelectedTab() {
@@ -2485,110 +2622,6 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         action.close();
     }
 
-    private void performGesture(final String gesture, final String url) {
-        final String gestureAction = Objects.requireNonNull(sp.getString(gesture, "0"));
-        switch (gestureAction) {
-            case "01":
-                break;
-            case "02":
-                if (ninjaWebView.canGoForward()) {
-                    ninjaWebView.stopLoading();
-                    final WebBackForwardList mWebBackForwardList = ninjaWebView.copyBackForwardList();
-                    final String historyUrl = mWebBackForwardList.getItemAtIndex(mWebBackForwardList.getCurrentIndex() + 1).getUrl();
-                    ninjaWebView.initPreferences(historyUrl);
-                    ninjaWebView.goForward();
-                }
-                else CatToast.show(context, R.string.toast_webview_forward, 2);
-                break;
-            case "03":
-                if (null != fullscreenHolder || null != customView || null != videoView) {
-                    Log.v(TAG, "Foss Explorer in fullscreen mode");
-                } else if (ninjaWebView.canGoBack()){
-                    sp.edit().putBoolean("backPressed", true).apply();
-                    ninjaWebView.goBack();
-                } else removeAlbum(currentAlbumController);
-                break;
-            case "04":
-                ninjaWebView.pageUp(true);
-                break;
-            case "05":
-                ninjaWebView.pageDown(true);
-                break;
-            case "06":
-                showAlbum(nextAlbumController(false));
-                break;
-            case "07":
-                showAlbum(nextAlbumController(true));
-                break;
-            case "08":
-                new Handler(Looper.getMainLooper()).postDelayed(this::showOverview, 100);
-                break;
-            case "09":
-                addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
-                break;
-            case "10":
-                removeAlbum(currentAlbumController);
-                break;
-            case "11":
-                overViewTab = getString(R.string.album_title_tab);
-                setSelectedTab();
-                new Handler(Looper.getMainLooper()).postDelayed(this::showOverview, 100);
-                break;
-            case "12":
-                shareLink(ninjaWebView.getTitle(), Objects.requireNonNull(ninjaWebView.getUrl()));
-                break;
-            case "13":
-                searchOnSite();
-                break;
-            case "14":
-                saveBookmark(ninjaWebView.getTitle(), url);
-                break;
-            case "16":
-                ninjaWebView.reload();
-                break;
-            case "17":
-                ninjaWebView.loadUrl(HomePage.startUrl(sp));
-                break;
-            case "18":
-                bottom_navigation.setSelectedItemId(R.id.page_2);
-                showDialogFilter();
-                break;
-            case "19":
-                showDialogFastToggle(ninjaWebView.getTitle(), ninjaWebView.getUrl(), null);
-                break;
-            case "22":
-                sp.edit().putBoolean("sp_screenOn", !sp.getBoolean("sp_screenOn", false)).apply();
-                triggerRebirth(context);
-                break;
-            case "24":
-                copyLink(ninjaWebView.getUrl());
-                break;
-            case "25":
-                final Intent settings = new Intent(context, Settings_Activity.class);
-                startActivity(settings);
-                break;
-            case "26":
-                doubleTapsQuit();
-                break;
-            case "27":
-                sp.edit().putString("profile", "profileStandard").apply();
-                ninjaWebView.reload();
-                break;
-            case "29":
-                startActivity(new Intent(this, DownloadsActivity.class));
-                break;
-            case "30":
-                libraryLauncher.launch(new Intent(this, BookmarksActivity.class));
-                break;
-            case "31":
-                libraryLauncher.launch(new Intent(this, HistoryActivity.class));
-                break;
-            case "32":
-                WebsiteInfoDialog.show(activity, ninjaWebView, null, ninjaWebView.getTitle(), url);
-                break;
-        }
-    }
-
     private File copyHtmlToCache(final Context context, final Uri uri) {
         try {
             final InputStream inputStream = context.getContentResolver().openInputStream(uri);
@@ -2794,30 +2827,13 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         });
 
         if ("no".equals(Objects.requireNonNull(sp.getString("saved_key_ok", "no")))) {
-            sp.edit().putString("saved_key_ok", "yes")
-                    .putString("setting_gesture_tb_up", "04")
-                    .putString("setting_gesture_tb_down", "05")
-                    .putString("setting_gesture_tb_left", "03")
-                    .putString("setting_gesture_tb_right", "02")
-                    .putString("setting_gesture_nav_up", "16")
-                    .putString("setting_gesture_nav_down", "10")
-                    .putString("setting_gesture_nav_left", "07")
-                    .putString("setting_gesture_nav_right", "06")
-                    .putString("setting_gesture_tabButton", "19")
-                    .putString("setting_gesture_overViewButton", "18")
+            sp.edit()
+                    .putString("saved_key_ok", "yes")
                     .putBoolean("sp_autofill", true)
                     .apply();
             ninjaWebView.setProfileDefaultValues();
-
-            final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
-            final String m = getString(R.string.app_intro_a) + " " + getString(R.string.app_intro_b);
-            builder.setTitle(R.string.app_name);
-            builder.setMessage(m);
-            builder.setIcon(R.drawable.icon_web);
-            builder.setPositiveButton(R.string.app_ok, (dialog, whichButton) -> dialog.cancel());
-            final AlertDialog dialog = builder.create();
-            dialog.show();
-            HelperUtils.setupDialog(context, dialog);
+            // 16.1.0: the dialog of the old first start is gone. The welcome of Firefox for
+            // Android takes its place; it is opened once, by onCreate.
         }
 
         ninjaWebView.setBrowserController(this);

@@ -64,10 +64,6 @@
             android:key="site_protected_content"
             android:title="@string/site_protected_content" />
 
-        <Preference
-            android:icon="@drawable/icon_verified"
-            android:key="site_auto_verify"
-            android:title="@string/site_auto_verify" />
 
         <Preference
             android:icon="@drawable/icon_database"
@@ -93,22 +89,6 @@
 
     </PreferenceCategory>
 
-    <!-- Profiles: sets of site settings that can be switched as a whole or saved for one site.
-         They stood under "Privacy and security" before 13.2.2. -->
-    <PreferenceCategory
-        android:key="site_group_profiles"
-        android:title="@string/setting_title_profiles">
-
-        <Preference
-            android:icon="@drawable/icon_profile_standard"
-            android:key="settings_profile"
-            android:title="@string/setting_title_profiles_standard" />
-
-        <Preference
-            android:icon="@drawable/icon_menu_save"
-            android:key="edit_standard"
-            android:title="@string/setting_title_savedWebSites" />
-
-    </PreferenceCategory>
+    <!-- 16.1.0: "Auto-verify" and the profile group (Standard profile, Saved websites) are gone. -->
 
 </PreferenceScreen>

@@ -90,11 +90,6 @@ enum class SiteCategory(
         listOf("_drm"), true,
         R.string.cr_site_protected_description, R.string.cr_site_protected_allow, R.string.cr_site_protected_block,
     ),
-    AUTO_VERIFY(
-        "auto_verify", Group.CONTENT, Kind.UNAVAILABLE, R.string.site_auto_verify, R.drawable.icon_verified,
-        emptyList(), false,
-        R.string.cr_site_auto_verify_description, R.string.site_auto_verify, R.string.site_auto_verify,
-    ),
     SITE_DATA(
         "site_data", Group.CONTENT, Kind.ALLOW, R.string.site_site_data, R.drawable.icon_database,
         listOf("_cookies", "_dom"), true,
@@ -142,7 +137,6 @@ enum class SiteCategory(
             POPUPS -> R.drawable.icon_open_in_new
             SOUND -> R.drawable.cr_volume_up_fill
             ADS -> R.drawable.icon_web_asset
-            AUTO_VERIFY -> R.drawable.cr_account_attention
             SITE_DATA -> R.drawable.cr_database_fill
             AUTOMATIC_DOWNLOADS -> R.drawable.cr_download
             else -> icon

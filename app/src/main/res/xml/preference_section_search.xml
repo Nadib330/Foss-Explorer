@@ -43,11 +43,6 @@
     <PreferenceCategory android:key="engine_group_more" android:title="@string/engine_more">
 
         <com.rpooi3.explorer.preferences.RadioRowPreference
-            android:key="engine_startpage_de"
-            android:summary="@string/engine_startpage_de_domain"
-            android:title="@string/engine_startpage_de" />
-
-        <com.rpooi3.explorer.preferences.RadioRowPreference
             android:key="engine_qwant"
             android:summary="@string/engine_qwant_domain"
             android:title="@string/engine_qwant" />

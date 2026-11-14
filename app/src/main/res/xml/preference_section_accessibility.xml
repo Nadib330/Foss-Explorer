@@ -20,12 +20,6 @@
             android:defaultValue="false"
             android:widgetLayout="@layout/preference_switch_widget" />
 
-        <SwitchPreferenceCompat
-            android:key="page_zoom_always_show"
-            android:summary="@string/cr_page_zoom_always_show_summary"
-            android:title="@string/cr_page_zoom_always_show_title"
-            android:defaultValue="false"
-            android:widgetLayout="@layout/preference_switch_widget" />
 
         <SwitchPreferenceCompat
             android:key="force_enable_zoom"
@@ -48,21 +42,11 @@
             android:defaultValue="true"
             android:widgetLayout="@layout/preference_switch_widget" />
 
-        <SwitchPreferenceCompat
-            android:key="caret_browsing"
-            android:summary="@string/accessibility_caret_unavailable"
-            android:title="@string/cr_caret_browsing_title"
-            android:defaultValue="false"
-            android:widgetLayout="@layout/preference_switch_widget" />
 
         <Preference
             android:key="captions"
             android:title="@string/cr_captions_title" />
 
-        <Preference
-            android:key="image_descriptions"
-            android:summary="@string/accessibility_image_descriptions_unavailable"
-            android:title="@string/cr_image_descriptions_title" />
 
         <SwitchPreferenceCompat
             android:key="touchpad_overscroll_history_navigation"

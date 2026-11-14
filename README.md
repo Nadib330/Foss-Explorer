@@ -1,20 +1,37 @@
-# Foss Explorer
+# Explorer
 
 A privacy-friendly, open-source Android browser with Material You styling.
 
-Foss Explorer began as a fork of [FOSS Browser](https://codeberg.org/Gaukler_Faun/FOSS_Browser)
-by Gaukler Faun. Its screens have since been rebuilt after Chromium and
-Firefox for Android. History and bookmarks are kept in a database laid out
-like Firefox's, the list of open tabs the way Chromium keeps it. From FOSS
-Browser remain the web view of a tab, which renders pages with the Android
-System WebView, per-site privacy profiles, ad and cookie-banner blocking,
-gestures, bookmark filters and backups.
-[LICENSE.md](LICENSE.md) lists what comes from where.
+Explorer is a browser of its own, not a fork: its screens are laid out after
+Chromium and Firefox for Android, its history and bookmarks live in a database
+laid out like Firefox's, and its list of open tabs the way Chromium keeps it.
+
+## What comes from FOSS Browser
+
+Explorer's first version was written on top of [FOSS Browser](https://codeberg.org/Gaukler_Faun/FOSS_Browser)
+by Gaukler Faun, and parts of that AGPL-3.0 code are still in the app. They are
+the parts that are the browser at its base:
+
+| Taken from FOSS Browser | Where it is now |
+| --- | --- |
+| The tab and its web view, rendering with the Android System WebView | `view/NinjaWebView`, `browser/NinjaWebViewClient`, `browser/NinjaWebChromeClient` |
+| Per-site privacy profiles and their storage | `unit/BrowserUnit`, `fragment/Fragment_settings`, the profile screens |
+| The ad blocker with its filter list | `browser/AdBlock`, `assets/hosts.txt`, site setting *Ads* |
+| The cookie-banner blocker | `browser/BannerBlock` |
+| Backups and the code that clears browsing data | `unit/Backup`, `unit/Cleaner`, *Settings > Backup* |
+| The download listener and its file handling | `browser/NinjaDownloadListener` |
+
+Everything else was written for Explorer or copied from a free project whose
+licence is kept beside it: the top and bottom bars, the three-dot menu, the tab
+switcher, the home page, the shield of xGuard, the settings screens, the history
+and bookmarks screens and the welcome are Explorer's own. The gestures FOSS
+Browser offered, its bookmark filter and its own settings layout are gone.
+[LICENSE.md](LICENSE.md) lists every component and its licence.
 
 | Property     | Value                                   |
 | ------------ | --------------------------------------- |
-| App name     | Foss Explorer                           |
-| Version      | 15.0.0 (version code 8)                 |
+| App name     | Explorer                                |
+| Version      | 16.1.0 (version code 10)                |
 | Package      | `com.rpooi3.explorer`                   |
 | Languages    | Kotlin (new code) and Java (upstream)   |
 | Minimum SDK  | Android 8.0 (API 26)                    |
@@ -71,7 +88,8 @@ app/src/main/
 │   │                           tiles), HomePageView (the screen), HomeAppearance (wallpaper,
 │   │                           colour), MonogramDrawable
 │   ├── compat/                 StorageCompat.kt: Downloads on Android 8/9 vs 10+
-│   ├── activity/               BrowserActivity (the single browser screen) and settings screens
+│   ├── activity/               BrowserActivity (the single browser screen), WelcomeActivity
+│   │                           (the first start) and the settings screens
 │   ├── browser/                WebView clients, ad block, cookie-banner block, tab contracts,
 │   │                           ChromeUserAgent.kt (the user agents), OfflinePage.kt (the
 │   │                           offline notice and the dinosaur game)
@@ -85,7 +103,8 @@ app/src/main/
 │   ├── library/                the history and bookmarks screens and their shared base
 │   ├── downloads/              the downloads screen and where its list comes from
 │   ├── privacy/                PrivateTabs.kt: storage separation for private tabs;
-│   │                           PrivacySettings.kt (Safe Browsing, preloading), IncognitoLock.kt
+│   │                           PrivacySettings.kt (Safe Browsing, preloading), IncognitoLock.kt,
+│   │                           TrackerList.kt and TrackingAnalysis.kt (xGuard), MarkedAds.kt
 │   ├── accessibility/          PageZoom, ReaderMode (simplified view), TouchpadSwipe, PageHooks
 │   │                           (where these meet a tab)
 │   ├── tabs/                   TabModel.kt: the list of open tabs, a port of Chromium's tab
@@ -136,7 +155,9 @@ the home page (`include_home.xml`) in the same place as the web pages.
 - Three-dot menu (`res/menu/menu_main.xml`, drawn by `MainMenuSheet`): laid
   out like the main menu of Firefox for Android. A sheet from the bottom with
   a handle; the entries in rounded groups: New tab and New private tab; Share,
-  Zoom (if switched on) and Desktop site, which says "On" or "Off" at its end;
+  Zoom (always there on a website, as in Chromium: the sheet has the value, a
+  minus, a slider and a plus, and remembers a zoom for the site) and Desktop
+  site, which says "On" or "Off" at its end;
   History, Bookmarks and Downloads as a row of tiles; Settings. Which entries
   there are is decided by the menu resource, as before.
 - Page actions: long press on the address pill. Reload, find in page, save
@@ -148,7 +169,8 @@ the home page (`include_home.xml`) in the same place as the web pages.
   context menu of Chromium for Android. A header with the title and the
   address, then "Open in new tab", "Open in Incognito tab", "Copy link
   address", "Copy link text", "Download link", "Share link", and for a picture
-  "Open image in new tab", "Copy image", "Download image", "Share image".
+  "Open image in new tab", "Copy image", "Download image", "Share image", and
+  at the end "Mark as ad and hide" (see *Marked ads* below).
   Chromium's entries for tab groups, page previews and Google Lens have no
   counterpart in Explorer and are left out.
 - A download is asked about in a sheet like Firefox's (`sheet_download.xml`):
@@ -270,7 +292,7 @@ a backup made by an earlier version can still be restored.
 On a website a shield stands left of the three-dot button
 (`view/ProtectionPanel`, `privacy/TrackingProtection`). It opens a panel laid
 out like the protection panel of Firefox for Android: the site, a banner
-("Foss Explorer is on guard", "You turned off protections", "Be careful on
+("Explorer is on guard", "You turned off protections", "Be careful on
 this site"), the switch "Enhanced Tracking Protection" for this site, how many
 trackers were blocked on the page (a tap lists them), the connection, "Clear
 cookies and site data" and "Privacy Settings". The protection is Explorer's
@@ -283,8 +305,8 @@ the blocked hosts.
 ### Private tabs
 
 A new private tab opens on a page of its own, laid out like Chromium's
-Incognito page (`include_incognito_ntp.xml`, `home/IncognitoPage`): dark,
-"You've gone Incognito", what is not saved and who can still see what you do,
+private browsing page (`include_incognito_ntp.xml`, `home/IncognitoPage`): dark,
+"You've gone private browsing mode", what is not saved and who can still see what you do,
 and the card "Block third-party cookies". The line "Cookies and site data" is
 only shown where it is true (see below). The top bar stays on this page.
 
@@ -297,18 +319,23 @@ On a WebView without profile support, private tabs share cookies with normal
 tabs. The app shows which of the two applies when a private tab is opened.
 Downloads, bookmarks and site permissions made in a private tab are kept.
 
-With *Lock Incognito tabs when you leave Explorer* (Privacy and security),
+With *Lock private tabs when you leave Explorer* (Privacy and security),
 private tabs are covered as soon as the app goes to the background
 (`privacy/IncognitoLock`, `include_incognito_lock.xml`). "Unlock Incognito"
 asks for the device's screen lock; "See other tabs" goes to the normal tabs.
-The settings call private tabs "Incognito tabs", as Chromium's texts do.
+The app calls them "private tabs" throughout, as the screens of Firefox for
+Android do; only the names of Chromium's own string keys (`cr_incognito_…`)
+still say incognito.
 
 ### Settings
 
 The first screen (`res/xml/preference_setting.xml`) lists topics by title
 only: Search engine, Privacy and security, Home page customization, Tabs and groups,
-Appearance, Accessibility, Gestures, Bookmark filter, Site settings, Backup,
-Help and support, About Foss Explorer. Each opens a full screen of its own.
+Appearance, Accessibility, Site settings, Backup, Help and support, About
+Explorer. Each opens a full screen of its own. Appearance has no switch for
+dynamic colour any more: the colours of the wallpaper are always used where
+Android offers them. Gestures and the bookmark filter are no longer settings;
+the browser gestures are Chromium's own (see *Gestures*).
 The topics, and the screens behind their rows, are described in
 `preferences/SettingsSections`; their rows are in
 `res/xml/preference_section_*.xml`, shown by `Settings_Activity` with the
@@ -375,6 +402,50 @@ Every settings screen is a `PreferenceFragmentCompat` based on
 `BasePreferenceFragment`, which hands the drawing to `SettingsCards`: each
 `PreferenceCategory` becomes one block of rounded rows.
 
+### First start and the welcome
+
+The first start opens a welcome in the shape of the one Firefox for Android
+shows (`activity/WelcomeActivity`, `res/layout/activity_welcome.xml`): four
+pages stepped through with *Next*, *Skip* in the corner, dots that say where
+the user is, and *Start browsing* on the last page, which also offers the
+system's screen for the default browser. It is shown once; the flag is
+`welcome_seen` in the default preferences. The dialog FOSS Browser opened on
+the first start is gone, as are its gesture defaults.
+
+The first start searches with Google. *Settings > Search engine* offers
+Google, Startpage, DuckDuckGo, SearX, Qwant, Ecosia, Mojeek, Brave and Bing;
+the Startpage variant that searched in German is no longer in the list, while
+an installation that already chose it keeps it.
+
+### Gestures
+
+Settings for gestures are gone, as is the code behind them: no swipe on a
+button and no long press on the tab counter runs an action of the user's
+choosing any more. What is left is what Chromium for Android offers
+(`BrowserActivity.dispatchTouchEvent`):
+
+- A swipe that starts in a narrow strip at the left edge of the screen and
+  goes to the right goes back; from the right edge to the left goes forward.
+  It has to be clearly horizontal, and a circle with an arrow follows the
+  finger so that it is visible what will happen. Swipes inside a page, on the
+  bars and on the menus are untouched, as are two-finger swipes on a touchpad.
+
+### Marked ads
+
+A long press on a picture or a link offers *Mark as ad and hide* at the end of
+its menu. The address is kept by `privacy/MarkedAds` (a string set,
+`xguard_marked_ads`), the element is hidden at once, and from then on every
+page hides it: `browser/NinjaWebViewClient` stops the request to a marked
+address as it stops a host of the filter list, and runs a script on the page
+that hides the pictures, frames, ad slots and links that point at one.
+Marking applies to every site, whatever the site's protection is set to; the
+blocked requests are counted in the shield's panel as xGuard's other blocks
+are.
+
+*Settings > xGuard > Marked ads* lists the marks. Tap one to unmark it — the
+page lets it through again — or add an address by hand without visiting the
+page. The row of xGuard says how many are marked.
+
 ### Home page
 
 The home page is a native view, not a website. A tab shows it while the tab
@@ -407,8 +478,9 @@ Based on FOSS Browser commit `79654ad7` (11 commits past tag `v24`, labelled
 - New identity: name, package, launcher icon, colour palette.
 - Minimum SDK lowered from 29 to 26, with a storage shim so downloads work on
   Android 8 and 9.
-- Dynamic colour is on by default on Android 12+. Older versions get the Foss
-  Explorer palette, and the light/dark setting works everywhere.
+- Dynamic colour is on wherever Android offers it (12+), with no switch to
+  turn it off; older versions get the Explorer palette, and the light/dark
+  setting works everywhere.
 - Kotlin enabled. New code and upstream's small model/contract classes are
   Kotlin; the WebView core is still upstream's Java.
 - Gradle scripts migrated to Kotlin DSL with a version catalog.
@@ -436,13 +508,13 @@ Based on FOSS Browser commit `79654ad7` (11 commits past tag `v24`, labelled
 - Address field at the top with suggestions below, instead of a dialog.
 - Unit tests added.
 
-Not changed: the help buttons in the title bars of the Gestures, Bookmark
-filter, Backup, profile and Clear browsing data screens still open the
-upstream FOSS Browser wiki, because Foss Explorer has no documentation site.
-The wiki is also still saved as the first bookmark. It describes upstream's
-bottom toolbar and its menu, which Foss Explorer no longer has.
+Not changed: the help buttons in the title bars of the Backup, profile and
+Clear browsing data screens still open the upstream FOSS Browser wiki, because
+Explorer has no documentation site of its own. The wiki is also still saved as
+the first bookmark. It describes upstream's bottom toolbar and its menu, which
+Explorer no longer has.
 
-Texts added by Foss Explorer since 0.1.0 exist in English only; the 27
+Texts added by Explorer since 0.1.0 exist in English only; the 27
 translations cover upstream's texts.
 
 See [CHANGELOG.md](CHANGELOG.md) for details.
@@ -457,12 +529,12 @@ git fetch --unshallow upstream   # once, downloads the full history (~240 MB)
 git merge upstream/master
 ```
 
-Expect conflicts in files this fork moved (`de.baumann.browser` to
+Expect conflicts in files Explorer moved (`de.baumann.browser` to
 `com.rpooi3.explorer`) or converted to Kotlin.
 
 ## License
 
-Foss Explorer's own code is under the GNU General Public License, version 3
+Explorer's own code is under the GNU General Public License, version 3
 ([COPYING](COPYING)). The code it takes from FOSS Browser stays under the GNU
 Affero General Public License, version 3 or later
 ([COPYING.AGPL](COPYING.AGPL)), because only its authors can change that.
@@ -471,5 +543,5 @@ Chromium are under a BSD licence; Mozilla's Readability is under the Apache
 License 2.0. [LICENSE.md](LICENSE.md) says which part is which and why.
 
 Copyright of the original work remains with Gaukler Faun and the FOSS Browser
-contributors. Foss Explorer is a modified version, first changed in November
+contributors. Explorer is a modified version of that work, first changed in November
 2026, and is not affiliated with or endorsed by the upstream project.

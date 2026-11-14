@@ -1,5 +1,6 @@
 /*
- * Foss Explorer: the panel behind the shield of the top bar.
+ * Foss Explorer: the panel behind the shield of the top bar, which is called xGuard
+ * since 15.2.1.
  * Own code, GPL-3.0. Arrangement and texts follow the protection panel of
  * Firefox for Android (MPL-2.0, see third_party/firefox).
  */
@@ -22,6 +23,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Activity
+import com.rpooi3.explorer.privacy.TrackingAnalysis
 import com.rpooi3.explorer.privacy.TrackingProtection
 
 object ProtectionPanel {
@@ -52,7 +54,8 @@ object ProtectionPanel {
         val secure = TrackingProtection.isSecure(url)
         val protectedSite = TrackingProtection.isProtected(activity, url)
         val count = TrackingProtection.blockedCount(tab)
-        val app = activity.getString(R.string.app_name)
+        // 15.2.1: the shield is called xGuard, and the banner says so.
+        val app = activity.getString(R.string.xguard_name)
 
         // The site
         view.findViewById<TextView>(R.id.protection_site_title).text = tab.title?.takeIf { it.isNotBlank() } ?: host
@@ -140,6 +143,10 @@ object ProtectionPanel {
             group, R.id.protection_connection, if (secure) R.drawable.icon_lock else R.drawable.icon_unsecure,
             activity.getString(if (secure) R.string.connection_security_panel_secure else R.string.connection_security_panel_not_secure), null,
         )
+        // xGuard's tracking analysis of this page: every request, every tracker, what was stopped.
+        row(group, R.id.protection_analysis, R.drawable.icon_search_site, activity.getString(R.string.xguard_panel_tracking_analysis)) {
+            TrackingAnalysis.showReport(activity, tab)
+        }
 
         // What can be done
         val actions = view.findViewById<LinearLayout>(R.id.protection_actions)
@@ -159,7 +166,7 @@ object ProtectionPanel {
         row(actions, R.id.protection_settings, R.drawable.icon_settings, activity.getString(R.string.protection_panel_privacy_and_security_settings_2)) {
             sheet.dismiss()
             activity.startActivity(
-                Intent(activity, Settings_Activity::class.java).putExtra(Settings_Activity.EXTRA_SITE_CATEGORY, "ads"),
+                Intent(activity, Settings_Activity::class.java).putExtra(Settings_Activity.EXTRA_SECTION, "section_xguard"),
             )
         }
     }

@@ -37,6 +37,17 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class HomePageScreenshotTest {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     @Test
     @Config(sdk = [34], qualifiers = PHONE)
@@ -221,7 +232,6 @@ class HomePageScreenshotTest {
     @Test
     @Config(sdk = [34], qualifiers = PHONE)
     fun mainMenu_zoom() = capture("menu-zoom", dialog = true) { activity ->
-        prefs(activity).edit().putBoolean(com.rpooi3.explorer.accessibility.PageZoom.KEY_ALWAYS_SHOW, true).commit()
         openExamplePage(activity)
         openMenu(activity)
     }
@@ -468,6 +478,7 @@ class HomePageScreenshotTest {
             override fun openInIncognitoTab(url: String) = Unit
             override fun download(url: String) = Unit
             override fun shareLink(title: String?, url: String) = Unit
+            override fun markAsAd(url: String) = Unit
         }
 
         const val PHONE = "w411dp-h891dp-notnight-xxhdpi"

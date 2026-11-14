@@ -45,6 +45,17 @@ import java.util.concurrent.TimeUnit
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], qualifiers = "w411dp-h891dp-notnight-xxhdpi")
 class Release1322BrowserTest {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -277,7 +288,7 @@ class Release1322BrowserTest {
             controller.start().resume()
             idle()
             assertEquals(View.VISIBLE, lock.visibility)
-            assertEquals("Unlock Incognito", view<TextView>(R.id.incognito_unlock).text.toString())
+            assertEquals("Unlock private tabs", view<TextView>(R.id.incognito_unlock).text.toString())
             assertEquals("See other tabs", view<TextView>(R.id.incognito_see_other_tabs).text.toString())
 
             // "See other tabs" goes to a normal tab; the private ones stay locked.
@@ -354,26 +365,20 @@ class Release1322BrowserTest {
     }
 
     @Test
-    fun theZoomEntryOfTheMenu_followsItsSetting_andZoomsTheSite() {
+    fun theZoomEntryOfTheMenu_isAlwaysThereOnASite_andZoomsTheSite() {
         launch {
-            open("https://example.org/")
+            // 16.1.0 (item 19): no setting decides whether "Zoom" is in the menu. It is there
+            // whenever a website is in front, as in Chromium, and gone on the home page.
             openMenu()
-            assertFalse("not in the menu unless asked for", activity.mainMenu.menu.findItem(R.id.main_zoom).isVisible)
-            activity.mainMenu.dismiss()
-        }
-        // (The tab of the first start would come back; start afresh.)
-        prefs.edit().putBoolean(PageZoom.KEY_ALWAYS_SHOW, true).remove("openTabs").commit()
-        launch {
-            openMenu()
-            val onHome = activity.mainMenu.menu.findItem(R.id.main_zoom)
-            assertTrue(onHome.isVisible)
-            assertEquals("Zoom", onHome.title.toString())
-            assertFalse("the home page is not a site", onHome.isEnabled)
+            assertFalse("the home page is not a site", activity.mainMenu.menu.findItem(R.id.main_zoom).isVisible)
             activity.mainMenu.dismiss()
 
             open("https://www.example.org/article")
             openMenu()
-            assertTrue(activity.mainMenu.menu.findItem(R.id.main_zoom).isEnabled)
+            val zoomEntry = activity.mainMenu.menu.findItem(R.id.main_zoom)
+            assertTrue("in the menu on every site", zoomEntry.isVisible)
+            assertTrue(zoomEntry.isEnabled)
+            assertEquals("Zoom", zoomEntry.title.toString())
             activity.mainMenu.dismiss()
 
             val sheet = PageHooks.showZoomSheet(web)

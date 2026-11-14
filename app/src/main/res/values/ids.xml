@@ -6,4 +6,6 @@
     <item name="protection_connection" type="id" />
     <item name="protection_clear" type="id" />
     <item name="protection_settings" type="id" />
+    <!-- 15.2.1: xGuard's tracking analysis of the page. -->
+    <item name="protection_analysis" type="id" />
 </resources>

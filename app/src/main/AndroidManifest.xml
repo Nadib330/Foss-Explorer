@@ -61,6 +61,13 @@
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
 
+        <!-- 16.1.0, item 4: Firefox's welcome, shown once on the first start. -->
+        <activity
+            android:name="com.rpooi3.explorer.activity.WelcomeActivity"
+            android:configChanges="orientation|uiMode|screenSize|smallestScreenSize|screenLayout"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+
         <activity
             android:name="com.rpooi3.explorer.activity.BrowserActivity"
             android:configChanges="orientation|uiMode|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"

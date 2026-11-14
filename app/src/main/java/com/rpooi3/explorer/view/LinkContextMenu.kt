@@ -69,6 +69,9 @@ object LinkContextMenu {
 
         /** Shares the link [url]. */
         fun shareLink(title: String?, url: String)
+
+        /** Marks [url] as an ad and hides it on every page (16.1.0). */
+        fun markAsAd(url: String)
     }
 
     /** The entries of Chromium's menu that Explorer has, in Chromium's order. */
@@ -83,6 +86,9 @@ object LinkContextMenu {
         COPY_IMAGE(R.string.cr_contextmenu_copy_image),
         SAVE_IMAGE(R.string.cr_contextmenu_save_image),
         SHARE_IMAGE(R.string.cr_contextmenu_share_image),
+
+        /** 16.1.0: the entry Explorer adds to Chromium's menu. */
+        MARK_AS_AD(R.string.cr_contextmenu_mark_as_ad),
     }
 
     /**
@@ -106,6 +112,8 @@ object LinkContextMenu {
         if (target.isImage) {
             groups += listOf(Item.OPEN_IMAGE_IN_NEW_TAB, Item.COPY_IMAGE, Item.SAVE_IMAGE, Item.SHARE_IMAGE)
         }
+        // 16.1.0: one entry for both, in a group of its own at the end.
+        if (target.isLink || target.isImage) groups += listOf(Item.MARK_AS_AD)
         return groups
     }
 
@@ -226,6 +234,7 @@ object LinkContextMenu {
                 clipboard.setPrimaryClip(ClipData.newUri(activity.contentResolver, "image", uri))
                 CatToast.show(activity, R.string.app_done)
             }
+            Item.MARK_AS_AD -> (target.imageUrl ?: target.linkUrl)?.let(host::markAsAd)
             Item.SHARE_IMAGE -> withImageFile(activity, web, image) { uri ->
                 val send = Intent(Intent.ACTION_SEND)
                     .setType(activity.contentResolver.getType(uri) ?: "image/*")

@@ -32,9 +32,6 @@
             android:key="section_safe_browsing"
             android:title="@string/cr_safe_browsing_title" />
 
-        <Preference
-            android:key="section_js_optimizer"
-            android:title="@string/cr_js_optimizer_title" />
 
     </PreferenceCategory>
 

@@ -121,15 +121,16 @@ class Release1322SettingsTest {
         val groups = groups()
         assertEquals(listOf("Privacy", "Security"), groups.map { it.title.toString() })
         assertEquals(
-            listOf("Delete browsing data", "Preload pages", "Lock Incognito tabs when you leave Explorer"),
+            listOf("Delete browsing data", "Preload pages", "Lock private tabs when you leave Explorer"),
             groups[0].titles(),
         )
-        assertEquals(listOf("Safe Browsing", "JavaScript optimization & security"), groups[1].titles())
+        // 16.1.0 (item 9): "JavaScript optimization & security" is gone.
+        assertEquals(listOf("Safe Browsing"), groups[1].titles())
         assertEquals("Delete history, cookies, site data, cache…", pref("settings_clear").summary.toString())
         // What stood here before 13.2.2 is not here any more.
         assertNull(fragment.findPreference<Preference>("settings_profile"))
         assertNull(fragment.findPreference<Preference>("edit_standard"))
-        assertEquals(5, all().size)
+        assertEquals(4, all().size)
 
         pref("settings_clear").performClick()
         assertEquals(Settings_Clear::class.java.name, shadowOf(activity).nextStartedActivity.component!!.className)
@@ -223,30 +224,12 @@ class Release1322SettingsTest {
     }
 
     @Test
-    fun javaScriptOptimization_isChromiumsScreen_withTheChoiceExplorerCanHonour() = section("section_js_optimizer") {
-        assertEquals("JavaScript optimization & security", title)
-        assertEquals(
-            listOf("js_optimizer_description", "js_optimizer_allowed", "js_optimizer_blocked", "js_optimizer_note", "js_optimizer_add"),
-            all().map { it.key },
-        )
-        assertEquals(
-            "V8 is Explorer’s JavaScript and WebAssembly engine used to improve site performance",
-            pref("js_optimizer_description").summary.toString(),
-        )
-        assertEquals(
-            "Speed up sites with Explorer's V8 engine but make Explorer slightly less resistant to attacks",
-            radio("js_optimizer_allowed").title.toString(),
-        )
-        assertEquals(
-            "Do not speed up sites with Explorer's V8 engine but make Explorer slightly more resistant to attacks",
-            radio("js_optimizer_blocked").title.toString(),
-        )
-        assertEquals("Add site exception", pref("js_optimizer_add").title.toString())
-        // The engine cannot be told to leave the optimizer off, so that is not offered as if it worked.
-        assertTrue(radio("js_optimizer_allowed").isChecked)
-        assertFalse(radio("js_optimizer_blocked").isEnabled)
-        assertFalse(pref("js_optimizer_add").isEnabled)
-        assertTrue(pref("js_optimizer_note").summary.toString().contains("does not let an app switch the V8 optimizer off"))
+    fun javaScriptOptimization_isGone() {
+        // 16.1.0 (item 9): the topic left the settings, and with it its screen.
+        assertNull(SettingsSections.byKey("section_js_optimizer"))
+        section("section_privacy") {
+            assertNull(fragment.findPreference<Preference>("section_js_optimizer"))
+        }
     }
 
     @Test
@@ -265,7 +248,7 @@ class Release1322SettingsTest {
         secureDevice(true)
         section("section_privacy") {
             val lock = switch(IncognitoLock.KEY)
-            assertEquals("Use screen lock to see open Incognito tabs", lock.summary.toString())
+            assertEquals("Use screen lock to see open private tabs", lock.summary.toString())
             lock.performClick()
             idle()
             assertTrue(lock.isChecked)
@@ -327,17 +310,16 @@ class Release1322SettingsTest {
         assertEquals("Accessibility", title)
         assertEquals(
             listOf(
-                "page_zoom_default_zoom", "section_saved_zoom", "page_zoom_include_os_adjustment", "page_zoom_always_show",
-                "force_enable_zoom", "reader_for_accessibility", "reader_enable_links", "caret_browsing", "captions",
-                "image_descriptions", "touchpad_overscroll_history_navigation",
+                "page_zoom_default_zoom", "section_saved_zoom", "page_zoom_include_os_adjustment",
+                "force_enable_zoom", "reader_for_accessibility", "reader_enable_links", "captions",
+                "touchpad_overscroll_history_navigation",
             ),
             all().map { it.key },
         )
         assertEquals(
             listOf(
-                "Saved zoom for sites", "Match Android font size", "Show zoom option in main menu", "Force enable zoom",
-                "Simplified view for web pages", "Show hyperlinks",
-                "Navigate pages with a text cursor when a keyboard is attached", "Captions", "Image descriptions",
+                "Saved zoom for sites", "Match Android font size", "Force enable zoom",
+                "Simplified view for web pages", "Show hyperlinks", "Captions",
                 "Swipe between pages using a touchpad",
             ),
             all().drop(1).map { it.title.toString() },
@@ -349,15 +331,17 @@ class Release1322SettingsTest {
         )
         // Switches where Chromium has switches, plain rows where it has rows.
         for (key in listOf(
-            "page_zoom_include_os_adjustment", "page_zoom_always_show", "force_enable_zoom", "reader_for_accessibility",
-            "reader_enable_links", "caret_browsing", "touchpad_overscroll_history_navigation",
+            "page_zoom_include_os_adjustment", "force_enable_zoom", "reader_for_accessibility",
+            "reader_enable_links", "touchpad_overscroll_history_navigation",
         )) {
             assertTrue(key, pref(key) is SwitchPreferenceCompat)
         }
         assertEquals(Preference::class.java, pref("captions").javaClass)
-        // What the engine does not offer is shown, and cannot be switched.
-        assertFalse(pref("caret_browsing").isEnabled)
-        assertFalse(pref("image_descriptions").isEnabled)
+        // 16.1.0 (items 10 and 15): the zoom switch, the text cursor and the image descriptions
+        // are gone from this screen.
+        for (gone in listOf("page_zoom_always_show", "caret_browsing", "image_descriptions")) {
+            assertNull(gone, fragment.findPreference<Preference>(gone))
+        }
 
         pref("captions").performClick()
         assertEquals(Settings.ACTION_CAPTIONING_SETTINGS, shadowOf(activity).nextStartedActivity.action)
@@ -496,15 +480,17 @@ class Release1322SettingsTest {
             assertEquals(engine.isChecked, row.findViewById<RadioButton>(R.id.radio_end).isChecked)
         }
         assertEquals(
-            "the engines Explorer had before are still there",
-            listOf("Startpage (Deutsch)", "Qwant", "Mojeek", "Searx", "Custom search engine"),
+            // 16.1.0 (item 17): "Startpage (Deutsch)" is gone; the other engines keep their place.
+            "the engines Explorer had before are still there, without the German Startpage",
+            listOf("Qwant", "Mojeek", "Searx", "Custom search engine"),
             groups()[1].titles(),
         )
     }
 
     @Test
     fun choosingAnEngine_changesWhereSearchesGo() = section("section_search") {
-        assertTrue("Startpage was and stays the default", radio("engine_startpage").isChecked)
+        // 16.1.0 (item 16): Google is the engine of a new installation.
+        assertTrue("Google is the default", radio("engine_google").isChecked)
         assertEquals(1, all().filterIsInstance<RadioRowPreference>().count { it.isChecked })
 
         val expected = mapOf(
@@ -527,10 +513,17 @@ class Release1322SettingsTest {
 
     @Test
     fun enginesChosenInEarlierVersions_stayChosen() {
-        for ((stored, key) in mapOf("0" to "startpage", "1" to "startpage_de", "4" to "duckduckgo", "6" to "searx", "7" to "qwant", "8" to "ecosia", "10" to "mojeek")) {
+        for ((stored, key) in mapOf(
+            "0" to "startpage", "4" to "duckduckgo", "6" to "searx", "7" to "qwant", "8" to "ecosia",
+            "9" to "google", "10" to "mojeek", "11" to "brave", "12" to "bing",
+        )) {
             prefs.edit().putString(SearchEngines.KEY_ENGINE, stored).putBoolean(SearchEngines.KEY_CUSTOM_ON, false).commit()
             assertEquals(stored, key, SearchEngines.selected(prefs))
         }
+        // 16.1.0 (item 17): the German Startpage is gone from the list; a stored "1" searches with
+        // Google rather than with nothing.
+        prefs.edit().putString(SearchEngines.KEY_ENGINE, "1").commit()
+        assertEquals("a stored Startpage (Deutsch) falls back", "google", SearchEngines.selected(prefs))
         // A search address of the user's own, set before the update.
         prefs.edit().putBoolean(SearchEngines.KEY_CUSTOM_ON, true)
             .putString(SearchEngines.KEY_CUSTOM_URL, "https://search.example/?q=").commit()
@@ -566,14 +559,16 @@ class Release1322SettingsTest {
 
     @Test
     fun about_isThreeCardsLikeAboutChrome_andDeveloperBelow() = section("section_about") {
-        assertEquals("About Foss Explorer", title)
+        assertEquals("About Explorer", title)
         val groups = groups()
-        assertEquals("every tile is a card of its own", listOf(1, 1, 1, 1), groups.map { it.preferenceCount })
+        // 16.1.0 (item 1): the feedback row is a card of its own between Legal information and
+        // the developer.
+        assertEquals("every tile is a card of its own", listOf(1, 1, 1, 1, 1), groups.map { it.preferenceCount })
         assertEquals(
-            listOf("Application version", "Operating system", "Legal information", "Developer"),
+            listOf("Application version", "Operating system", "Legal information", "Send feedback", "Developer"),
             all().map { it.title.toString() },
         )
-        assertEquals("Foss Explorer " + SettingsSections.versionName(activity), pref("about_app").summary.toString())
+        assertEquals("Explorer " + SettingsSections.versionName(activity), pref("about_app").summary.toString())
         assertEquals(
             "Android ${Build.VERSION.RELEASE}; ${Build.MODEL} Build/${Build.ID}",
             pref("about_os").summary.toString(),
@@ -591,12 +586,16 @@ class Release1322SettingsTest {
             listOf(
                 "Open source license", "GNU General Public License, version 3",
                 "GNU Affero General Public License, version 3", "Open source components",
-                "Code from FOSS Browser", "Source code of Foss Explorer", "Source code of FOSS Browser",
+                // 15.2.1: Chromium and Firefox are named above FOSS Browser's source.
+                // 16.1.0: the card "Code from FOSS Browser" is gone (item 21), and the app calls
+                // itself Explorer (item 22).
+                "Source code of Explorer",
+                "Source code of Chromium", "Source code of Firefox", "Source code of FOSS Browser",
             ),
             all().map { it.title.toString() },
         )
         val license = pref("about_license").summary.toString()
-        assertTrue(license, license.startsWith("Foss Explorer's own code: GNU General Public License"))
+        assertTrue(license, license.contains("GNU General Public License, version 3"))
         assertTrue(license, license.contains("Affero General Public License, version 3 or later"))
 
         fun text(key: String): String {
@@ -616,7 +615,8 @@ class Release1322SettingsTest {
         }
 
         mapOf(
-            "about_source" to "https://codeberg.org/rpooi3/FOSS_Explorer",
+            // 16.1.0 (item 18): the source of Explorer is on GitHub.
+            "about_source" to "https://github.com/nadib330/Foss-Explorer/",
             "about_source_upstream" to "https://codeberg.org/Gaukler_Faun/FOSS_Browser",
         ).forEach { (key, url) ->
             pref(key).performClick()

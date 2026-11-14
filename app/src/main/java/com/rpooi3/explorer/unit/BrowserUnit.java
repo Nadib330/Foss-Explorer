@@ -103,7 +103,7 @@ public class BrowserUnit {
                 //if new switch_text_preference has never been used initialize the switch
                 return customSearchEngine + query;
             } else {
-                return com.rpooi3.explorer.search.SearchEngines.searchUrl(sp.getString("sp_search_engine", "0"), query);
+                return com.rpooi3.explorer.search.SearchEngines.searchUrl(sp.getString("sp_search_engine", "9"), query);
             }
         }
     }

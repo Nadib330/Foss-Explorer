@@ -14,10 +14,12 @@
 
         <Preference
             android:key="about_license_gpl"
+            android:summary="@string/about_license_gpl_summary"
             android:title="@string/about_license_gpl" />
 
         <Preference
             android:key="about_license_agpl"
+            android:summary="@string/about_license_agpl_summary"
             android:title="@string/about_license_agpl" />
 
         <Preference
@@ -30,19 +32,24 @@
     <PreferenceCategory>
 
         <Preference
-            android:key="about_fork"
-            android:summary="@string/about_fork_summary"
-            android:title="@string/about_fork_title"
-            android:selectable="false" />
+            android:key="about_source"
+            android:summary="@string/about_source_summary"
+            android:title="@string/about_source_title" />
+
+        <!-- The engines and browsers this app is built on, above FOSS Browser's link (15.2.1). -->
+        <Preference
+            android:key="about_source_chromium"
+            android:summary="@string/about_source_chromium_summary"
+            android:title="@string/about_source_chromium_title" />
 
         <Preference
-            android:key="about_source"
-            android:summary="@string/about_source_url"
-            android:title="@string/about_source_title" />
+            android:key="about_source_firefox"
+            android:summary="@string/about_source_firefox_summary"
+            android:title="@string/about_source_firefox_title" />
 
         <Preference
             android:key="about_source_upstream"
-            android:summary="@string/about_source_upstream_url"
+            android:summary="@string/about_source_upstream_summary"
             android:title="@string/about_source_upstream_title" />
 
     </PreferenceCategory>

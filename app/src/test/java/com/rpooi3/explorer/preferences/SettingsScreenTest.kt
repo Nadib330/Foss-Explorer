@@ -12,7 +12,6 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Activity
-import com.rpooi3.explorer.activity.Settings_Gesture
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -113,9 +112,9 @@ class SettingsScreenTest {
         val topics = allPrefs()
         assertEquals(
             listOf(
-                "Search engine", "Privacy and security", "Home page customization", "Tabs and groups",
-                "Appearance", "Accessibility", "Gestures", "Bookmark filter", "Site settings", "Backup",
-                "Help and support", "About Foss Explorer",
+                "Search engine", "Privacy and security", "xGuard", "Home page customization", "Tabs and groups",
+                "Appearance", "Accessibility", "Site settings", "Backup",
+                "Help and support", "About Explorer",
             ),
             topics.map { it.title.toString() },
         )
@@ -167,8 +166,6 @@ class SettingsScreenTest {
             assertEquals(section.key, started.getStringExtra(Settings_Activity.EXTRA_SECTION))
         }
         mapOf(
-            "settings_gesture" to Settings_Gesture::class.java,
-            "settings_filter" to Settings_Filter::class.java,
             "settings_data" to Settings_Backup::class.java,
         ).forEach { (key, screen) ->
             pref(key).performClick()
@@ -180,13 +177,22 @@ class SettingsScreenTest {
     fun everySetting_isSomewhere_exceptTheRemovedOnes() {
         val keys = (SettingsSections.ALL + SettingsSections.SUB)
             .flatMap { section -> section(section.key) { allPrefs().map { it.key } } }
-        for (key in listOf("favoriteURL", "sp_theme", "useDynamicColor", "settings_profile", "edit_standard", "settings_clear")) {
+        for (key in listOf("favoriteURL", "sp_theme", "settings_clear")) {
             assertEquals("$key appears exactly once", 1, keys.count { it == key })
         }
-        // 12.1.2: cat mode and the typed user agents are gone; the filter list moved to Site settings > Ads.
-        for (key in listOf("cat_mode_enabled", "sp_userAgent", "sp_userAgent_desktop", "ab_hosts")) {
+        // 16.1.0: without the appearance switch (item 10), the profile settings (item 8) and the
+        // site list they opened, these keys are gone.
+        for (key in listOf("useDynamicColor", "settings_profile", "edit_standard", "site_auto_verify")) {
             assertFalse("$key is gone", key in keys)
         }
+        // 12.1.2: cat mode and the typed user agents are gone.
+        for (key in listOf("cat_mode_enabled", "sp_userAgent", "sp_userAgent_desktop")) {
+            assertFalse("$key is gone", key in keys)
+        }
+        // 15.2.1: the filter list left Site settings > Ads for xGuard's own screen, where it is
+        // still a setting — once, and only there.
+        assertEquals("the filter list is a setting again", 1, keys.count { it == "ab_hosts" })
+        assertTrue("the xGuard topic has the filter list", "ab_hosts" in section("section_xguard") { allPrefs().map { it.key } })
         // 13.2.2: the old Tabs switches are gone; the font size became Accessibility > Default zoom;
         // the search engine list became a screen of radio buttons.
         for (key in listOf(
@@ -203,7 +209,7 @@ class SettingsScreenTest {
     fun everySubScreen_isReachedFromARow_andHasATitle() {
         val owner = mapOf(
             "section_preload" to "section_privacy", "section_safe_browsing" to "section_privacy",
-            "section_js_optimizer" to "section_privacy", "section_inactive_tabs" to "section_tabs",
+            "section_marked_ads" to "section_xguard", "section_inactive_tabs" to "section_tabs",
             "section_saved_zoom" to "section_accessibility", "section_legal" to "section_about",
             "section_developer" to "section_about",
         )
@@ -251,10 +257,10 @@ class SettingsScreenTest {
 
     @Test
     fun search_findsATopicByItsTitle_andClearingBringsAllBack() = launch(Settings_Activity::class.java) {
-        type("gest")
+        type("access")
 
-        assertEquals(listOf("Gestures"), rows().map { it.first })
-        assertFalse(pref("section_appearance").isVisible)
+        assertEquals(listOf("Accessibility"), rows().map { it.first })
+        assertFalse("another topic stays hidden", pref("section_appearance").isVisible)
         assertEquals(View.GONE, empty.visibility)
         assertEquals(View.VISIBLE, activity.findViewById<View>(R.id.settings_search_clear).visibility)
 
@@ -262,8 +268,9 @@ class SettingsScreenTest {
         idle()
 
         assertEquals("", input.text.toString())
-        assertTrue(pref("section_appearance").isVisible)
-        assertEquals(12, allPrefs().count { it.isVisible })
+        assertTrue(pref("section_accessibility").isVisible)
+        // 16.1.0: eleven rows on the first screen; the gestures and the bookmark filter left.
+        assertEquals(11, allPrefs().count { it.isVisible })
     }
 
     @Test
@@ -276,15 +283,19 @@ class SettingsScreenTest {
         type("haven't visited recently")
         assertEquals(listOf("Site settings"), rows().map { it.first })
 
-        // The profiles moved to "Site settings" with 13.2.2.
+        // 16.1.0 (item 8): the profile settings are gone from Site settings, so their words
+        // find nothing any more.
         type("saved websites")
-        assertEquals(listOf("Site settings"), rows().map { it.first })
+        assertEquals(emptyList<String>(), rows().map { it.first })
 
         // Chromium's rows are found inside their topics as well.
         type("safe browsing")
         assertEquals(listOf("Privacy and security"), rows().map { it.first })
-        type("caret")
+        type("captions")
         assertEquals(listOf("Accessibility"), rows().map { it.first })
+        // 16.1.0 (item 15): the text cursor and the image descriptions are gone.
+        type("text cursor")
+        assertEquals(emptyList<String>(), rows().map { it.first })
 
         // What was removed is not found any more.
         type("user agent")
@@ -308,21 +319,22 @@ class SettingsScreenTest {
 
     @Test
     @Config(sdk = [26])
-    fun appearanceScreen_doesNotOfferWallpaperColours_beforeAndroid12() {
+    fun appearanceScreen_hasNoDynamicColourSwitch_andTheThemeStays() {
         section("section_appearance") {
-            assertFalse(pref("useDynamicColor").isVisible)
+            // 16.1.0 (item 10): the switch is gone; wallpaper colours are on wherever they exist.
+            assertNull(fragment.findPreference<Preference>("useDynamicColor"))
             assertTrue(pref("sp_theme").isVisible)
         }
     }
 
     @Test
-    fun subScreens_useTheSameCards_withoutSearch_andKeepTheirHeadings() = launch(Settings_Gesture::class.java) {
+    fun subScreens_useTheSameCards_withoutSearch_andKeepTheirHeadings() = section("section_xguard") {
         assertEquals(View.GONE, search.visibility)
 
         val first = fragment.preferenceScreen.getPreference(0) as PreferenceCategory
-        assertEquals("Tabs button (bottom bar)", first.title.toString())
+        assertEquals("Protection", first.title.toString())
         val second = fragment.preferenceScreen.getPreference(1) as PreferenceCategory
-        assertEquals("Menu button (top bar)", second.title.toString())
+        assertEquals("Filter list", second.title.toString())
 
         val rows = rows()
         assertTrue(rows.isNotEmpty())

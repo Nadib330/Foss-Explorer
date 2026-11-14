@@ -16,7 +16,6 @@ import androidx.preference.PreferenceManager;
 
 import java.util.Objects;
 import com.rpooi3.explorer.R;
-import com.rpooi3.explorer.theme.ExplorerTheme;
 import com.rpooi3.explorer.activity.*;
 import com.rpooi3.explorer.browser.AdBlock;
 import com.rpooi3.explorer.preferences.BasePreferenceFragment;
@@ -70,9 +69,7 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         SettingsSections.bindInfo(this);
         SiteSettingsScreen.bind(this);
         setClick("settings_profile", Settings_Profile.class);
-        setClick("settings_filter", Settings_Filter.class);
         setClick("settings_data", Settings_Backup.class);
-        setClick("settings_gesture", Settings_Gesture.class);
         setClick("settings_clear", Settings_Clear.class);
         setClick("edit_standard", Settings_ProfileList.class);
     }
@@ -83,8 +80,9 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
      */
     public int filter(String query) {
         if (getPreferenceScreen() == null) return 0;
-        return SettingsCards.filter(getPreferenceScreen(), query == null ? "" : query,
-                pref -> !"useDynamicColor".equals(pref.getKey()) || ExplorerTheme.isDynamicColorAvailable());
+        // 16.1.0: nothing is filtered out any more; dynamic colour is always on and the
+        // removed rows no longer exist (items 7, 9, 10, 13, 15, 20).
+        return SettingsCards.filter(getPreferenceScreen(), query == null ? "" : query, pref -> true);
     }
 
     private void setClick(String key, Class<?> cls) {
@@ -128,9 +126,6 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
                 updateAdBlockSummary();
             }
         }
-
-        Preference dynamicColor = findPreference("useDynamicColor");
-        if (dynamicColor != null) dynamicColor.setVisible(ExplorerTheme.isDynamicColorAvailable());
 
     }
 

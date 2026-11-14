@@ -54,21 +54,20 @@ object SearchEngines {
         Engine("duckduckgo", "4", R.string.engine_duckduckgo, "duckduckgo.com", "https://duckduckgo.com/?q=", 0xFFDE5833.toInt(), "D", true, R.drawable.engine_duckduckgo),
         Engine("ecosia", "8", R.string.engine_ecosia, "ecosia.org", "https://www.ecosia.org/search?q=", 0xFF008009.toInt(), "E", true, R.drawable.engine_ecosia),
         Engine("startpage", "0", R.string.engine_startpage, "startpage.com", "https://startpage.com/do/search?query=", 0xFF6573FF.toInt(), "S", true, R.drawable.engine_startpage),
-        Engine("startpage_de", "1", R.string.engine_startpage_de, "startpage.com", "https://startpage.com/do/search?lui=deu&language=deutsch&query=", 0xFF6573FF.toInt(), "S", false, R.drawable.engine_startpage),
         Engine("qwant", "7", R.string.engine_qwant, "qwant.com", "https://www.qwant.com/?q=", 0xFF5C97FF.toInt(), "Q", false, R.drawable.engine_qwant),
         Engine("mojeek", "10", R.string.engine_mojeek, "mojeek.com", "https://www.mojeek.com/search?q=", 0xFF7AB93C.toInt(), "M", false),
         Engine("searx", "6", R.string.engine_searx, "searx.be", "https://searx.be/?q=", 0xFF3050FF.toInt(), "S", false),
     )
 
-    /** The engine stored as [value]; Startpage, the app's default, for anything unknown. */
+    /** The engine stored as [value]; Google, the app's default since 16.1.0, for anything unknown. */
     @JvmStatic
-    fun byValue(value: String?): Engine = ALL.firstOrNull { it.value == value } ?: ALL.first { it.key == "startpage" }
+    fun byValue(value: String?): Engine = ALL.firstOrNull { it.value == value } ?: ALL.first { it.key == "google" }
 
     /** Key of the chosen row: an engine's key, or [CUSTOM]. */
     @JvmStatic
     fun selected(prefs: SharedPreferences): String =
         if (prefs.getBoolean(KEY_CUSTOM_ON, false) && !prefs.getString(KEY_CUSTOM_URL, "").isNullOrBlank()) CUSTOM
-        else byValue(prefs.getString(KEY_ENGINE, "0")).key
+        else byValue(prefs.getString(KEY_ENGINE, "9")).key
 
     /** Chooses the engine with [key]. */
     @JvmStatic

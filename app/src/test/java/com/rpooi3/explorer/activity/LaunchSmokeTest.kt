@@ -22,6 +22,17 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34])
 class LaunchSmokeTest {
+    /**
+     * 16.1.0: the browser opens the welcome of the first start (item 4). These tests are about
+     * the browser itself, so the welcome is marked as seen before the activity is built.
+     */
+    @org.junit.Before
+    fun markTheWelcomeAsSeen() {
+        androidx.preference.PreferenceManager
+            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .edit().putBoolean("welcome_seen", true).commit()
+    }
+
 
     @Test
     fun browser_starts() {
@@ -44,7 +55,6 @@ class LaunchSmokeTest {
             Settings_Backup::class.java,
             Settings_Clear::class.java,
             Settings_Filter::class.java,
-            Settings_Gesture::class.java,
             Settings_Profile::class.java,
             Settings_ProfileList::class.java,
         )
