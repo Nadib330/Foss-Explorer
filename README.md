@@ -230,7 +230,9 @@ A license applying to Explorer's original code does not replace or override the 
 
 ## Contribution 
 
-please read contribution.md
+Please read the [Contribution guideline](https://github.com/Nadib330/Foss-Explorer/blob/main/CONTRIBUTING.md).
+
+
 ---
 
 **Developed by rpooi3 (also known as rpooi3 studio and Nadib330.)**
