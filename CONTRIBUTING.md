@@ -1,4 +1,4 @@
-# Contributing to Foss Explorer
+# Contributing to Explorer
 
 Thank you for your interest in contributing to **Foss Explorer**!
 
