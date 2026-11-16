@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 17.3.3: a row of tiles that holds one tile only (the library when it is short, or
+     "Extensions" on the home page, where there is no "Zoom" beside it). It is rounded on all
+     four corners like a group, because that is what it looks like: a group of one. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape>
+            <solid android:color="?attr/colorSurfaceBright" />
+            <corners android:radius="@dimen/menu_group_corner" />
+        </shape>
+    </item>
+</ripple>

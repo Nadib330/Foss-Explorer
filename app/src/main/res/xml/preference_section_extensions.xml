@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Extension (17.3.1). The topic behind the tile of the same name. The rows of the
+     installed extensions are added by SettingsScreens.bindExtensions(), one row per extension,
+     above the rows that add one; the last rows explain what Explorer can and cannot run. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:key="extensions_group_installed"
+        android:title="@string/extensions_title">
+
+        <Preference
+            android:icon="@drawable/icon_plus"
+            android:key="extensions_add"
+            android:summary="@string/extensions_add_store_summary"
+            android:title="@string/extensions_add_store" />
+
+        <Preference
+            android:icon="@drawable/icon_open_in_new"
+            android:key="extensions_store"
+            android:summary="@string/extensions_open_store_summary"
+            android:title="@string/extensions_open_store" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="extensions_group_note">
+
+        <Preference
+            android:icon="@drawable/icon_info"
+            android:key="extensions_note"
+            android:selectable="false"
+            android:summary="@string/extensions_note_text"
+            android:title="@string/extensions_note_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
