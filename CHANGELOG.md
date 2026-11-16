@@ -1,5 +1,166 @@
 # Changelog
 
+## 17.3.3
+
+### Desktop mode is a computer running Chrome, and it says so
+- **"Desktop site" sends the user agent of Chrome on Windows**:
+  `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
+  Chrome/<version of the WebView>.0.0.0 Safari/537.36`. Neither `wv` nor `Android` is in it
+  any more, so a site of the desktop version gets what Chrome on a computer sends. Mobile mode
+  keeps a mobile agent of Chrome on Android, also without `wv`. The store, which is always the
+  desktop one, now sees a Windows browser as well.
+- **The page is told the same, inside the page.** The user agent is only what the request
+  carries; the scripts of a page read `navigator.platform` and the client hints and answered
+  "Switch to Google Chrome" to an Android WebView. A script now runs before the page's own
+  scripts (a document-start script; the page callbacks where the WebView has none) and writes
+  `navigator.platform = "Win32"`, `navigator.vendor = "Google Inc."`, `navigator.maxTouchPoints = 0`
+  and a `navigator.userAgentData` that says `mobile: false`, `platform: "Windows"` with the
+  brands and `getHighEntropyValues` of Chrome. It is taken back as soon as the tab goes back
+  to the mobile version, so a mobile page is never told that it is on Windows.
+- The client hints that go out with the request agree: platform `Windows`, platform version
+  `15.0.0`, `mobile: false`.
+
+### Extensions
+- The install itself no longer takes the browser down with it: the message that says the
+  extension is being fetched is shown on the main thread (`view/CatToast`), the callback of the
+  install is handed back to the main looper (`extension/StoreHook`), and the tab is loaded again
+  only if it still exists. A tab that was closed while its extension was being installed is left
+  alone, in the sheet, in the activity and in the extension runtime.
+
+### Ad blocking, after Chromite
+- **FOSS Browser's ad blocker is gone and Chromite's method is in its place.** The old one
+  compared the bare host of a request with a file of hosts (`assets/hosts.txt`, which was never
+  in the app, so a fresh install blocked nothing); the new one reads the lists the web has
+  agreed on and works on two levels, as Chromite does: **a request that a rule matches is
+  answered empty** before it leaves the app, and **an element that a rule names is hidden** by a
+  style sheet written into the page before it is painted.
+  - `browser/AdFilter.kt` is the engine and holds no Android: Adblock Plus syntax (`||host^`,
+    `|`, `*`, `^`, `@@` exceptions, `$third-party`, `$script`, `$image`, `$domain=…`), a hosts
+    file read as `||host^`, and `domain##selector` element rules with their `#@#` exceptions. A
+    rule with an option a WebView cannot honour (`$redirect`, `$csp`, `$removeparam`, `$popup`)
+    is left out rather than misapplied, and rules are filed under a keyword so that a request
+    only looks at the rules its url could match.
+  - `browser/AdBlocker.kt` fetches and keeps the lists, decides the kind of a request from
+    `Sec-Fetch-Dest` (or `Accept`), and counts what it blocks for xGuard's panel.
+  - **The lists are EasyList and EasyPrivacy** (on out of the box) and StevenBlack's unified
+    hosts (off). They are fetched from their publishers, refreshed daily (weekly with data saver)
+    and only after a successful download, so a failed fetch never blinds the blocker.
+- **xGuard's screen shows the lists themselves** — one switch per list and *Update the filter
+  lists now* — where FOSS Browser's single list used to be chosen from a dropdown of sixteen
+  StefanBlack variants. The profile switch and Site settings > Ads are unchanged.
+
+### The three-dot menu
+- **The tile "Extensions" on the home page is rounded on all four corners.** It fills its row
+  alone, so it is drawn like a group of one (`bg_menu_tile_single`) instead of with the inner
+  corners of a row.
+
+### Legal information
+- **Chromium's and Firefox's licences are in the app**: *Chromium: BSD 3-Clause License*
+  (`licenses/Chromium-BSD-3-Clause.txt` — the offline page, the game and the layout of the
+  browser's settings) and *Mozilla Public License, version 2.0* (`licenses/MPL-2.0.txt` — the
+  main menu, the download prompt, the protection panel and the Places database), beside
+  GPL-3.0 and AGPL-3.0-or-later.
+- **Open source components lists only what is still FOSS Browser's** — the tab and its web view,
+  the per-site profiles, the cookie-banner blocker and the custom redirects, the site-icon
+  cache, downloads and the backup — instead of the whole composition of the project it started
+  from, and it names the filter lists of the blocker with the licences they come under.
+- **The About tile says what it is**: "Copyright 2026 rpooi3. Free software under GPL-3.0." The
+  FOSS Browser contributors and AGPL-3.0 are no longer in that line, and the rows no longer end
+  in "Opens the text" or "Opens the source repository" — a row says what it is, not what opening
+  it does.
+
+## 17.3.2
+
+### Adding an extension from the Chrome Web Store works now
+- **The download was broken, and that is fixed.** The address of the update service was put
+  together with `String.format`, which read the `%3D` and the `%26` of `x=id%3D<id>%26uc` as
+  format specifiers and threw before anything was fetched. The address is built by hand now, and
+  the redirect to `clients2.googleusercontent.com` is followed hop by hop (five at most), because
+  the connection does not always do it on its own.
+- **The store is told that it is talking to Chrome.** It asks `window.chrome` — `webstore`,
+  `app`, `runtime`, `csi`, `loadTimes` — before it offers its install button, and without them it
+  answers with "Switch to Google Chrome". The page gets those before its own scripts run
+  (a document-start script, and the page callbacks as a fallback), and `chrome.webstore.install()`
+  hands the install to Explorer.
+- **The store's own blue button is taken over** instead of a second button of Explorer's being
+  put over the page: **Add to Chrome** is found by its words (its `aria-label` too, and inside a
+  shadow root), its label is written over as **Add to Explorer**, and a tap installs the
+  extension through Explorer. The store draws its page again and again, so the label is looked
+  after while the page lives (a `MutationObserver` and a short interval), and a tap that lands
+  before that still installs. Once the extension is in, the button says **Already added** and the
+  tab is loaded again, so the new content scripts start working at once.
+- **The Chrome Web Store is always the desktop one.** Its pages get the desktop Chrome user
+  agent and the wide layout whatever the tab is set to, and **Desktop site cannot be turned off**
+  there: the entry of the three-dot menu is disabled and shows *On*, and `setDesktopSite(false)`
+  is ignored on the store. No other version of the store offers extensions.
+- A way that cannot fail: the extension sheet now offers **Add this extension to Explorer** when
+  the page in front is a store page of an extension that is not in yet, whatever the store's page
+  does with its own button.
+
+### The three-dot menu
+- **Extensions** is in the menu on the home page as well: there it takes the whole row, because
+  there is nothing to zoom. On a website it is half width, beside **Zoom**, as in 17.3.1.
+
+### Settings
+- **Send feedback** moved from **About Explorer** to **Help and support**, where it stands under
+  the developer's address; it opens the same new GitHub issue as before. About is four cards
+  again.
+
+## 17.3.1
+
+### Extensions from the Chrome Web Store
+- **Explorer can run extensions now.** The `.crx` of an extension is unpacked by
+  Explorer itself: the `Cr24` header is read (version 3 with its protobuf header,
+  version 2 with its key and signature), the ZIP behind it is written below
+  `files/extensions/<id>/`, and an entry that would leave that folder stops the
+  install (`SecurityException`, the Zip-Slip rule).
+- **Adding one:** the `.crx` comes from the same update service Chrome uses,
+  `clients2.google.com/service/update2/crx` with `x=id%3D<id>%26uc` and a desktop
+  Chrome user agent, and is deleted after it was unpacked. On a page of the
+  Chrome Web Store the button **Add to Explorer** appears in the corner, and the
+  store's own **Add to Chrome** button is taken over.
+- **A host, not a hack:** the manifest is read with `org.json` (name, version,
+  `action`/`browser_action` popup, `options_ui`/`options_page`, icons,
+  permissions and the `content_scripts` rules with their `run_at`), and the
+  content scripts and stylesheets are run in the tab on both page callbacks —
+  `document_start` when the page starts, `document_end` and `document_idle` when
+  it is done. A guard keeps a script from running twice in one document.
+- **`chrome.*` in the page:** before any extension code runs, a shim gives it
+  `chrome.runtime` (`id`, `getURL`, `getManifest`, `sendMessage` and its
+  listeners, `openOptionsPage`), `chrome.storage.local`/`sync`/`session` with the
+  callbacks *and* promises, `chrome.tabs`, `chrome.i18n`, `chrome.action` and
+  stubs for the rest, plus `window.browser`. The storage of an extension is kept
+  in Explorer (`ext_store`-style preferences per extension, `extension_storage`).
+  Every call to the bridge carries the token of the page load, which only the
+  injected scripts know, so a script of the website cannot read an extension's
+  storage.
+- **Popups** open in a sheet of their own: a second WebView with the same
+  bridge, and `https://explorer-extensions.local/<id>/<path>` served from
+  `files/extensions/<id>/`, so the relative CSS, JS and pictures of a popup load
+  without CORS errors. The same server answers `chrome.runtime.getURL()`.
+- **What needs an extra step** is said where it matters: MV3 background service
+  workers and `declarativeNetRequest` are not run, and the extension screen
+  explains it. Content scripts, stylesheets, popups, options pages and
+  `chrome.storage` work out of the box.
+- Extensions are taken from Google's servers unchanged and their signature is
+  not checked; the screen says so, so that only extensions one trusts are added.
+- **Private tabs run no extension**, as Chrome's incognito windows do not.
+
+### Settings
+- A new topic **Extension** (between Appearance and Site settings, with the
+  puzzle piece as its icon, searchable like the others): one row per installed
+  extension that says whether it is on, its version and where it works, with a
+  tap for on/off, its options page and removing it; a row that adds one by its
+  address or its 32 letters; a row that opens the Chrome Web Store; and a note
+  that says what Explorer can and cannot run.
+
+### Site menu
+- In the three-dot menu on a website, **Zoom** is half width and **Extensions**
+  stands beside it as the other half. The sheet behind it lists the installed
+  extensions (with the mark *This site* for those that ask for the page in
+  front), opens a popup on a tap, and leads to **Extension settings** and to the
+  Chrome Web Store.
+
 ## 16.1.0
 
 ### First start

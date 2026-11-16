@@ -58,6 +58,13 @@ import com.rpooi3.explorer.unit.HelperUtils;
 
 public class NinjaWebView extends WebView implements AlbumController {
 
+    /**
+     * 17.3.3: whether this tab has been closed. WebView has no isDestroyed() of its own, and
+     * callbacks that come back late — a store install that finished, a bridge call — need to know
+     * that the tab they want to reload is gone.
+     */
+    private volatile boolean destroyed;
+
     public boolean fingerPrintProtection;
     public boolean history;
     public boolean adBlock;
@@ -95,6 +102,8 @@ public class NinjaWebView extends WebView implements AlbumController {
     private boolean standInIsOffline;
     // True from the moment such a page is handed to the WebView until its load has started.
     private boolean standInLoadPending;
+    // 17.3.1: what the chrome.* shim of the extensions talks to (see ChromeApiBridge).
+    private com.rpooi3.explorer.extension.ChromeApiBridge extensionBridge;
 
     public NinjaWebView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -141,6 +150,11 @@ public class NinjaWebView extends WebView implements AlbumController {
 
     public boolean isForeground() {
         return foreground;
+    }
+
+    /** What the chrome.* shim of the extensions calls; null before {@link #initWebView()}. */
+    public com.rpooi3.explorer.extension.ChromeApiBridge getExtensionBridge() {
+        return extensionBridge;
     }
 
     /** Whether this is a private tab. */
@@ -298,13 +312,28 @@ public class NinjaWebView extends WebView implements AlbumController {
         this.thumbnail = thumbnail;
     }
 
+    /**
+     * 17.3.2: whether the tab is on the Chrome Web Store.
+     *
+     * The store treats anything that is not Chrome on a desktop as the wrong browser and shows
+     * "Switch to Google Chrome" in place of its install button, so Explorer shows it the way
+     * Chrome on a computer does, and the extensions are added by Explorer itself.
+     */
+    public boolean isChromeWebStore() {
+        return com.rpooi3.explorer.extension.CrxDownloader.isStoreUrl(null != pendingUrl ? pendingUrl : getUrl());
+    }
+
     /** Whether this tab asks websites for their desktop version. */
     public boolean isDesktopSite() {
+        // The store is always asked for its desktop version; there is no other one that installs.
+        if (isChromeWebStore()) return true;
         return null != desktopSite ? desktopSite : sp.getBoolean(getProfile() + "_desktop", false);
     }
 
     /** Switches this tab between the mobile and the desktop version of websites and reloads the page. */
     public void setDesktopSite(boolean desktop) {
+        // 17.3.2: on the Chrome Web Store "Desktop site" is always on and cannot be turned off.
+        if (isChromeWebStore()) desktop = true;
         desktopSite = desktop;
         reload();
     }
@@ -371,7 +400,9 @@ public class NinjaWebView extends WebView implements AlbumController {
         // Websites see Google Chrome on Android (with this device's Android version) instead of
         // an embedded WebView; "Desktop site" sends what Chrome sends for it. See ChromeUserAgent.
         final String defaultAgent = WebSettings.getDefaultUserAgent(context);
-        final boolean desktop = null != desktopSite ? desktopSite : sp.getBoolean(profile + "_desktop", false);
+        // 17.3.2: the Chrome Web Store is always the desktop one, whatever this tab is set to.
+        final boolean store = com.rpooi3.explorer.extension.CrxDownloader.isStoreUrl(url);
+        final boolean desktop = store || (null != desktopSite ? desktopSite : sp.getBoolean(profile + "_desktop", false));
         // The client hints have to agree with the user agent.
         ChromeUserAgent.applyClientHints(webSettings, defaultAgent, desktop);
         requestedWithHidden = ChromeUserAgent.hideRequestedWithHeader(webSettings);
@@ -384,11 +415,16 @@ public class NinjaWebView extends WebView implements AlbumController {
             webSettings.setUseWideViewPort(true);
             webSettings.setLoadWithOverviewMode(true);
             this.setInitialScale(100);
+            // 17.3.3: navigator.platform and the client hints of the page say Windows as well.
+            com.rpooi3.explorer.browser.DesktopIdentity.apply(
+                    this, com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(defaultAgent));
         } else {
             webSettings.setUserAgentString(ChromeUserAgent.mobile(defaultAgent));
             webSettings.setUseWideViewPort(false);
             webSettings.setLoadWithOverviewMode(false);
             this.setInitialScale(0);
+            // 17.3.3: a mobile page is told nothing of Windows; the script of desktop mode goes.
+            com.rpooi3.explorer.browser.DesktopIdentity.clear(this);
         }
         // What this site may do: the site settings (general choice of the profile, or the site's own exception).
         final boolean siteData = SiteSettings.isAllowed(sp, SiteCategory.SITE_DATA, url, profile);
@@ -419,6 +455,31 @@ public class NinjaWebView extends WebView implements AlbumController {
             Log.i(TAG, "Error loading cookies: " + e);
         }
         this.addJavascriptInterface(new WebAppInterface(context), "AndroidInterface");
+        // 17.3.1: the other side of the chrome.* shim of the extensions. A tab keeps one bridge
+        // for its whole life, so the token of a page load is the same for every script of it.
+        this.extensionBridge = new com.rpooi3.explorer.extension.ChromeApiBridge(
+                context.getApplicationContext(),
+                null,
+                extensionId -> {
+                    // 17.3.2: once the extension is in, the page is loaded again, so the button
+                    // of the store says that it is there and its content scripts start working.
+                    final NinjaWebView tab = NinjaWebView.this;
+                    com.rpooi3.explorer.extension.StoreHook.install(
+                            context.getApplicationContext(), extensionId, installed -> {
+                                // 17.3.3: only a tab that is still there is loaded again; the
+                                // callback comes from the install, and the tab may be gone.
+                                if (null != installed && !tab.isDestroyed()) {
+                                    try {
+                                        tab.reload();
+                                    } catch (RuntimeException e) {
+                                        Log.w(TAG, "Cannot reload after the install: " + e);
+                                    }
+                                }
+                                return kotlin.Unit.INSTANCE;
+                            });
+                    return kotlin.Unit.INSTANCE;
+                });
+        this.addJavascriptInterface(this.extensionBridge, "ExplorerChrome");
         profile = profileOriginal;
     }
 
@@ -754,8 +815,14 @@ public class NinjaWebView extends WebView implements AlbumController {
         FaviconHelper.setFavicon(context, album.getAlbumView(), url, R.id.icon_start, R.drawable.icon_image_broken);
     }
 
+    /** Whether this tab was closed; a tab that is gone may not be reloaded or written into. */
+    public boolean isDestroyed() {
+        return destroyed;
+    }
+
     @Override
     public synchronized void destroy() {
+        destroyed = true;
         stopLoading();
         onPause();
         clearHistory();

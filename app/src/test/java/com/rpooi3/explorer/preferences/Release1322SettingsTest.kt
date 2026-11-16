@@ -561,13 +561,14 @@ class Release1322SettingsTest {
     fun about_isThreeCardsLikeAboutChrome_andDeveloperBelow() = section("section_about") {
         assertEquals("About Explorer", title)
         val groups = groups()
-        // 16.1.0 (item 1): the feedback row is a card of its own between Legal information and
-        // the developer.
-        assertEquals("every tile is a card of its own", listOf(1, 1, 1, 1, 1), groups.map { it.preferenceCount })
+        // 16.1.0 (item 1) added the feedback row here; 17.3.2 moved it to Help and support, so
+        // About is four cards again.
+        assertEquals("every tile is a card of its own", listOf(1, 1, 1, 1), groups.map { it.preferenceCount })
         assertEquals(
-            listOf("Application version", "Operating system", "Legal information", "Send feedback", "Developer"),
+            listOf("Application version", "Operating system", "Legal information", "Developer"),
             all().map { it.title.toString() },
         )
+        assertNull("the feedback row left About", fragment.findPreference<androidx.preference.Preference>("about_feedback"))
         assertEquals("Explorer " + SettingsSections.versionName(activity), pref("about_app").summary.toString())
         assertEquals(
             "Android ${Build.VERSION.RELEASE}; ${Build.MODEL} Build/${Build.ID}",
@@ -585,7 +586,10 @@ class Release1322SettingsTest {
         assertEquals(
             listOf(
                 "Open source license", "GNU General Public License, version 3",
-                "GNU Affero General Public License, version 3", "Open source components",
+                "GNU Affero General Public License, version 3",
+                // 17.3.3: the two browsers Explorer follows, beside the GNU licences.
+                "Chromium: BSD 3-Clause License", "Mozilla Public License, version 2.0",
+                "Open source components",
                 // 15.2.1: Chromium and Firefox are named above FOSS Browser's source.
                 // 16.1.0: the card "Code from FOSS Browser" is gone (item 21), and the app calls
                 // itself Explorer (item 22).
@@ -605,6 +609,8 @@ class Release1322SettingsTest {
         }
         assertTrue(text("about_license_gpl").contains("GNU GENERAL PUBLIC LICENSE"))
         assertTrue(text("about_license_agpl").contains("GNU AFFERO GENERAL PUBLIC LICENSE"))
+        assertTrue(text("about_license_chromium").contains("Copyright 2015 The Chromium Authors"))
+        assertTrue(text("about_license_mpl").contains("Mozilla Public License Version 2.0"))
         val components = text("about_third_party")
         for (part in listOf(
             "FOSS Browser", "Chromium: offline page and dinosaur game", "Chromium: settings, context menu, tabs and Incognito page",

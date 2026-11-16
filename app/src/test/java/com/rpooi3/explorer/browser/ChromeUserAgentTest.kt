@@ -85,11 +85,13 @@ class ChromeUserAgentTest {
     }
 
     @Test
-    fun desktop_isChromeOnLinux_withoutAndroidOrMobile() {
+    fun desktop_isChromeOnWindows_withoutAndroidOrMobile() {
+        // 17.3.3: desktop mode is a computer running Chrome, so it says Windows.
         assertEquals(
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             ChromeUserAgent.desktop(webView),
         )
+        assertEquals("Windows", ChromeUserAgent.DESKTOP_PLATFORM)
     }
 
     // ------------------------------------------------------------ in the app

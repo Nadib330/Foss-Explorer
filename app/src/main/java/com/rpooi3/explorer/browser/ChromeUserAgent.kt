@@ -48,11 +48,23 @@ object ChromeUserAgent {
         "Mozilla/5.0 (Linux; Android ${cleanRelease(androidRelease)}; $MODEL) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/${majorVersion(webViewUserAgent)}.0.0.0 Mobile Safari/537.36"
 
-    /** The user agent Chrome on Android sends when "Desktop site" is switched on. */
+    /**
+     * The user agent of Chrome on **Windows**, which is what "Desktop site" sends since 17.3.3.
+     *
+     * A desktop browser is what a website expects in desktop mode, and the Chrome Web Store goes
+     * further: it offers its extensions to a browser on a computer and to no other. The string
+     * carries neither `wv` nor `Android`, so nothing can tell the WebView from Chrome on Windows.
+     */
     @JvmStatic
     fun desktop(webViewUserAgent: String?): String =
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 " +
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/${majorVersion(webViewUserAgent)}.0.0.0 Safari/537.36"
+
+    /** The platform of the desktop user agent, for the client hints that have to agree with it. */
+    const val DESKTOP_PLATFORM = "Windows"
+
+    /** Windows 10, as Chrome reports it in the client hints. */
+    const val DESKTOP_PLATFORM_VERSION = "15.0.0"
 
     /** Pre-release builds report a code name such as "Baklava"; websites expect a number. */
     internal fun cleanRelease(release: String?): String {
@@ -83,8 +95,8 @@ object ChromeUserAgent {
                     ),
                 )
                 .setFullVersion(full)
-                .setPlatform(if (desktop) "Linux" else "Android")
-                .setPlatformVersion(if (desktop) "" else cleanRelease(Build.VERSION.RELEASE))
+                .setPlatform(if (desktop) DESKTOP_PLATFORM else "Android")
+                .setPlatformVersion(if (desktop) DESKTOP_PLATFORM_VERSION else cleanRelease(Build.VERSION.RELEASE))
                 .setModel("")
                 .setMobile(!desktop)
                 .build()

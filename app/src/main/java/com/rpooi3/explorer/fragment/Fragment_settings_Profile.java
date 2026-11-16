@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
 import java.util.Objects;
 import com.rpooi3.explorer.R;
-import com.rpooi3.explorer.browser.AdBlock;
+import com.rpooi3.explorer.browser.AdBlocker;
 import com.rpooi3.explorer.browser.BannerBlock;
 import com.rpooi3.explorer.preferences.BasePreferenceFragment;
 
@@ -28,7 +28,7 @@ public class Fragment_settings_Profile extends BasePreferenceFragment implements
         if (context == null) return;
         // 1. Trigger für den AdBlocker
         if ("profileStandard_adBlock".equals(key) && sp.getBoolean("profileStandard_adBlock", false)) {
-            new AdBlock(context).triggerHostsDownload(context);
+            AdBlocker.ensure(context);
         }
         // 2. Trigger für den Cookie-Banner-Blocker (Korrektur: Null-Safe & Yoda-Condition)
         if ("profileStandard_deny_cookie_banners".equals(key) && sp.getBoolean("profileStandard_deny_cookie_banners", false)) {

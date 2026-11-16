@@ -113,7 +113,7 @@ class SettingsScreenTest {
         assertEquals(
             listOf(
                 "Search engine", "Privacy and security", "xGuard", "Home page customization", "Tabs and groups",
-                "Appearance", "Accessibility", "Site settings", "Backup",
+                "Appearance", "Accessibility", "Extension", "Site settings", "Backup",
                 "Help and support", "About Explorer",
             ),
             topics.map { it.title.toString() },
@@ -191,8 +191,13 @@ class SettingsScreenTest {
         }
         // 15.2.1: the filter list left Site settings > Ads for xGuard's own screen, where it is
         // still a setting — once, and only there.
-        assertEquals("the filter list is a setting again", 1, keys.count { it == "ab_hosts" })
-        assertTrue("the xGuard topic has the filter list", "ab_hosts" in section("section_xguard") { allPrefs().map { it.key } })
+        assertFalse("FOSS Browser's single list is gone", "ab_hosts" in keys)
+        // 17.3.3: the lists of the blocker Chromite brought, one switch each, on xGuard's screen.
+        val lists = section("section_xguard") { allPrefs().map { it.key } }
+        for (key in listOf("xguard_list_easylist", "xguard_list_easyprivacy", "xguard_list_stevenblack")) {
+            assertEquals("$key is a setting again", 1, keys.count { it == key })
+            assertTrue("the xGuard topic has $key", key in lists)
+        }
         // 13.2.2: the old Tabs switches are gone; the font size became Accessibility > Default zoom;
         // the search engine list became a screen of radio buttons.
         for (key in listOf(
@@ -246,6 +251,17 @@ class SettingsScreenTest {
             assertEquals(Intent.ACTION_SENDTO, intent.action)
             assertEquals("mailto:rpooi3@duck.com", intent.dataString)
 
+            // 17.3.2 (item 2): "Send feedback" stands under the developer's address now.
+            val feedback = pref("help_feedback")
+            assertEquals("Send feedback", feedback.title.toString())
+            assertTrue(
+                "the feedback row is in the group of the address",
+                feedback.parent === email.parent,
+            )
+            val siblings = (0 until (email.parent as androidx.preference.PreferenceGroup).preferenceCount)
+                .map { (email.parent as androidx.preference.PreferenceGroup).getPreference(it).key }
+            assertEquals("right under the address", "help_feedback", siblings[siblings.indexOf("help_email") + 1])
+
             val questions = allPrefs().filter { it.key.startsWith("faq_") }
             assertTrue("several questions", questions.size >= 5)
             for (question in questions) {
@@ -269,8 +285,8 @@ class SettingsScreenTest {
 
         assertEquals("", input.text.toString())
         assertTrue(pref("section_accessibility").isVisible)
-        // 16.1.0: eleven rows on the first screen; the gestures and the bookmark filter left.
-        assertEquals(11, allPrefs().count { it.isVisible })
+        // 17.3.1: twelve rows on the first screen; "Extension" joined them.
+        assertEquals(12, allPrefs().count { it.isVisible })
     }
 
     @Test

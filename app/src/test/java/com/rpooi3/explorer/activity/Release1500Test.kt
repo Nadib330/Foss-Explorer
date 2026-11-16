@@ -451,10 +451,10 @@ class Release1500Test {
     }
 
     @Test
-    fun theVersion_is16_1_0() {
-        // 16.1.0 replaced 15.2.1; what changed is described in Release1610Test.
-        assertEquals("16.1.0", SettingsSections.versionName(context))
+    fun theVersion_is17_3_2() {
+        // 17.3.3 replaced 17.3.2; what changed is described in Release1733Test.
+        assertEquals("17.3.3", SettingsSections.versionName(context))
         @Suppress("DEPRECATION")
-        assertEquals(10, context.packageManager.getPackageInfo(context.packageName, 0).versionCode)
+        assertEquals(13, context.packageManager.getPackageInfo(context.packageName, 0).versionCode)
     }
 }

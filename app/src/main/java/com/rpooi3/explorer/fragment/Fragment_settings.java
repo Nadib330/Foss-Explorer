@@ -17,7 +17,7 @@ import androidx.preference.PreferenceManager;
 import java.util.Objects;
 import com.rpooi3.explorer.R;
 import com.rpooi3.explorer.activity.*;
-import com.rpooi3.explorer.browser.AdBlock;
+import com.rpooi3.explorer.browser.AdBlocker;
 import com.rpooi3.explorer.preferences.BasePreferenceFragment;
 import com.rpooi3.explorer.preferences.SettingsCards;
 import com.rpooi3.explorer.preferences.HomeCustomizationScreen;
@@ -27,7 +27,6 @@ import com.rpooi3.explorer.site.SiteSettingsScreen;
 
 public class Fragment_settings extends BasePreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private Preference sp_ad_block;
     private SharedPreferences sp;
 
     private static final String ARG_SECTION = "section";
@@ -55,10 +54,6 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         Context context = requireContext();
         sp = PreferenceManager.getDefaultSharedPreferences(context);
         initSummary(getPreferenceScreen());
-        sp_ad_block = findPreference("ab_hosts");
-        if (sp_ad_block != null) {
-            updateAdBlockSummary();
-        }
         if (section == null) {
             SettingsSections.attachKeywords(getPreferenceScreen());
         }
@@ -121,21 +116,8 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         if (p instanceof ListPreference listPref) {
             if (p.getSummaryProvider() == null) p.setSummary(listPref.getEntry());
 
-            // Wenn die geänderte Preference die AdBlock-Liste selbst ist, aktualisieren wir sie
-            if ("ab_hosts".equals(p.getKey())) {
-                updateAdBlockSummary();
-            }
         }
 
-    }
-
-    // Ausgelagerte Hilfsmethode, um Code-Duplikate zu vermeiden
-    private void updateAdBlockSummary() {
-        if (sp_ad_block instanceof ListPreference listPref) {
-            sp_ad_block.setSummary(AdBlock.getHostsDate(requireContext()) + ":\n" + listPref.getEntry());
-        } else if (sp_ad_block != null) {
-            sp_ad_block.setSummary(AdBlock.getHostsDate(requireContext()));
-        }
     }
 
     @Override
@@ -149,10 +131,11 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         }
 
 
-        if ("ab_hosts".equals(key)) {
+        // 17.3.3: a list turned on or off in xGuard reloads what the blocker matches with.
+        if (AdBlocker.KEY_LISTS.equals(key)) {
             Context context = getActivity();
             if (context != null) {
-                new AdBlock(context).triggerHostsDownload(context);
+                AdBlocker.ensure(context, true);
             }
         }
     }

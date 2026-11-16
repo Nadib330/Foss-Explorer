@@ -105,7 +105,9 @@ class MainMenuSheet(
             if (tiles) {
                 row.setBackgroundResource(
                     when {
-                        items.size == 1 -> R.drawable.bg_menu_row
+                        // 17.3.3: a tile on its own is rounded like a group, not like the inner
+                        // corner of a row — one tile fills the whole row.
+                        items.size == 1 -> R.drawable.bg_menu_tile_single
                         index == 0 -> R.drawable.bg_menu_tile_start
                         index == items.lastIndex -> R.drawable.bg_menu_tile_end
                         else -> R.drawable.bg_menu_tile_middle
@@ -189,7 +191,9 @@ class MainMenuSheet(
         @JvmField
         val GROUPS: List<Group> = listOf(
             Group(intArrayOf(R.id.main_new_tab, R.id.main_new_private_tab)),
-            Group(intArrayOf(R.id.main_share, R.id.main_zoom, R.id.main_desktop_site)),
+            Group(intArrayOf(R.id.main_share, R.id.main_desktop_site)),
+            // 17.3.1: "Zoom" and "Extensions" side by side, each half the width of the sheet.
+            Group(intArrayOf(R.id.main_zoom, R.id.main_extension), tiles = true),
             Group(intArrayOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), tiles = true),
             Group(intArrayOf(R.id.main_settings)),
         )

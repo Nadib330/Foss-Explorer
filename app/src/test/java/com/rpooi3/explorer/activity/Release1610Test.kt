@@ -193,9 +193,21 @@ class Release1610Test {
     // --------------------------------------------------------- 1./18./21./22. About
 
     @Test
-    fun about_hasTheFeedbackRow_andTheNewSource() {
-        settings("section_about") { fragment ->
-            val feedback = fragment.findPreference<Preference>("about_feedback")
+    fun help_hasTheFeedbackRow_underTheDeveloperAddress() {
+        // 16.1.0 (item 1) put the row in About; 17.3.2 (item 2) moved it to Help and support,
+        // right under the developer's address.
+        settings("section_help") { fragment ->
+            val order = mutableListOf<String>()
+            val category = fragment.findPreference<androidx.preference.Preference>("help_email")
+            val parent = category?.parent
+            assertNotNull(parent)
+            for (index in 0 until (parent as androidx.preference.PreferenceGroup).preferenceCount) {
+                order += (parent.getPreference(index).key ?: "")
+            }
+            assertTrue("the address comes first", order.indexOf("help_email") >= 0)
+            assertEquals("the feedback row is right under it", "help_feedback", order[order.indexOf("help_email") + 1])
+
+            val feedback = fragment.findPreference<Preference>("help_feedback")
             assertNotNull("the feedback row", feedback)
             assertEquals("Send feedback", feedback!!.title.toString())
             assertEquals(

@@ -51,6 +51,12 @@
 
 
 
+        <!-- 17.3.1: extensions from the Chrome Web Store. -->
+        <Preference
+            android:icon="@drawable/icon_extension"
+            android:key="section_extensions"
+            android:title="@string/extensions_title" />
+
         <Preference
             android:icon="@drawable/icon_tune"
             android:key="section_site"

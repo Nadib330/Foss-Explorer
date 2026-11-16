@@ -39,6 +39,12 @@
         android:title="@string/cr_page_zoom_menu_title"
         android:visible="false" />
 
+    <!-- 17.3.1: the extension menu of the site in front. It is half width, beside "Zoom". -->
+    <item
+        android:id="@+id/main_extension"
+        android:icon="@drawable/icon_extension"
+        android:title="@string/extensions_menu" />
+
     <item
         android:id="@+id/main_desktop_site"
         android:checkable="true"

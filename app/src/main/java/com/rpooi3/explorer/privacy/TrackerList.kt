@@ -2,10 +2,10 @@
  * Foss Explorer: xGuard's tracker blocker.
  * Own code, GPL-3.0.
  *
- * The ad blocker (AdBlock, the filter list) and the tracker blocker work
- * together but are chosen apart: the filter list is a single list of hosts to
- * leave alone, this one knows what kind of tracker a host is and lets the
- * settings switch the kinds one by one. Hosts come with the app
+ * The ad blocker (AdBlocker, the filter lists) and the tracker blocker work
+ * together but are chosen apart: the filter lists are Adblock Plus lists of
+ * urls and elements to leave alone, this one knows what kind of tracker a host
+ * is and lets the settings switch the kinds one by one. Hosts come with the app
  * (assets/xguard/trackers.txt), so xGuard holds before the first filter list
  * has been downloaded and without a network connection.
  */

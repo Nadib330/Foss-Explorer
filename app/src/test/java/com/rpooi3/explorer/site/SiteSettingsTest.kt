@@ -298,7 +298,7 @@ class SiteSettingsTest {
             )
             // 15.2.1: the ad blocker's settings moved to Settings > xGuard; this screen keeps the
             // choice and the exceptions, and leads to xGuard.
-            assertNull("the filter list moved to xGuard", fragment.findPreference<Preference>("ab_hosts"))
+            assertNull("the filter lists moved to xGuard", fragment.findPreference<Preference>("xguard_list_easylist"))
             assertNotNull("the row to xGuard is here", fragment.findPreference<Preference>("site_category_xguard"))
 
             fragment.radio(SiteCategoryFragment.KEY_ON).performClick()

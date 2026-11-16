@@ -31,17 +31,6 @@
 
     </PreferenceCategory>
 
-    <!-- 16.1.0: feedback by a new GitHub issue; the row says what it does, not where it goes. -->
-    <PreferenceCategory>
-
-        <Preference
-            android:icon="@drawable/icon_mail"
-            android:key="about_feedback"
-            android:summary="@string/about_feedback_summary"
-            android:title="@string/about_feedback_title" />
-
-    </PreferenceCategory>
-
     <PreferenceCategory>
 
         <Preference

@@ -129,7 +129,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rpooi3.explorer.R;
-import com.rpooi3.explorer.browser.AdBlock;
+import com.rpooi3.explorer.browser.AdBlocker;
 import com.rpooi3.explorer.browser.AlbumController;
 import com.rpooi3.explorer.browser.BannerBlock;
 import com.rpooi3.explorer.browser.BrowserContainer;
@@ -215,6 +215,9 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     private TextView tabCount;
     /** The menu behind the three-dot button while it is open, otherwise null. */
     MainMenuSheet mainMenu;
+    // 17.3.1: the sheets of the extensions, so that a second tap does not open two of them.
+    com.rpooi3.explorer.extension.ExtensionMenuSheet extensionMenu;
+    com.rpooi3.explorer.extension.ExtensionPopup extensionPopup;
 
     // Multimedia
     private VideoView videoView;
@@ -378,7 +381,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         sp = PreferenceManager.getDefaultSharedPreferences(context);
 
         new BannerBlock(context);
-        new AdBlock(context);
+        // 17.3.3: Chromite's blocker replaces FOSS Browser's; it reads its lists in the background.
+        AdBlocker.ensure(context);
         HelperUtils.initTheme(activity);
 
         // 2. SharedPreferences Konfiguration & Flags
@@ -1488,6 +1492,20 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         final android.view.MenuItem zoom = popup.getMenu().findItem(R.id.main_zoom);
         zoom.setVisible(website);
         zoom.setEnabled(website);
+        // 17.3.1: "Extensions" stands beside "Zoom", half width each.
+        // 17.3.2: the extension menu is there on the home page as well, where it takes the
+        // whole row (nothing is there to zoom), and on a website beside a half-width "Zoom".
+        final android.view.MenuItem extension = popup.getMenu().findItem(R.id.main_extension);
+        extension.setVisible(true);
+        extension.setEnabled(true);
+        // 17.3.2: the Chrome Web Store is always shown as a desktop site; it cannot be turned
+        // off there, because the store offers its extensions to no other kind of browser.
+        final boolean store = null != ninjaWebView && ninjaWebView.isChromeWebStore();
+        final android.view.MenuItem desktopSite = popup.getMenu().findItem(R.id.main_desktop_site);
+        if (store) {
+            desktopSite.setChecked(true);
+            desktopSite.setEnabled(false);
+        }
         mainMenu = popup;
         popup.show();
     }
@@ -1507,11 +1525,98 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             shareCurrentPage();
         } else if (id == R.id.main_zoom) {
             PageHooks.showZoomSheet(ninjaWebView);
+        } else if (id == R.id.main_extension) {
+            showExtensionMenu();
         } else if (id == R.id.main_desktop_site) {
             ninjaWebView.setDesktopSite(!ninjaWebView.isDesktopSite());
         } else if (id == R.id.main_settings) {
             startActivity(new Intent(this, Settings_Activity.class));
         }
+    }
+
+    /**
+     * 17.3.1: the sheet behind "Extensions" in the three-dot menu. It lists what is installed,
+     * opens the popup of an extension in a sheet of its own, and leads from there to
+     * Settings &gt; Extension.
+     */
+    void showExtensionMenu() {
+        if (null != extensionMenu) extensionMenu.dismiss();
+        if (null != extensionPopup) extensionPopup.dismiss();
+        final String url = null != ninjaWebView ? ninjaWebView.getUrl() : null;
+        final com.rpooi3.explorer.extension.ExtensionMenuSheet sheet =
+                new com.rpooi3.explorer.extension.ExtensionMenuSheet(
+                        this,
+                        url,
+                        () -> {
+                            openExtensionSettings();
+                            return kotlin.Unit.INSTANCE;
+                        },
+                        () -> {
+                            openChromeWebStore();
+                            return kotlin.Unit.INSTANCE;
+                        },
+                        extension -> {
+                            showExtensionPopup(extension);
+                            return kotlin.Unit.INSTANCE;
+                        },
+                        // 17.3.2: adding the extension of the store page in front from here,
+                        // which works whatever the store's own page does.
+                        extensionId -> {
+                            com.rpooi3.explorer.extension.StoreHook.install(
+                                    getApplicationContext(),
+                                    extensionId,
+                                    installed -> {
+                                        // 17.3.3: the tab may be gone by the time the install
+                                        // is done; a reload of a dead WebView ended the app.
+                                        if (null != installed && null != ninjaWebView
+                                                && !ninjaWebView.isDestroyed()) {
+                                            try {
+                                                ninjaWebView.reload();
+                                            } catch (RuntimeException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        return kotlin.Unit.INSTANCE;
+                                    });
+                            return kotlin.Unit.INSTANCE;
+                        });
+        extensionMenu = sheet;
+        sheet.show();
+    }
+
+    /** Settings &gt; Extension: the page that says which extensions are installed. */
+    void openExtensionSettings() {
+        startActivity(new Intent(this, Settings_Activity.class)
+                .putExtra(Settings_Activity.EXTRA_SECTION, "section_extensions"));
+    }
+
+    /** The Chrome Web Store in a new tab of its own. */
+    void openChromeWebStore() {
+        final String store = getString(R.string.extensions_store_url);
+        addAlbum(HelperUtils.domain(store), store, true);
+        updateOmniBox();
+    }
+
+    /** The popup of {@code extension}, in a sheet over the page. */
+    void showExtensionPopup(final com.rpooi3.explorer.extension.WebExtension extension) {
+        if (null != extensionPopup) extensionPopup.dismiss();
+        final com.rpooi3.explorer.extension.ExtensionPopup popup =
+                new com.rpooi3.explorer.extension.ExtensionPopup(
+                        this,
+                        extension,
+                        () -> {
+                            openExtensionSettings();
+                            return kotlin.Unit.INSTANCE;
+                        },
+                        address -> {
+                            addAlbum(HelperUtils.domain(address), address, false);
+                            updateOmniBox();
+                            return kotlin.Unit.INSTANCE;
+                        },
+                        null,
+                        null);
+        extensionPopup = popup;
+        popup.show();
     }
 
     /**

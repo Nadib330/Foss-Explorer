@@ -22,6 +22,18 @@
             android:summary="@string/about_license_agpl_summary"
             android:title="@string/about_license_agpl" />
 
+        <!-- 17.3.3: the licences of the two browsers Explorer follows, beside the GNU ones: the
+             offline page and the settings layout are Chromium's, the menus are Firefox's. -->
+        <Preference
+            android:key="about_license_chromium"
+            android:summary="@string/about_license_chromium_summary"
+            android:title="@string/about_license_chromium" />
+
+        <Preference
+            android:key="about_license_mpl"
+            android:summary="@string/about_license_mpl_summary"
+            android:title="@string/about_license_mpl" />
+
         <Preference
             android:key="about_third_party"
             android:summary="@string/about_components_summary"

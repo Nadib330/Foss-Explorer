@@ -8,4 +8,10 @@
     <item name="protection_settings" type="id" />
     <!-- 15.2.1: xGuard's tracking analysis of the page. -->
     <item name="protection_analysis" type="id" />
+    <!-- 17.3.1: the sheets of the extensions, which are built in code too (ExtensionPopup,
+         ExtensionMenuSheet), so that they can be found again. -->
+    <item name="extension_popup_sheet" type="id" />
+    <item name="extension_popup_settings" type="id" />
+    <item name="extension_menu_sheet" type="id" />
+    <item name="extension_menu_groups" type="id" />
 </resources>

@@ -128,7 +128,8 @@ class Release1521Test {
         section("section_xguard") {
             assertEquals("xGuard", title())
             assertNotNull("the protection switches are here", pref("xguard_block_ads"))
-            assertNotNull("the filter list is here now", pref("ab_hosts"))
+            assertNotNull("the filter lists are here now", pref("xguard_list_easylist"))
+            assertNotNull("and the second of them", pref("xguard_list_easyprivacy"))
             assertNotNull("the tracker blocker is here", pref("xguard_tracking_blocker"))
             assertNotNull("the tracking analysis is here", pref("xguard_analysis_row"))
             // The topic is found by what its settings say, as every topic is.
@@ -142,15 +143,13 @@ class Release1521Test {
     fun theAdBlockersSettings_areOnTheXGuardScreen_andStillWork() {
         prefs.edit().putString("profile", "profileStandard").remove("profileStandard_adBlock").commit()
         section("section_xguard") {
-            val list = pref("ab_hosts") as ListPreference
-            assertEquals("the list the ad blocker works with", "ab_hosts", list.key)
-            assertEquals("every list is offered", 16, list.entries.size)
-            assertEquals(
-                "StevenBlack's unified hosts is the first",
-                "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
-                list.entryValues[0].toString(),
-            )
-            assertEquals("it is chosen until another list is", list.entryValues[0].toString(), list.value)
+            // 17.3.3: the single list became the blocker's own lists, switched one by one.
+            val easylist = pref("xguard_list_easylist") as SwitchPreferenceCompat
+            val easyprivacy = pref("xguard_list_easyprivacy") as SwitchPreferenceCompat
+            val hosts = pref("xguard_list_stevenblack") as SwitchPreferenceCompat
+            assertEquals("the first list is on out of the box", true, easylist.isChecked)
+            assertEquals("so is the second", true, easyprivacy.isChecked)
+            assertEquals("the hosts file is off until it is wanted", false, hosts.isChecked)
 
             val ads = pref("xguard_block_ads") as SwitchPreferenceCompat
             assertFalse("switched off until it is switched on", ads.isChecked)

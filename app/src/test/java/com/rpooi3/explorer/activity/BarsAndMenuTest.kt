@@ -196,9 +196,13 @@ class BarsAndMenuTest {
     // ------------------------------------------------------------------- menu
 
     @Test
-    fun menu_hasExactlyTheEightEntries_withoutHelp() = launch {
+    fun menu_hasTheNineEntries_withoutHelp() = launch {
+        // 17.3.2: "Extensions" is on the home page as well, where "Zoom" has nothing to do.
         assertEquals(
-            listOf("New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Desktop site", "Settings"),
+            listOf(
+                "New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Extensions",
+                "Desktop site", "Settings",
+            ),
             menuTitles(),
         )
     }

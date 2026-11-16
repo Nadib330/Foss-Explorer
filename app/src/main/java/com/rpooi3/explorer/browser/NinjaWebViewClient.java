@@ -49,13 +49,11 @@ public class NinjaWebViewClient extends WebViewClient {
     private final NinjaWebView ninjaWebView;
     private final Context context;
     private final SharedPreferences sp;
-    private final AdBlock adBlock;
 
     public NinjaWebViewClient(NinjaWebView ninjaWebView) {
         this.ninjaWebView = ninjaWebView;
         this.context = ninjaWebView.getContext();
         this.sp = PreferenceManager.getDefaultSharedPreferences(context);
-        this.adBlock = new AdBlock(this.context);
     }
 
     @Override
@@ -81,6 +79,11 @@ public class NinjaWebViewClient extends WebViewClient {
         if (!ninjaWebView.isPrivateTab()) sp.edit().putString("mCurrentUrl", url).apply();
         // For "Automatically remove permissions": sites with a permission note when they were last used.
         if (!ninjaWebView.isPrivateTab()) SiteSettings.recordVisit(sp, url, System.currentTimeMillis());
+
+        // 17.3.1: the content scripts of the extensions that ask for this page, and the button
+        // that adds the extension of a Chrome Web Store page to Explorer.
+        com.rpooi3.explorer.extension.ExtensionRuntime.onPageFinished(view, url);
+        com.rpooi3.explorer.extension.StoreHook.onPageFinished(view, url);
 
         // Accessibility: "Force enable zoom" and the offer of the simplified view.
         com.rpooi3.explorer.accessibility.PageHooks.onPageFinished(ninjaWebView, url);
@@ -149,6 +152,22 @@ public class NinjaWebViewClient extends WebViewClient {
         // A new page: what was blocked on the page before is not counted for it.
         com.rpooi3.explorer.privacy.TrackingProtection.onPageStarted(ninjaWebView);
         com.rpooi3.explorer.privacy.TrackingAnalysis.onPageStarted(ninjaWebView);
+        // 17.3.3: a page of the desktop version is told that it is talking to Chrome on Windows —
+        // in the page itself, not only in the user agent (navigator.platform and the client hints).
+        if (ninjaWebView.isDesktopSite()) {
+            final String agent = view.getSettings().getUserAgentString();
+            com.rpooi3.explorer.browser.DesktopIdentity.applyNow(
+                    view, com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(agent));
+        }
+        // 17.3.3: the element rules of the lists, written into the page before it is painted —
+        // Chromite's other half of blocking, which stops the ad that is served by the site itself.
+        if (ninjaWebView.isAdBlock()) {
+            AdBlocker.applyCosmetic(view, AdFilter.hostOf(url));
+        }
+        // 17.3.1: what an extension asks to run before the page is parsed.
+        com.rpooi3.explorer.extension.ExtensionRuntime.onPageStarted(view, url);
+        // 17.3.2: the button of a Chrome Web Store page, as early as there is a page for it.
+        com.rpooi3.explorer.extension.StoreHook.onPageStarted(view, url);
 
         // Hier definierst du alle Problem-Seiten, bei denen der Android-Treiber abstürzt
         boolean isProblemSite = url.contains("ntv.de") ||
@@ -574,10 +593,35 @@ public class NinjaWebViewClient extends WebViewClient {
         }
     }
 
+    /** Serves the files of the extensions (see ExtensionFiles); built on first use. */
+    private androidx.webkit.WebViewAssetLoader extensionFiles;
+
+    private androidx.webkit.WebViewAssetLoader extensionFiles() {
+        if (null == extensionFiles)
+            extensionFiles = com.rpooi3.explorer.extension.ExtensionFiles.assetLoader(context);
+        return extensionFiles;
+    }
+
+    /**
+     * 17.3.2: the Chrome Web Store draws its pages itself, so going from one extension to the
+     * next inside it loads no page and calls no onPageFinished. The button that adds the
+     * extension is put in here as well.
+     */
+    @Override
+    public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+        super.doUpdateVisitedHistory(view, url, isReload);
+        com.rpooi3.explorer.extension.StoreHook.onPageFinished(view, url);
+    }
+
     @Override
     public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
         final String url = request.getUrl().toString();
         final String host = request.getUrl().getHost();
+        // 17.3.1: the files of an extension (its popup, its stylesheet, what chrome.runtime
+        // getURL() names) come from the extension's folder, not from the web.
+        if (com.rpooi3.explorer.extension.ExtensionScripts.isExtensionUrl(url)) {
+            return extensionFiles().shouldInterceptRequest(request.getUrl());
+        }
         // xGuard's tracking analysis sees every request of the page, blocked or not.
         com.rpooi3.explorer.privacy.TrackingAnalysis.onRequest(ninjaWebView, url, request.isForMainFrame());
 
@@ -604,7 +648,9 @@ public class NinjaWebViewClient extends WebViewClient {
         // xGuard, as the panel behind the shield of the top bar shows it: with the site's
         // protection on, the filter list of the ad blocker and the tracker blocker both work.
         if (ninjaWebView.isAdBlock()) {
-            if (adBlock.isAd(url)) {
+            // 17.3.3: Chromite's blocker. The lists are Adblock Plus lists, so a rule can name a
+            // path, a part of a host, or the kind of request, which a list of bare hosts cannot.
+            if (AdBlocker.shouldBlock(url, host, request)) {
                 // Counted for xGuard's panel.
                 com.rpooi3.explorer.privacy.TrackingProtection.onBlocked(ninjaWebView, url);
                 com.rpooi3.explorer.privacy.TrackingAnalysis.onBlocked(ninjaWebView);

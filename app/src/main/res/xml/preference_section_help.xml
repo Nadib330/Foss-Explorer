@@ -12,6 +12,14 @@
             android:summary="@string/help_email_note"
             android:title="@string/help_email_address" />
 
+        <!-- 16.1.0: feedback by a new GitHub issue. 17.3.2: it stands under the developer's
+             address now, instead of in About; the row says what it does, not where it goes. -->
+        <Preference
+            android:icon="@drawable/icon_feedback"
+            android:key="help_feedback"
+            android:summary="@string/about_feedback_summary"
+            android:title="@string/about_feedback_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory>

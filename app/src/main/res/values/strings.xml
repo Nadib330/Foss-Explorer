@@ -330,7 +330,7 @@
     <string name="about_source_upstream_title">Source code of FOSS Browser</string>
     <string name="about_source_upstream_url" translatable="false">https://codeberg.org/Gaukler_Faun/FOSS_Browser</string>
     <string name="about_license_title">Open source license</string>
-    <string name="about_license_summary">Explorer\'s own code is under the GNU General Public License, version 3 (GPL-3.0). The parts taken from FOSS Browser stay under the GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later). Tap to open the licences.</string>
+    <string name="about_license_summary">Explorer\'s own code is under the GNU General Public License, version 3 (GPL-3.0). The parts taken from FOSS Browser stay under the GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later). Of the others, Chromium\'s offline page and game are under the BSD 3-Clause License, and the parts taken from Mozilla Firefox for Android are under the Mozilla Public License 2.0. Tap to open the licences.</string>
     <string name="about_third_party_unreadable">The license text could not be read.</string>
 
     <!-- 13.2.2: settings laid out after Chromium. Chromium's own texts are in strings_chromium.xml;
@@ -388,7 +388,7 @@
     <string name="engine_custom_message">Enter the address of the search page. What you search for is added at its end.</string>
     <string name="engine_custom_invalid">That is not a web address.</string>
     <string name="about_application_version" translatable="false">Explorer %1$s</string>
-    <string name="about_legal_summary">Copyright %1$s rpooi3 and the FOSS Browser contributors. Free software under GPL-3.0 and AGPL-3.0.</string>
+    <string name="about_legal_summary">Copyright %1$s rpooi3. Free software under GPL-3.0.</string>
     <string name="about_license_gpl">GNU General Public License, version 3</string>
     <string name="about_license_agpl">GNU Affero General Public License, version 3</string>
     <string name="about_components_title">Open source components</string>
@@ -509,10 +509,17 @@
     <string name="xguard_block_social_summary">Like and share buttons and the pixels behind them. Off by default, because sites often need them to work.</string>
 
     <string name="xguard_group_filter_list">Filter list</string>
-    <string name="xguard_filter_update_title">Update the filter list now</string>
+    <string name="xguard_list_easylist_title">EasyList</string>
+    <string name="xguard_list_easylist_summary">The ads of most sites, in the Adblock Plus syntax.</string>
+    <string name="xguard_list_easyprivacy_title">EasyPrivacy</string>
+    <string name="xguard_list_easyprivacy_summary">The trackers and analytics of most sites, in the Adblock Plus syntax.</string>
+    <string name="xguard_list_stevenblack_title">Unified hosts</string>
+    <string name="xguard_list_stevenblack_summary">StevenBlack\'s hosts file: adware and malware hosts, matched whole.</string>
+    <string name="xguard_filter_list_on">On: %1$d rules in force</string>
+    <string name="xguard_filter_update_title">Update the filter lists now</string>
     <string name="xguard_filter_update_summary_on">Last download: %1$s</string>
-    <string name="xguard_filter_update_summary_off">Not downloaded yet. The list is fetched when it is needed.</string>
-    <string name="xguard_filter_update_toast">Fetching the filter list…</string>
+    <string name="xguard_filter_update_summary_off">Not downloaded yet. The lists are fetched as soon as blocking is on.</string>
+    <string name="xguard_filter_update_toast">Fetching the filter lists…</string>
 
     <string name="xguard_group_sites">Sites</string>
     <string name="xguard_site_exceptions_title">Sites and exceptions</string>
@@ -544,13 +551,17 @@
          The rows of Legal information open the licence texts and the repositories in the browser. -->
     <string name="about_feedback_title">Send feedback</string>
     <string name="about_feedback_summary">Submit feedback by creating a new issue on GitHub</string>
-    <string name="about_source_summary">The complete source of Explorer, on GitHub. Opens the repository.</string>
-    <string name="about_source_chromium_summary">The Chromium project, whose engine renders the pages, as Android System WebView brings it. Opens the source repository.</string>
-    <string name="about_source_firefox_summary">Mozilla Firefox for Android, whose protection panel and settings Explorer follows. Opens the source repository.</string>
-    <string name="about_source_upstream_summary">FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components. Opens the repository.</string>
-    <string name="about_license_gpl_summary">The licence of Explorer\'s own code. Opens the text.</string>
-    <string name="about_license_agpl_summary">The licence of the parts taken from FOSS Browser. Opens the text.</string>
-    <string name="about_license_gnu_summary">GPL-3.0, AGPL-3.0 and the other GNU licences at gnu.org. Opens the page.</string>
+    <string name="about_source_summary">The complete source of Explorer, on GitHub.</string>
+    <string name="about_source_chromium_summary">The Chromium project, whose engine renders the pages, as Android System WebView brings it.</string>
+    <string name="about_source_firefox_summary">Mozilla Firefox for Android, whose protection panel and settings Explorer follows.</string>
+    <string name="about_source_upstream_summary">FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components.</string>
+    <string name="about_license_gpl_summary">The licence of Explorer\'s own code.</string>
+    <string name="about_license_agpl_summary">The licence of the parts taken from FOSS Browser.</string>
+    <string name="about_license_chromium">Chromium: BSD 3-Clause License</string>
+    <string name="about_license_chromium_summary">The licence of the offline page, the game and the browser\'s layout, all taken from Chromium.</string>
+    <string name="about_license_mpl">Mozilla Public License, version 2.0</string>
+    <string name="about_license_mpl_summary">The licence of the parts taken from Mozilla Firefox for Android.</string>
+    <string name="about_license_gnu_summary">GPL-3.0, AGPL-3.0 and the other GNU licences at gnu.org.</string>
 
     <!-- 16.1.0: the first-run welcome (Firefox for Android's onboarding) -->
     <string name="welcome_skip">Skip</string>
@@ -582,5 +593,43 @@
     <string name="marked_ads_dialog_message">%1$s is hidden on every page while it is marked. Unmark it to let it through again.</string>
     <string name="marked_ads_unmark">Unmark</string>
     <string name="marked_ads_already">Already marked: %1$s</string>
+
+    <!-- 17.3.1: extensions. A tile in the settings and a tile of the three-dot menu; the
+         screens behind them, the questions the store asks, and the notes on what runs. -->
+    <string name="extensions_title">Extension</string>
+    <string name="extensions_menu">Extensions</string>
+    <string name="extensions_settings">Extension settings</string>
+    <string name="extensions_none">No extension is installed yet. Open the Chrome Web Store to add one.</string>
+    <string name="extensions_none_in_menu">No extension installed</string>
+    <string name="extensions_add_store">Add from the Chrome Web Store</string>
+    <string name="extensions_add_store_summary">Paste the address of an extension, or its 32 letters</string>
+    <string name="extensions_open_store">Open the Chrome Web Store</string>
+    <string name="extensions_open_store_summary">chrome.google.com/webstore</string>
+    <string name="extensions_install_title">Add an extension</string>
+    <string name="extensions_install_message">Address of the extension in the Chrome Web Store, or its 32-letter id:</string>
+    <string name="extensions_install_hint">https://chromewebstore.google.com/detail/…</string>
+    <string name="extensions_no_browser">No browser is there to open the Chrome Web Store.</string>
+    <string name="extensions_install_invalid">That is neither an extension address nor an id.</string>
+    <string name="extensions_installing">Adding %1$s…</string>
+    <string name="extensions_installed">%1$s is installed. Its popup is in the three-dot menu.</string>
+    <string name="extensions_install_failed">The extension could not be added: %1$s</string>
+    <string name="extensions_removed">%1$s is removed.</string>
+    <string name="extensions_remove_title">Remove this extension?</string>
+    <string name="extensions_remove_message">%1$s is deleted from Explorer, with its settings for the pages it changed.</string>
+    <string name="extensions_remove">Remove</string>
+    <string name="extensions_enabled">On</string>
+    <string name="extensions_disabled">Off</string>
+    <string name="extensions_row_summary">%1$s · %2$s</string>
+    <string name="extensions_row_summary_on_site">%1$s · %2$s · works on this site</string>
+    <string name="extensions_options">Options</string>
+    <string name="extensions_no_popup">This extension has nothing to show. Its content scripts work on the pages it asks for.</string>
+    <string name="extensions_note_title">What extensions can do here</string>
+    <string name="extensions_note_text">Explorer unpacks the extension from the Chrome Web Store and runs it itself, because the Android System WebView knows no chrome.* interfaces. Content scripts and their stylesheets run on the pages they ask for, a popup opens in a sheet, and chrome.storage is kept by Explorer. What needs a background service worker, declarativeNetRequest or the tabs of other websites is not offered, and the extension list says so where it matters. Extensions are taken from Google’s servers unchanged; Explorer does not check their signature, so add only extensions you trust.</string>
+    <string name="extensions_store_url" translatable="false">https://chromewebstore.google.com/</string>
+    <string name="extensions_menu_add_page">Add this extension to Explorer</string>
+    <string name="extensions_badge_site">This site</string>
+    <string name="extensions_site_hook">Add to Explorer</string>
+    <string name="extensions_site_hook_note">Explorer can run this extension itself.</string>
+    <string name="extensions_site_hook_done">Already added</string>
 
 </resources>

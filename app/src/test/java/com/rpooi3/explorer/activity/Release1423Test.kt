@@ -161,12 +161,13 @@ class Release1423Test {
         assertNotNull("with a handle", content.findViewById<View>(R.id.main_menu_handle))
         val groups = content.findViewById<LinearLayout>(R.id.main_menu_groups)
         fun ids(group: Int) = (groups.getChildAt(group) as ViewGroup).let { g -> (0 until g.childCount).map { g.getChildAt(it).id } }
-        assertEquals(4, groups.childCount)
+        // 17.3.1: five groups, because "Zoom" and "Extensions" are two halves of a row.
+        assertEquals(5, groups.childCount)
         assertEquals("tabs", listOf(R.id.main_new_tab, R.id.main_new_private_tab), ids(0))
-        // 16.1.0 (item 19): "Zoom" is in the tools whenever a website is in front.
-        assertEquals("tools", listOf(R.id.main_share, R.id.main_zoom, R.id.main_desktop_site), ids(1))
-        assertEquals("library", listOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), ids(2))
-        assertEquals(listOf(R.id.main_settings), ids(3))
+        assertEquals("tools", listOf(R.id.main_share, R.id.main_desktop_site), ids(1))
+        assertEquals("zoom and extensions, half width each", listOf(R.id.main_zoom, R.id.main_extension), ids(2))
+        assertEquals("library", listOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), ids(3))
+        assertEquals(listOf(R.id.main_settings), ids(4))
 
         // The same entries as before, nothing added and nothing lost.
         val labels = (0 until groups.childCount).flatMap { g ->
@@ -177,11 +178,11 @@ class Release1423Test {
         assertEquals(
             setOf(
                 "New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Zoom", "Desktop site",
-                "Settings",
+                "Settings", "Extensions",
             ),
             labels.toSet(),
         )
-        assertEquals(9, labels.size)
+        assertEquals(10, labels.size)
 
         // Groups are rounded and cut their rows; rows lie one below the other, 2dp apart.
         val tools = groups.getChildAt(1) as LinearLayout
@@ -196,7 +197,12 @@ class Release1423Test {
     @Test
     fun theLibrary_isARowOfTiles_iconAboveLabel() = browser {
         val content = openMenu()
-        val library = content.findViewById<LinearLayout>(R.id.main_menu_groups).getChildAt(2) as LinearLayout
+        // The library is the row of tiles that has History in it; which group it is depends on
+        // whether a website is in front (17.3.1: "Zoom" and "Extensions" are two tiles).
+        val groupsRoot = content.findViewById<LinearLayout>(R.id.main_menu_groups)
+        val library = (0 until groupsRoot.childCount)
+            .map { groupsRoot.getChildAt(it) as LinearLayout }
+            .first { group -> (0 until group.childCount).any { group.getChildAt(it).id == R.id.main_history } }
         assertEquals(LinearLayout.HORIZONTAL, library.orientation)
         assertEquals(3, library.childCount)
         for (i in 0 until 3) {
@@ -248,15 +254,23 @@ class Release1423Test {
             assertEquals(MainMenuSheet.DISABLED_ALPHA, share.alpha, 0f)
             activity.mainMenu.dismiss()
         }
-        // 16.1.0: "Zoom" is always among the tools on a website; no setting is needed for it.
+        // 17.3.1: "Zoom" is always on a website, beside "Extensions", half width each.
         prefs.edit().remove("openTabs").commit()
         browser {
             open("https://example.org/")
-            val tools = openMenu().findViewById<LinearLayout>(R.id.main_menu_groups).getChildAt(1) as ViewGroup
+            val pair = openMenu().findViewById<LinearLayout>(R.id.main_menu_groups).getChildAt(2) as ViewGroup
             assertEquals(
-                listOf(R.id.main_share, R.id.main_zoom, R.id.main_desktop_site),
-                (0 until tools.childCount).map { tools.getChildAt(it).id },
+                listOf(R.id.main_zoom, R.id.main_extension),
+                (0 until pair.childCount).map { pair.getChildAt(it).id },
             )
+            for (i in 0 until pair.childCount) {
+                assertEquals(
+                    "both are half the row",
+                    1f,
+                    (pair.getChildAt(i).layoutParams as LinearLayout.LayoutParams).weight,
+                    0f,
+                )
+            }
         }
     }
 
@@ -604,13 +618,14 @@ class Release1423Test {
             assertNull("the fork card is gone", fragment.findPreference<Preference>("about_fork"))
             assertEquals("Source code of FOSS Browser", pref("about_source_upstream").title.toString())
             assertEquals(
-                "FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components. Opens the repository.",
+                // 17.3.3: a row says what it is, not what opening it does.
+                "FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components.",
                 pref("about_source_upstream").summary.toString(),
             )
         }
         val components = SettingsScreens.readAsset(context, "licenses/components.txt")!!
         for (part in listOf(
-            "FOSS Browser: the browser at its base", "the web view inside a tab that loads the pages",
+            "FOSS Browser: what Explorer still takes from it", "the web view inside a tab that loads the pages",
             "Chromium: offline page and dinosaur game", "Chromium: settings, context menu, tabs and Incognito page",
             "Firefox for Android: main menu, download prompt and protection panel", "Mozilla Public License Version 2.0",
             "Readability", "AndroidX", "Material Components for Android", "Kotlin standard library",

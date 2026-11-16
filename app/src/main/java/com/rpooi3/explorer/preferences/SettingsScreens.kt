@@ -24,7 +24,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Activity
-import com.rpooi3.explorer.browser.AdBlock
+import com.rpooi3.explorer.browser.AdBlocker
 import com.rpooi3.explorer.accessibility.PageZoom
 import com.rpooi3.explorer.privacy.IncognitoLock
 import com.rpooi3.explorer.privacy.MarkedAds
@@ -60,6 +60,7 @@ object SettingsScreens {
         bindXGuard(fragment)
         bindMarkedAds(fragment)
         bindSearchEngines(fragment)
+        bindExtensions(fragment)
         bindAbout(fragment)
     }
 
@@ -291,6 +292,162 @@ object SettingsScreens {
         SettingsCards.style(screen)
     }
 
+    // Extensions (17.3.1) --------------------------------------------------------------------
+
+    /** The key of the row of an installed extension: the prefix, then its id. */
+    private const val EXTENSION_ROW = "extension_row_"
+
+    /**
+     * Settings &gt; Extension: one row per installed extension, above the two rows that add
+     * one. A row turns its extension on and off; a long press offers its options page and
+     * taking it away. [ExtensionStore] keeps the list, so a row is only a view of it.
+     */
+    private fun bindExtensions(fragment: PreferenceFragmentCompat) {
+        val context = fragment.requireContext()
+        val category = fragment.findPreference<PreferenceCategory>("extensions_group_installed") ?: return
+
+        // The rows of the extensions are built afresh, so a row never outlives its extension.
+        val stale = ArrayList<Preference>()
+        for (index in 0 until category.preferenceCount) {
+            val row = category.getPreference(index)
+            if (row.key?.startsWith(EXTENSION_ROW) == true) stale += row
+        }
+        stale.forEach { category.removePreference(it) }
+
+        val installed = com.rpooi3.explorer.extension.ExtensionStore.installed(context)
+        installed.forEach { extension ->
+            val row = Preference(context).apply {
+                key = EXTENSION_ROW + extension.id
+                title = extension.name
+                isSingleLineTitle = false
+                icon = com.rpooi3.explorer.view.ExtensionIcons.orDefault(context, extension)
+                summary = extensionSummary(context, extension)
+                // A tap opens what can be done with it: on or off, its options, remove.
+                setOnPreferenceClickListener {
+                    extensionActions(fragment, extension)
+                    true
+                }
+            }
+            category.addPreference(row)
+        }
+
+        fragment.findPreference<Preference>("extensions_add")?.setOnPreferenceClickListener {
+            askForExtensionAddress(fragment)
+            true
+        }
+        fragment.findPreference<Preference>("extensions_store")?.setOnPreferenceClickListener {
+            val store = context.getString(R.string.extensions_store_url)
+            try {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, android.net.Uri.parse(store))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            } catch (e: ActivityNotFoundException) {
+                CatToast.show(context, R.string.extensions_no_browser)
+            }
+            true
+        }
+    }
+
+    /** "[on/off] · [version] · [where it works]" under the name of an extension. */
+    private fun extensionSummary(context: Context, extension: com.rpooi3.explorer.extension.WebExtension): String {
+        val state = context.getString(
+            if (com.rpooi3.explorer.extension.ExtensionStore.isEnabled(context, extension.id))
+                R.string.extensions_enabled
+            else R.string.extensions_disabled,
+        )
+        val version = state + " · " + extension.version.ifBlank { "—" }
+        val where = when {
+            extension.contentScripts.isNotEmpty() -> extension.contentScripts.first().sitesSummary()
+            extension.hostPermissions.isNotEmpty() -> extension.hostPermissions.take(2).joinToString(", ")
+            extension.popupPath != null -> context.getString(R.string.extensions_options)
+            else -> context.getString(R.string.extensions_no_popup)
+        }.ifBlank { context.getString(R.string.extensions_no_popup) }
+        return context.getString(R.string.extensions_row_summary, version, where)
+    }
+
+    /** Options (if the manifest names a page) and Remove, for a long press on an extension. */
+    private fun extensionActions(
+        fragment: PreferenceFragmentCompat,
+        extension: com.rpooi3.explorer.extension.WebExtension,
+    ) {
+        val context = fragment.requireContext()
+        val options = ArrayList<Pair<String, () -> Unit>>()
+        val on = com.rpooi3.explorer.extension.ExtensionStore.isEnabled(context, extension.id)
+        options += context.getString(if (on) R.string.extensions_disabled else R.string.extensions_enabled) to {
+            com.rpooi3.explorer.extension.ExtensionStore.setEnabled(context, extension.id, !on)
+            bindExtensions(fragment)
+        }
+        val optionsPath = extension.optionsPath
+        if (optionsPath != null) {
+            options += context.getString(R.string.extensions_options) to {
+                // The options page of an extension is a page of the extension: it is shown the
+                // same way its popup is, in a sheet with the same bridge.
+                com.rpooi3.explorer.extension.ExtensionPopup(
+                    context,
+                    extension,
+                    null,
+                    null,
+                    null,
+                    optionsPath,
+                ).show()
+            }
+        }
+        options += context.getString(R.string.extensions_remove) to {
+            askToRemoveExtension(fragment, extension)
+        }
+        MaterialAlertDialogBuilder(context)
+            .setTitle(extension.name)
+            .setItems(options.map { it.first }.toTypedArray()) { _, which -> options[which].second() }
+            .setNegativeButton(R.string.app_cancel, null)
+            .show()
+    }
+
+    private fun askToRemoveExtension(
+        fragment: PreferenceFragmentCompat,
+        extension: com.rpooi3.explorer.extension.WebExtension,
+    ) {
+        val context = fragment.requireContext()
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.extensions_remove_title)
+            .setMessage(context.getString(R.string.extensions_remove_message, extension.name))
+            .setNegativeButton(R.string.app_cancel, null)
+            .setPositiveButton(R.string.extensions_remove) { _, _ ->
+                com.rpooi3.explorer.extension.ExtensionStore.remove(context, extension.id)
+                CatToast.show(context, context.getString(R.string.extensions_removed, extension.name))
+                bindExtensions(fragment)
+            }
+            .show()
+    }
+
+    /** The address or the id of an extension, from the store; added in the background. */
+    private fun askForExtensionAddress(fragment: PreferenceFragmentCompat) {
+        val context = fragment.requireContext()
+        val view = View.inflate(context, R.layout.dialog_edit_text, null)
+        val input = view.findViewById<TextInputEditText>(R.id.textInput)
+        input.setHint(R.string.extensions_install_hint)
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.extensions_install_title)
+            .setMessage(R.string.extensions_install_message)
+            .setView(view)
+            .setNegativeButton(R.string.app_cancel, null)
+            .setPositiveButton(R.string.app_ok) { _, _ ->
+                val typed = input.text?.toString().orEmpty()
+                val id = com.rpooi3.explorer.extension.CrxDownloader.extractExtensionId(typed)
+                if (id == null) {
+                    CatToast.show(context, R.string.extensions_install_invalid)
+                    return@setPositiveButton
+                }
+                com.rpooi3.explorer.extension.StoreHook.install(context, id) { installed ->
+                    if (installed == null) return@install
+                    fragment.view?.post {
+                        if (fragment.isAdded) bindExtensions(fragment)
+                    }
+                }
+            }
+            .show()
+    }
+
     // Search engine --------------------------------------------------------------------------
 
     private fun bindSearchEngines(fragment: PreferenceFragmentCompat) {
@@ -363,11 +520,12 @@ object SettingsScreens {
 
     // xGuard ---------------------------------------------------------------------------------
 
-    /** The filter list whose entry is the list the ad blocker works with. */
-    private const val FILTER_LIST = "ab_hosts"
-
-    /** The list Explorer has always fetched first, kept as the default (StevenBlack's unified hosts). */
-    private const val DEFAULT_FILTER_LIST = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+    /** 17.3.3: the lists of the ad blocker, as xGuard's switches name them. */
+    private val FILTER_LISTS = listOf(
+        "xguard_list_easylist" to "easylist",
+        "xguard_list_easyprivacy" to "easyprivacy",
+        "xguard_list_stevenblack" to "stevenblack",
+    )
 
     /**
      * Settings > xGuard (15.2.1): the ad blocker's switch and filter list, which moved here
@@ -393,8 +551,8 @@ object SettingsScreens {
             row.setOnPreferenceChangeListener { _, value ->
                 val on = value == true
                 SiteSettings.setOn(prefs, SiteCategory.ADS, on)
-                // Turning blocking on fetches the filter list, as the profile screen did.
-                if (on) AdBlock(context).triggerHostsDownload(context)
+                // Turning blocking on makes sure the lists are read and up to date.
+                if (on) AdBlocker.ensure(context)
                 fragment.view?.post { refresh() }
                 true
             }
@@ -440,29 +598,37 @@ object SettingsScreens {
             }
         }
 
-        // The filter list, which sat in Site settings > Ads before 15.2.1.
-        fragment.findPreference<ListPreference>(FILTER_LIST)?.let { list ->
-            list.setEntries(R.array.setting_entries_adBlock)
-            list.setEntryValues(R.array.setting_values_adBlock)
-            if (list.value.isNullOrEmpty()) list.value = DEFAULT_FILTER_LIST
-            list.summaryProvider = Preference.SummaryProvider<ListPreference> {
-                val date = AdBlock.getHostsDate(context).orEmpty().trim()
-                val name = it.entry?.toString().orEmpty()
-                if (date.isEmpty()) name else "$date:\n$name"
-            }
-            list.setOnPreferenceChangeListener { _, _ ->
-                // The new list is fetched once the new value is stored.
-                fragment.view?.post { AdBlock(context).triggerHostsDownload(context) }
-                true
+        // 17.3.3: the lists themselves, one switch each, as FOSS Browser's single list had. They
+        // are Chromite's kind of list now — EasyList and EasyPrivacy in the Adblock Plus syntax —
+        // and the hosts file Explorer always used is one of them.
+        for ((key, id) in FILTER_LISTS) {
+            fragment.findPreference<SwitchPreferenceCompat>(key)?.let { row ->
+                fun refreshList() {
+                    row.isChecked = AdBlocker.isOn(context, id)
+                    if (row.isChecked) {
+                        val count = AdBlocker.ruleCount()
+                        if (count > 0) {
+                            row.summary = context.getString(
+                                R.string.xguard_filter_list_on, count,
+                            )
+                        }
+                    }
+                }
+                refreshList()
+                row.setOnPreferenceChangeListener { _, value ->
+                    AdBlocker.setOn(context, id, value == true)
+                    fragment.view?.post { bindXGuard(fragment) }
+                    true
+                }
             }
         }
 
         fragment.findPreference<Preference>("xguard_filter_update")?.let { row ->
-            val date = AdBlock.getHostsDate(context).orEmpty().trim()
+            val date = AdBlocker.listDate(context)
             row.summary = if (date.isEmpty()) context.getString(R.string.xguard_filter_update_summary_off)
             else context.getString(R.string.xguard_filter_update_summary_on, date)
             row.setOnPreferenceClickListener {
-                AdBlock(context).triggerHostsDownload(context)
+                AdBlocker.update(context)
                 CatToast.show(context, R.string.xguard_filter_update_toast, 0)
                 true
             }
@@ -607,6 +773,9 @@ object SettingsScreens {
         mapOf(
             "about_license_gpl" to (R.string.about_license_gpl to "licenses/GPL-3.0.txt"),
             "about_license_agpl" to (R.string.about_license_agpl to "licenses/AGPL-3.0.txt"),
+            "about_license_chromium" to
+                (R.string.about_license_chromium to "licenses/Chromium-BSD-3-Clause.txt"),
+            "about_license_mpl" to (R.string.about_license_mpl to "licenses/MPL-2.0.txt"),
             "about_third_party" to (R.string.about_components_title to "licenses/components.txt"),
         ).forEach { (key, what) ->
             fragment.findPreference<Preference>(key)?.setOnPreferenceClickListener {

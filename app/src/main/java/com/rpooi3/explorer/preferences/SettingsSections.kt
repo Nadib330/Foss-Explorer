@@ -41,6 +41,8 @@ object SettingsSections {
         Section("section_home_custom", R.string.setting_section_home_custom, R.xml.preference_section_home_custom),
         Section("section_tabs", R.string.setting_section_tabs, R.xml.preference_section_tabs),
         Section("section_appearance", R.string.setting_section_appearance, R.xml.preference_section_appearance),
+        // 17.3.1: the Chrome Web Store extensions.
+        Section("section_extensions", R.string.extensions_title, R.xml.preference_section_extensions),
         Section("section_site", R.string.setting_section_site, R.xml.preference_section_site),
         Section("section_help", R.string.setting_section_help, R.xml.preference_section_help),
         Section("section_about", R.string.setting_section_about, R.xml.preference_section_about),
@@ -159,6 +161,8 @@ object SettingsSections {
             "about_github" to URL_GITHUB,
             "about_codeberg" to URL_CODEBERG,
             "about_source" to URL_SOURCE,
+            "help_feedback" to URL_FEEDBACK,
+            // 17.3.2: the row moved to Help and support; the old key is still answered for.
             "about_feedback" to URL_FEEDBACK,
             "about_source_chromium" to URL_SOURCE_CHROMIUM,
             "about_source_firefox" to URL_SOURCE_FIREFOX,

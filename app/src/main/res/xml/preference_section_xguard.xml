@@ -65,11 +65,31 @@
             android:selectable="false"
             android:title="@string/xguard_trackers_known" />
 
-        <ListPreference
-            android:icon="@drawable/icon_filter"
-            android:key="ab_hosts"
-            android:title="@string/site_ads_filter_list"
-            app:useSimpleSummaryProvider="false" />
+        <!-- 17.3.3: the lists of the blocker, one switch each. The single list FOSS Browser
+             fetched is gone; the hosts file Explorer always used is one of the three now. -->
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_adblock"
+            android:key="xguard_list_easylist"
+            android:summary="@string/xguard_list_easylist_summary"
+            android:title="@string/xguard_list_easylist_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_adblock"
+            android:key="xguard_list_easyprivacy"
+            android:summary="@string/xguard_list_easyprivacy_summary"
+            android:title="@string/xguard_list_easyprivacy_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:icon="@drawable/icon_adblock"
+            android:key="xguard_list_stevenblack"
+            android:summary="@string/xguard_list_stevenblack_summary"
+            android:title="@string/xguard_list_stevenblack_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
 
         <Preference
             android:icon="@drawable/icon_refresh"

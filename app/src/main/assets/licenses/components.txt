@@ -4,25 +4,38 @@ Open source components in Explorer
 Explorer's own code is under the GNU General Public License, version 3.
 It contains the parts by others listed here, each under its own license.
 
-FOSS Browser: the browser at its base
-  Explorer was first written on top of FOSS Browser by Gaukler Faun, and parts
-  of that code are still in the app. Since then its screens (home page, menus,
-  tab switcher, history, bookmarks, downloads, settings) have been rebuilt or
-  written anew after Chromium and Firefox, history and bookmarks moved into a
-  database laid out like Firefox's, and the list of open tabs follows the way
-  Chromium keeps it. FOSS Browser's gestures and its bookmark filter are gone.
-  What is still FOSS Browser's:
-    - the web view inside a tab that loads the pages (NinjaWebView and its
-      WebView clients) and a large part of the browser screen that drives it;
-    - the ad blocker with its filter list, the cookie-banner blocker and the
-      custom redirects;
+FOSS Browser: what Explorer still takes from it
+  Explorer was written on top of FOSS Browser by Gaukler Faun. That is where it started, and since
+  then its screens (home page, menus, tab switcher, history, bookmarks, downloads, settings) have
+  been rebuilt or written anew after Chromium and Firefox, history and bookmarks moved into a
+  database laid out like Firefox's, the list of open tabs follows the way Chromium keeps it, and
+  the ad blocker is now the one described below — FOSS Browser's lists, its gestures and its
+  bookmark filter are gone. What is still FOSS Browser's:
+    - the web view inside a tab that loads the pages (NinjaWebView and its WebView clients) and a
+      large part of the browser screen that drives it;
     - the site profiles that keep the per-site settings, and helper code;
+    - the cookie-banner blocker and the custom redirects;
     - the cache of site icons;
     - saving downloads, deleting browsing data, and the backup.
   LICENSE.md in the source code lists the files and how much of each.
   Copyright Gaukler Faun and the FOSS Browser contributors.
   GNU Affero General Public License, version 3 or later.
   https://codeberg.org/Gaukler_Faun/FOSS_Browser
+
+Ad blocking, after Chromite (17.3.3)
+  The filter lists are not Explorer's. EasyList and EasyPrivacy are the work of the EasyList
+  authors and are published under CC BY-SA 3.0 (the lists) and GPL-3.0 (the code that builds
+  them); StevenBlack's unified hosts file is public domain. Explorer fetches them, parses them and
+  matches them with an engine of its own, which is Explorer's code (GPL-3.0) and owes its shape to
+  Chromite's blocker. The lists are used as they come and are not changed.
+
+Chrome Web Store extensions (17.3.1): the extensions themselves
+  Explorer unpacks the .crx file an extension is published as, and runs it. The
+  code of an extension is not part of Explorer and is not covered by Explorer's
+  license: it stays under the license its author gave it, and it is the user who
+  adds it. Explorer checks no signature, and it does not run an extension in a
+  private tab. The unpacking, the manifest reading and the chrome.* shim are
+  Explorer's own code (GPL-3.0).
 
 Chromium: offline page and dinosaur game
   From Chromium 86.0.4240.198.
