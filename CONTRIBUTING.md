@@ -133,11 +133,7 @@ application.
 
 The goal is simple:
 
-**Keep Foss Explorer stable, secure, reliable, and continuously
+**Keep Explorer stable, secure, reliable, and continuously
 maintained.**
 
 Thank you for helping maintain Foss Explorer!
-
-------------------------------------------------------------------------
-
-**Foss Explorer --- Rpooi3 Studio (Nadib330)**
