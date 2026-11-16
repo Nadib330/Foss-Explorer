@@ -229,7 +229,8 @@ Explorer's original code is licensed under the **GNU General Public License v3.0
 A license applying to Explorer's original code does not replace or override the licenses of third-party components. Please retain applicable copyright notices, license texts, and attribution when redistributing the project.
 
 ## Contribution 
-Please read contribution.md
+
+please read contribution.md
 ---
 
 **Developed by rpooi3 (also known as rpooi3 studio and Nadib330.)**
