@@ -2,6 +2,23 @@
 
 **Explorer is an open-source Android web browser built with Kotlin and Android System WebView.** I focus on keeping it practical, customizable, privacy-friendly, and lightweight while adding features that aren't normally available in Android browsers.
 
+---
+
+<div align="center">
+
+<h1><a id="screenshots"></a>Screenshots</h1>
+
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011522.jpg" alt="Home screen" width="30%" />
+<img src="fastlane/metadata/android/en-US/images/screenshots/screenshot_2.png" alt="Three dot menu" width="30%" />
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011911.jpg" alt="xGuard" width="30%" />
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011939.jpg" alt="Settings" width="30%" />
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011949.jpg" alt="Player screen" width="30%" />
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011956.jpg" alt="Data backup" width="30%" />
+
+</div>
+
+---
+
 One of its main features is **Chrome Web Store extension support**. Android System WebView does not natively provide Chrome's extension system or `chrome.*` APIs, so I built a custom compatibility layer around WebView. Explorer handles extension downloads and installation, reads manifests, injects supported scripts, provides compatible extension APIs through a JavaScript-to-Kotlin bridge, and hosts extension interfaces such as popups.
 
 This is a custom implementation, not native Chrome extension support built into Android System WebView. Compatibility depends on the APIs an extension uses; not every Chrome extension is guaranteed to work.
