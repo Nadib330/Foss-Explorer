@@ -1,6 +1,7 @@
 <div align="center">
 
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Explorer_Logo5.jpg" alt="Metrolist app icon" width="200" />
+
 # Explorer
 
 **Explorer is an open-source Android web browser built with Kotlin and Android System WebView.** I focus on keeping it practical, customizable, privacy-friendly, and lightweight while adding features that aren't normally available in Android browsers.
