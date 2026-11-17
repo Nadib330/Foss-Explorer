@@ -9,7 +9,7 @@
 <h1><a id="screenshots"></a>Screenshots</h1>
 
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011522.jpg" alt="Home screen" width="30%" />
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011911.jpg" alt="Three dot menu" width="30%" />
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-012929.jpg" alt="Three dot menu" width="30%" />
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011911.jpg" alt="xGuard" width="30%" />
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011939.jpg" alt="Settings" width="30%" />
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20261118-011949.jpg" alt="Player screen" width="30%" />
