@@ -27,16 +27,6 @@ object ChromeUserAgent {
     /** Chrome reports this fixed model name instead of the real device model. */
     private const val MODEL = "K"
 
-    /**
-     * 18.2.0 beta (item 4): the oldest Chrome the Chrome Web Store is told about.
-     *
-     * The store greys its install button out for a browser that reports an engine older than the
-     * one Manifest V3 extensions are meant for, whatever the rest of the handshake says. A WebView
-     * that has not been updated for a while would be told so and lose the button, so the store is
-     * told 131 or the version of the device, whichever is newer.
-     */
-    const val STORE_MIN_MAJOR = "131"
-
     private const val TAG = "ChromeUserAgent"
     private val chromeVersion = Regex("""Chrome/(\d+)""")
     private val androidVersion = Regex("""^\d+(\.\d+){0,2}$""")
@@ -59,61 +49,22 @@ object ChromeUserAgent {
             "(KHTML, like Gecko) Chrome/${majorVersion(webViewUserAgent)}.0.0.0 Mobile Safari/537.36"
 
     /**
-     * The user agent of Chrome on a computer, which is what "Desktop site" sends to every
-     * website: Chrome on **Windows**, as it has been since 17.3.3.
+     * The user agent of Chrome on **Windows**, which is what "Desktop site" sends since 17.3.3.
      *
-     * The string carries neither `wv` nor `Android`, so nothing can tell the WebView from Chrome.
+     * A desktop browser is what a website expects in desktop mode, and the Chrome Web Store goes
+     * further: it offers its extensions to a browser on a computer and to no other. The string
+     * carries neither `wv` nor `Android`, so nothing can tell the WebView from Chrome on Windows.
      */
     @JvmStatic
     fun desktop(webViewUserAgent: String?): String =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/${majorVersion(webViewUserAgent)}.0.0.0 Safari/537.36"
 
-    /**
-     * The user agent of Chrome on **Linux**, sent to the Chrome Web Store and to nothing else
-     * (17.4.0): the desktop agent Explorer had before 17.3.3.
-     *
-     * The store is where extensions are handed out, and it does not go by the user agent alone —
-     * it draws its own page and reads `navigator.platform` in it. The old Linux agent is the one
-     * the store's pages have always been served by Explorer, and it is what they get back here;
-     * every other website keeps the Windows agent of [desktop].
-     */
-    @JvmStatic
-    fun store(webViewUserAgent: String?): String =
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/${storeMajorVersion(webViewUserAgent)}.0.0.0 Safari/537.36 " +
-            // 18.1.0 beta (item 6): the brand token of this browser, as the store's own pages
-            // expect one beside the engine they were given.
-            "Explorer/1.0"
-
-    /** The version the store is told: [STORE_MIN_MAJOR], or the engine here if it is newer. */
-    @JvmStatic
-    fun storeMajorVersion(webViewUserAgent: String?): String {
-        val here = majorVersion(webViewUserAgent)
-        val floor = STORE_MIN_MAJOR
-        if (here.length != floor.length) return if (here.length > floor.length) here else floor
-        return if (here >= floor) here else floor
-    }
-
-    /** The platform of desktop mode, for the client hints that have to agree with the agent. */
+    /** The platform of the desktop user agent, for the client hints that have to agree with it. */
     const val DESKTOP_PLATFORM = "Windows"
 
-    /** Windows 10, as Chrome reports it in the client hints of a desktop page. */
+    /** Windows 10, as Chrome reports it in the client hints. */
     const val DESKTOP_PLATFORM_VERSION = "15.0.0"
-
-    /** The platform the Chrome Web Store is told it is running on. */
-    const val STORE_PLATFORM = "Linux"
-
-    /** Chrome on Linux reports no platform version; the store's pages expect none. */
-    const val STORE_PLATFORM_VERSION = ""
-
-    /** The platform that goes with [store] and [desktop]; `null` for the mobile agent. */
-    @JvmStatic
-    fun platformOf(store: Boolean, desktop: Boolean): String = when {
-        store -> STORE_PLATFORM
-        desktop -> DESKTOP_PLATFORM
-        else -> "Android"
-    }
 
     /** Pre-release builds report a code name such as "Baklava"; websites expect a number. */
     internal fun cleanRelease(release: String?): String {
@@ -127,7 +78,7 @@ object ChromeUserAgent {
      * still name "Android WebView".
      */
     @JvmStatic
-    fun applyClientHints(settings: WebSettings, webViewUserAgent: String?, platform: String) {
+    fun applyClientHints(settings: WebSettings, webViewUserAgent: String?, desktop: Boolean) {
         try {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) return
             val major = majorVersion(webViewUserAgent)
@@ -144,16 +95,10 @@ object ChromeUserAgent {
                     ),
                 )
                 .setFullVersion(full)
-                .setPlatform(platform)
-                .setPlatformVersion(
-                    when (platform) {
-                        STORE_PLATFORM -> STORE_PLATFORM_VERSION
-                        DESKTOP_PLATFORM -> DESKTOP_PLATFORM_VERSION
-                        else -> cleanRelease(Build.VERSION.RELEASE)
-                    },
-                )
+                .setPlatform(if (desktop) DESKTOP_PLATFORM else "Android")
+                .setPlatformVersion(if (desktop) DESKTOP_PLATFORM_VERSION else cleanRelease(Build.VERSION.RELEASE))
                 .setModel("")
-                .setMobile(platform == "Android")
+                .setMobile(!desktop)
                 .build()
             WebSettingsCompat.setUserAgentMetadata(settings, metadata)
         } catch (e: Throwable) {

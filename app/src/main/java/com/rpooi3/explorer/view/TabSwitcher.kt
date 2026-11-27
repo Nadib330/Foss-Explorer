@@ -1,6 +1,5 @@
 package com.rpooi3.explorer.view
 
-import com.rpooi3.explorer.profile.ProfilePrefs
 import android.content.res.ColorStateList
 import android.text.Editable
 import android.text.TextWatcher
@@ -66,9 +65,6 @@ class TabSwitcher(
         /** Opens [url] in a new tab in front; used for tabs that come back from the inactive section. */
         fun openTab(url: String)
 
-        /** Closes the switcher and goes back to the page, as the arrow of the title row does. */
-        fun hideSwitcher()
-
         /** The cards of the other kind of tab are shown now. */
         fun onModeChanged()
     }
@@ -79,8 +75,6 @@ class TabSwitcher(
     private val modes: MaterialButtonToggleGroup = root.findViewById(R.id.tabs_mode)
     private val search: EditText = root.findViewById(R.id.tabs_search)
     private val searchClear: View = root.findViewById(R.id.tabs_search_clear)
-    private val titleRow: View = root.findViewById(R.id.tabs_title_row)
-    private val searchRow: View = root.findViewById(R.id.tabs_search_row)
     private val counter = TabCountDrawable(root.context)
 
     /** What is typed into "Search your tabs". */
@@ -107,13 +101,8 @@ class TabSwitcher(
         }
         grid.adapter = adapter
         ItemTouchHelper(SwipeToClose()).attachToRecyclerView(grid)
+        root.findViewById<View>(R.id.tabs_new).setOnClickListener { host.newTab(privateMode) }
         root.findViewById<View>(R.id.tabs_menu).setOnClickListener { showMenu(it) }
-        // 18.0.0 beta 5: the arrow of the title row goes back to the page, the rounded-square
-        // button beside the pill opens a new tab, and the magnifier turns the title row into search.
-        root.findViewById<View>(R.id.tabs_back).setOnClickListener { host.hideSwitcher() }
-        root.findViewById<View>(R.id.tabs_fab).setOnClickListener { host.newTab(privateMode) }
-        root.findViewById<View>(R.id.tabs_search_button).setOnClickListener { openSearch() }
-        root.findViewById<View>(R.id.tabs_search_back).setOnClickListener { closeSearch() }
         inactive.setOnClickListener { showInactiveTabs() }
         modes.addOnButtonCheckedListener { _, id, checked ->
             if (checked) setMode(id == R.id.tabs_mode_private)
@@ -131,39 +120,6 @@ class TabSwitcher(
             }
         })
         searchClear.setOnClickListener { search.setText("") }
-        // 18.0.0 beta 6 (item 10): the search key of the keyboard puts the keyboard away, as in
-        // Chrome; the cards stay narrowed until the field is emptied.
-        search.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH ||
-                actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE
-            ) {
-                val manager = root.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                manager?.hideSoftInputFromWindow(search.windowToken, 0)
-                search.clearFocus()
-                true
-            } else {
-                false
-            }
-        }
-    }
-
-    /** Turns the title row into the search field, as the magnifier of Chrome does. */
-    private fun openSearch() {
-        titleRow.isVisible = false
-        searchRow.isVisible = true
-        search.requestFocus()
-        val manager = root.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-        manager?.showSoftInput(search, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
-    }
-
-    /** Puts the title row back, with every tab shown again. */
-    private fun closeSearch() {
-        val manager = root.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-        manager?.hideSoftInputFromWindow(search.windowToken, 0)
-        search.setText("")
-        search.clearFocus()
-        searchRow.isVisible = false
-        titleRow.isVisible = true
     }
 
     /** Opens the switcher on the cards of the kind of tab that is in front. */
@@ -174,52 +130,45 @@ class TabSwitcher(
         root.animate().cancel()
         privateMode = current?.isPrivateTab == true
         modes.check(if (privateMode) R.id.tabs_mode_private else R.id.tabs_mode_normal)
-        // Every opening starts with the title row and with all tabs.
-        closeSearch()
+        // Every opening starts with all tabs.
+        search.setText("")
+        search.clearFocus()
         refresh()
         adapter.tabs.indexOf(current).takeIf { it >= 0 }?.let(grid::scrollToPosition)
-        // 18.4.0: entering the tab switcher is immediate. Chromium keeps the overview stable
-        // while it captures and lays out cards; no zoom or fade is applied to the whole screen.
-        root.animate().cancel()
-        root.isVisible = true
-        root.alpha = 1f
-        root.scaleX = 1f
-        root.scaleY = 1f
-        root.pivotX = root.width / 2f
-        root.pivotY = root.height / 2f
+        if (!root.isVisible) {
+            // The cards settle into place, the reverse of going into a tab.
+            root.alpha = 0f
+            root.scaleX = ZOOM
+            root.scaleY = ZOOM
+            root.isVisible = true
+        }
+        root.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(DURATION).setInterpolator(DecelerateInterpolator())
+            .withEndAction(null).start()
     }
 
     /** Closes the switcher; with [towards], by moving into that card. */
     @JvmOverloads
     fun hide(towards: View? = null) {
         menu?.dismiss()
-        // 18.0.0 beta 6 (item 9): the search is put away with the switcher, keyboard and all — it
-        // used to stay open behind the page and came back with the next opening.
-        closeSearch()
         if (!root.isVisible || hiding) return
-        // 18.4.0: opening a card is a direct hand-off to the page. The card itself supplies the
-        // user's visual target; Chromium does not zoom the entire overview behind it.
-        if (towards != null) {
-            root.animate().cancel()
-            hiding = false
-            root.isVisible = false
-            root.alpha = 1f
-            root.scaleX = 1f
-            root.scaleY = 1f
-            root.pivotX = root.width / 2f
-            root.pivotY = root.height / 2f
-            return
+        hiding = true
+        if (towards != null && root.width > 0) {
+            val card = IntArray(2).also(towards::getLocationInWindow)
+            val own = IntArray(2).also(root::getLocationInWindow)
+            root.pivotX = card[0] - own[0] + towards.width / 2f
+            root.pivotY = card[1] - own[1] + towards.height / 2f
         }
-        // The overview closes in the same frame as the page is restored. This also keeps the
-        // back arrow and a newly selected card on one Chromium-style, non-animated hand-off.
-        hiding = false
-        root.animate().cancel()
-        root.isVisible = false
-        root.alpha = 1f
-        root.scaleX = 1f
-        root.scaleY = 1f
-        root.pivotX = root.width / 2f
-        root.pivotY = root.height / 2f
+        root.animate().alpha(0f).scaleX(ZOOM).scaleY(ZOOM).setDuration(DURATION)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                hiding = false
+                root.isVisible = false
+                root.alpha = 1f
+                root.scaleX = 1f
+                root.scaleY = 1f
+                root.pivotX = root.width / 2f
+                root.pivotY = root.height / 2f
+            }.start()
     }
 
     /** Shows the tabs as they are now. Call after tabs were opened or closed. */
@@ -242,7 +191,7 @@ class TabSwitcher(
         empty.setCompoundDrawablesRelativeWithIntrinsicBounds(
             0, if (privateMode) R.drawable.icon_private else R.drawable.icon_tab, 0, 0,
         )
-        val waiting = InactiveTabs.list(ProfilePrefs.settings(root.context)).size
+        val waiting = InactiveTabs.list(PreferenceManager.getDefaultSharedPreferences(root.context)).size
         inactive.isVisible = !privateMode && waiting > 0
         inactive.text = root.resources.getQuantityString(R.plurals.tabs_inactive, waiting, waiting)
     }
@@ -258,7 +207,7 @@ class TabSwitcher(
      */
     internal fun showInactiveTabs() {
         val context = root.context
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val entries = InactiveTabs.list(prefs)
         if (entries.isEmpty()) return refresh()
         val labels = entries.map { if (it.title.isBlank()) it.url else it.title + "\n" + it.url }.toTypedArray()
@@ -275,7 +224,7 @@ class TabSwitcher(
 
     /** Brings [entry] back as a tab in front. */
     internal fun openInactive(entry: InactiveTabs.Entry) {
-        InactiveTabs.remove(ProfilePrefs.settings(root.context), entry.url)
+        InactiveTabs.remove(PreferenceManager.getDefaultSharedPreferences(root.context), entry.url)
         host.openTab(entry.url)
         refresh()
     }
@@ -304,37 +253,9 @@ class TabSwitcher(
 
     private fun setMode(privateTabs: Boolean) {
         if (privateMode == privateTabs) return
-        // Chromium's tab model is a horizontal two-page surface: update the model immediately,
-        // then let the newly selected section slide into place while the bottom mode bar settles.
         privateMode = privateTabs
         refresh()
         host.onModeChanged()
-        animateModeSwitch(if (privateTabs) 1f else -1f)
-    }
-
-    /** Slides the selected tab section in and gives the bottom mode bar Chromium's short settle. */
-    private fun animateModeSwitch(direction: Float) {
-        val distance = 32f * root.resources.displayMetrics.density
-        grid.animate().cancel()
-        grid.translationX = direction * distance
-        grid.alpha = 0f
-        grid.animate()
-            .translationX(0f)
-            .alpha(1f)
-            .setDuration(MODE_CONTENT_DURATION)
-            .setInterpolator(DecelerateInterpolator())
-            .start()
-
-        val modeBar = root.findViewById<View>(R.id.tabs_pill)
-        modeBar.animate().cancel()
-        modeBar.scaleX = MODE_BAR_START_SCALE
-        modeBar.scaleY = MODE_BAR_START_SCALE
-        modeBar.animate()
-            .scaleX(1f)
-            .scaleY(1f)
-            .setDuration(MODE_BAR_DURATION)
-            .setInterpolator(DecelerateInterpolator())
-            .start()
     }
 
     private fun showMenu(anchor: View) {
@@ -393,24 +314,17 @@ class TabSwitcher(
                 )
             }
             holder.thumbnail.setImageBitmap(tab.thumbnail)
-            // 18.0.0 beta 4: the band under the picture carries the colour of the site, as the card
-            // of Chrome does — the colour of the top of the page, read from its own picture.
-            fun color(attr: Int) = MaterialColors.getColor(context, attr, 0)
-            val band = bandColour(tab.thumbnail) ?: color(
-                if (tab === current) com.google.android.material.R.attr.colorSurfaceContainerHigh
-                else com.google.android.material.R.attr.colorSurfaceContainerHighest,
-            )
-            holder.band.setBackgroundColor(band)
-            val onBand = if (isDark(band)) android.graphics.Color.WHITE else android.graphics.Color.BLACK
-            holder.title.setTextColor(onBand)
-            // The tab in front is ringed, as Chromium rings it: the picture alone would not say it.
+            // The tab in front stands out as in Chromium: its card in the inverse colours.
             val selected = tab === current
             holder.card.isSelected = selected
-            holder.card.strokeWidth = if (selected) (2 * context.resources.displayMetrics.density).toInt() else 0
-            holder.card.strokeColor = color(androidx.appcompat.R.attr.colorPrimary)
-            holder.card.setCardBackgroundColor(band)
-            (holder.close as ImageView).imageTintList = ColorStateList.valueOf(android.graphics.Color.WHITE)
-            if (holder.icon.imageTintList != null) holder.icon.imageTintList = ColorStateList.valueOf(onBand)
+            fun color(attr: Int) = MaterialColors.getColor(context, attr, 0)
+            holder.card.setCardBackgroundColor(
+                color(if (selected) com.google.android.material.R.attr.colorSurfaceInverse else com.google.android.material.R.attr.colorSurfaceContainerHighest),
+            )
+            val onCard = color(if (selected) com.google.android.material.R.attr.colorOnSurfaceInverse else com.google.android.material.R.attr.colorOnSurface)
+            holder.title.setTextColor(onCard)
+            (holder.close as ImageView).imageTintList = ColorStateList.valueOf(onCard)
+            if (holder.icon.imageTintList != null) holder.icon.imageTintList = ColorStateList.valueOf(onCard)
             holder.card.contentDescription = title
             holder.card.setOnClickListener {
                 host.selectTab(tab)
@@ -442,7 +356,6 @@ class TabSwitcher(
         val title: TextView = view.findViewById(R.id.tab_card_title)
         val close: View = view.findViewById(R.id.tab_card_close)
         val thumbnail: ImageView = view.findViewById(R.id.tab_card_thumbnail)
-        val band: View = view.findViewById(R.id.tab_card_bar)
         var tab: NinjaWebView? = null
     }
 
@@ -463,9 +376,8 @@ class TabSwitcher(
     }
 
     companion object {
-        private const val MODE_CONTENT_DURATION = 220L
-        private const val MODE_BAR_DURATION = 180L
-        private const val MODE_BAR_START_SCALE = 0.94f
+        private const val DURATION = 220L
+        private const val ZOOM = 1.12f
         private const val THUMBNAIL_SCALE = 0.4f
 
         /** Two cards side by side on a phone held upright, more on wider screens. */
@@ -475,55 +387,6 @@ class TabSwitcher(
         internal fun columnsFor(widthDp: Float): Int = (widthDp / CARD_WIDTH_DP).toInt().coerceIn(2, 6)
 
         private const val CARD_WIDTH_DP = 180
-
-        /**
-         * The colour of the band under a card: the average of the top of the picture of the page, which
-         * is where a site paints its own colour. Null when the picture cannot say it, and the card then
-         * keeps the colours of the theme.
-         */
-        @JvmStatic
-        internal fun bandColour(thumbnail: Bitmap?): Int? {
-            val picture = thumbnail ?: return null
-            if (picture.width < 4 || picture.height < 4) return null
-            val rows = (picture.height * 0.06f).toInt().coerceIn(1, picture.height)
-            val step = (picture.width / 12).coerceAtLeast(1)
-            var red = 0L
-            var green = 0L
-            var blue = 0L
-            var taken = 0
-            for (y in 0 until rows) {
-                var x = step / 2
-                while (x < picture.width) {
-                    val pixel = try {
-                        picture.getPixel(x, y)
-                    } catch (e: RuntimeException) {
-                        return null
-                    }
-                    red += (pixel shr 16) and 0xFF
-                    green += (pixel shr 8) and 0xFF
-                    blue += pixel and 0xFF
-                    taken++
-                    x += step
-                }
-            }
-            if (taken == 0) return null
-            val colour = android.graphics.Color.rgb(
-                (red / taken).toInt(),
-                (green / taken).toInt(),
-                (blue / taken).toInt(),
-            )
-            // A page that was never drawn is black, and a white one is white: neither says what the
-            // site's colour is, so the card keeps the colours of the theme instead of a black band.
-            val luminance = androidx.core.graphics.ColorUtils.calculateLuminance(colour)
-            if (luminance < 0.02 || luminance > 0.98) return null
-            return colour
-        }
-
-        /** Whether white writing reads better than black on [colour]. */
-        @JvmStatic
-        internal fun isDark(colour: Int): Boolean =
-            androidx.core.graphics.ColorUtils.calculateLuminance(colour) < 0.5
-
     }
 }
 

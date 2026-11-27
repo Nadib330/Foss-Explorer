@@ -8,45 +8,24 @@
     android:layout_height="match_parent"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="1dp"
-    android:paddingEnd="1dp">
+    android:paddingStart="@dimen/spacing_xsmall"
+    android:paddingEnd="@dimen/spacing_xsmall">
 
     <ImageButton
         android:id="@+id/button_back"
-        android:layout_width="@dimen/bar_button_size_compact"
+        android:layout_width="@dimen/bar_button_size"
         android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/bar_back"
         android:src="@drawable/icon_arrow_back"
-        app:tint="?attr/colorOnSurface" />
-
-    <!-- Extra navigation actions used by the landscape browsing arrangement. -->
-    <ImageButton
-        android:id="@+id/button_forward_landscape"
-        android:layout_width="@dimen/bar_button_size_compact"
-        android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
-        android:contentDescription="@string/menu_nav_forward"
-        android:src="@drawable/icon_arrow_forward"
-        android:visibility="gone"
-        app:tint="?attr/colorOnSurface" />
-
-    <ImageButton
-        android:id="@+id/button_home_landscape"
-        android:layout_width="@dimen/bar_button_size_compact"
-        android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
-        android:contentDescription="@string/bar_home"
-        android:src="@drawable/icon_house"
-        android:visibility="gone"
         app:tint="?attr/colorOnSurface" />
 
     <FrameLayout
         android:id="@+id/addressPill"
         android:layout_width="0dp"
         android:layout_height="@dimen/address_pill_height"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
+        android:layout_marginStart="@dimen/spacing_xsmall"
+        android:layout_marginEnd="@dimen/spacing_xsmall"
         android:layout_weight="1"
         android:background="@drawable/bg_address_pill"
         android:clickable="true"
@@ -64,7 +43,7 @@
                 android:id="@+id/button_reload"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_ripple_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/bar_reload"
                 android:src="@drawable/icon_refresh"
                 app:tint="?attr/colorOnSurfaceVariant" />
@@ -115,76 +94,27 @@
             android:layout_width="@dimen/address_pill_height"
             android:layout_height="match_parent"
             android:layout_gravity="end"
-            android:background="@drawable/bg_ripple_small"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/menu_share_link"
             android:src="@drawable/icon_share"
             app:tint="?attr/colorOnSurfaceVariant" />
 
     </FrameLayout>
 
-    <ImageButton
-        android:id="@+id/button_bookmark_landscape"
-        android:layout_width="@dimen/bar_button_size_compact"
-        android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
-        android:contentDescription="@string/menu_save_bookmark"
-        android:src="@drawable/icon_bookmark"
-        android:visibility="gone"
-        app:tint="?attr/colorOnSurface" />
-
-    <FrameLayout
-        android:id="@+id/button_tabs_landscape"
-        android:layout_width="@dimen/bar_button_size_compact"
-        android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
-        android:clickable="true"
-        android:contentDescription="@string/album_title_tab"
-        android:focusable="true"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tab_count_landscape"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            android:background="@drawable/bg_tab_counter"
-            android:gravity="center"
-            android:importantForAccessibility="no"
-            android:includeFontPadding="false"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-    </FrameLayout>
-
-    <!-- The shield, as in Firefox: what is blocked on this site, and the switch for it.
-         18.0.0 beta 4: it keeps its place even when there is nothing to show, so that the profile
-         and the menu beside it never move by the width of a button. -->
+    <!-- The shield, as in Firefox: what is blocked on this site, and the switch for it. -->
     <ImageButton
         android:id="@+id/button_shield"
-        android:layout_width="@dimen/bar_button_size_compact"
+        android:layout_width="@dimen/bar_button_size"
         android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/protection_panel_etp_toggle_label"
         android:src="@drawable/icon_shield"
         android:visibility="gone"
         app:tint="?attr/colorOnSurface" />
 
-    <!-- 18.0.0 beta 2: the profile in front, left of the three-dot menu: the picture the user
-         chose (or the letter of the profile in its colour). Tapping it opens the profiles. -->
-    <ImageButton
-        android:id="@+id/button_profile"
-        android:layout_width="@dimen/bar_button_size_compact"
-        android:layout_height="@dimen/bar_button_size"
-        android:background="@drawable/bg_ripple_small"
-        android:contentDescription="@string/profiles_title"
-        android:padding="10dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/icon_person"
-        app:tint="?attr/colorOnSurface" />
-
     <ImageButton
         android:id="@+id/button_menu"
-        android:layout_width="@dimen/bar_button_size_compact"
+        android:layout_width="@dimen/bar_button_size"
         android:layout_height="@dimen/bar_button_size"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/bar_menu"

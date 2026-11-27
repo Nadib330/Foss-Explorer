@@ -22,7 +22,6 @@ import com.rpooi3.explorer.preferences.BasePreferenceFragment;
 import com.rpooi3.explorer.preferences.SettingsCards;
 import com.rpooi3.explorer.preferences.HomeCustomizationScreen;
 import com.rpooi3.explorer.preferences.SettingsScreens;
-import com.rpooi3.explorer.preferences.ColorsScreen;
 import com.rpooi3.explorer.preferences.SettingsSections;
 import com.rpooi3.explorer.site.SiteSettingsScreen;
 
@@ -53,7 +52,7 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         // Without a topic this is the first screen: the list of topics.
         setPreferencesFromResource(section == null ? R.xml.preference_setting : section.getXml(), rootKey);
         Context context = requireContext();
-        sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+        sp = PreferenceManager.getDefaultSharedPreferences(context);
         initSummary(getPreferenceScreen());
         if (section == null) {
             SettingsSections.attachKeywords(getPreferenceScreen());
@@ -62,10 +61,6 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         SettingsSections.bindNavigation(this);
         SettingsScreens.bind(this);
         HomeCustomizationScreen.bind(this, () -> wallpaperPicker.launch("image/*"));
-        // 18.3.0 beta (item 12): Settings > Downloads, and the folder behind it.
-        com.rpooi3.explorer.preferences.DownloadsScreen.bind(this);
-        // 18.0.0 beta 9 (item 7): the row of the colors, and the picker behind it.
-        ColorsScreen.INSTANCE.bind(this);
         SettingsSections.bindInfo(this);
         SiteSettingsScreen.bind(this);
         setClick("settings_profile", Settings_Profile.class);
@@ -131,11 +126,8 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
 
         updatePrefSummary(findPreference(key));
 
-        // 18.1.0 beta (item 5): the notice of the restart is shown here, in front of the setting
-        // that was just changed, and not later on the browsing screen.
-        // 18.3.0 beta (item 3): and it survives the rebuild that the change itself may cause.
         if ("sp_theme".equals(key) || "useDynamicColor".equals(key)) {
-            com.rpooi3.explorer.preferences.RestartPrompt.request(getActivity());
+            sp.edit().putInt("restart_changed", 1).apply();
         }
 
 
@@ -156,14 +148,6 @@ public class Fragment_settings extends BasePreferenceFragment implements SharedP
         // The summaries of rows that lead to a screen say what is chosen there.
         SettingsScreens.bind(this);
         HomeCustomizationScreen.refresh(this);
-        com.rpooi3.explorer.preferences.DownloadsScreen.refresh(this);
-        ColorsScreen.INSTANCE.bind(this);
-        // 18.3.0 beta (item 3): a notice that is owed — usually one whose screen was rebuilt by the
-        // change of the theme itself — is paid here.
-        if (com.rpooi3.explorer.preferences.RestartPrompt.isPending(getActivity())) {
-            // Keep the explicit settings-side call: the notice belongs here, not on the browser.
-            com.rpooi3.explorer.preferences.RestartPrompt.show(getActivity());
-        }
         Objects.requireNonNull(getPreferenceScreen().getSharedPreferences()).registerOnSharedPreferenceChangeListener(this);
     }
 

@@ -20,15 +20,8 @@ object ExtensionScripts {
     const val DOMAIN = "explorer-extensions.local"
 
     /** How much of one extension may be run on a page, so a big one cannot freeze a tab. */
-    /**
-     * 18.0.0 beta 8 (item 5): how much of a content script is run. A page built with a framework
-     * brings a bundle of one to three megabytes, and the old limits — one megabyte for a file, three
-     * for all of them — dropped exactly those, so the extension sat in the menu and did nothing on
-     * the pages it named. What is read of an extension is its own files, unpacked from its own
-     * `.crx`, so the limit is only there to keep a broken package from being read forever.
-     */
-    private const val MAX_FILE_BYTES = 12L * 1024 * 1024
-    private const val MAX_TOTAL_BYTES = 24L * 1024 * 1024
+    private const val MAX_FILE_BYTES = 1L * 1024 * 1024
+    private const val MAX_TOTAL_BYTES = 3L * 1024 * 1024
 
     private val patterns = ConcurrentHashMap<String, Regex>()
 
@@ -36,16 +29,6 @@ object ExtensionScripts {
     @JvmStatic
     fun resourceUrl(extensionId: String, path: String): String =
         "https://$DOMAIN/$extensionId/" + path.trimStart('/')
-
-    /** The page Explorer serves for the background file of an extension (17.3.4). */
-    const val BACKGROUND_PAGE = "__explorer_background__.html"
-
-    /**
-     * The address of the background page of [extensionId]: a page of Explorer's own that runs the
-     * `background.service_worker` (or the first of `background.scripts`) of the extension.
-     */
-    @JvmStatic
-    fun backgroundUrl(extensionId: String): String = resourceUrl(extensionId, BACKGROUND_PAGE)
 
     /** Whether [url] is a file of an extension rather than a page of the web. */
     @JvmStatic
@@ -145,23 +128,12 @@ object ExtensionScripts {
             }
         }
         if (body.isEmpty()) return null
-        // The guard makes the script safe to run in both page callbacks.
-        //
-        // 18.0.0 beta 8 (item 5): the mark is set **after** the script ran, and only if it got
-        // through. It used to be set before, so a content script that threw at `document_start` —
-        // and a great many of them reach for `document.body` or a `<head>` that is not parsed
-        // yet — was marked as done and never ran again on that page: the extension did nothing on
-        // the whole site. Now a failed run is tried again with the next callback, and the run
-        // also waits for a document to exist before it starts.
+        // The guard makes the script safe to run in both page callbacks: if it already ran in
+        // this document, the second run does nothing. Should the first run have landed before
+        // the document was there, the second one finds no guard and does the work.
         val guardKey = "'__explorerExt__" + extension.id + "__" + runAt + "__' + location.href"
-        return "(function(){var K=" + guardKey + ";if(window[K]==='ok'){return;}" +
-            "function run(){try{\n" + shim(extension.id, token) + body +
-            "\nwindow[K]='ok';}catch(e){window[K]='fail';" +
-            "if(window.console){console.warn('Explorer extension " + extension.id + ":'," +
-            "e&&e.message?e.message:e);}}}" +
-            "if(document.documentElement){run();}else{var tries=0;" +
-            "var timer=setInterval(function(){if(document.documentElement||++tries>200){" +
-            "clearInterval(timer);run();}},10);}})();"
+        return "(function(){var K=" + guardKey + ";if(window[K]){return;}window[K]=1;\n" +
+            shim(extension.id, token) + body + "})();"
     }
 
     /** The files of [extension] that have to be run before the page is parsed, and after it. */
@@ -223,63 +195,22 @@ object ExtensionScripts {
 (function(TOKEN){
   var EXT = "__EXTENSION_ID__";
   var bridge = window.ExplorerChrome || {};
-  var G = window.__explorerExt || (window.__explorerExt = {
-    listeners: {}, pending: {}, nextId: 1
-  });
   function parse(text, fallback){ try { return JSON.parse(text); } catch(e){ return fallback; } }
   function json(value){ try { return JSON.stringify(value === undefined ? null : value); } catch(e){ return "null"; } }
-  function call(name, args, fallback){
-    try {
-      if (bridge && typeof bridge[name] === "function") { return bridge[name].apply(bridge, args); }
-    } catch(e){}
-    return fallback;
+  function b1(fn, arg, fallback){
+    try { return (bridge && typeof bridge[fn] === "function") ? bridge[fn](TOKEN, arg) : fallback; }
+    catch(e){ return fallback; }
   }
-  // ---- what a message can reach in this document -------------------------------------------
-  function listeners(){ return G.listeners[EXT] || (G.listeners[EXT] = []); }
-  window.__explorerExtDispatch = function(extId, jsonText){
-    var list = G.listeners[extId] || [];
-    var message = parse(jsonText, null);
-    var sender = {
-      id: extId,
-      url: location.href,
-      tab: parse(call("currentTab", [TOKEN, extId], "null"), null)
-    };
-    var answer;
-    var responded = false;
-    function sendResponse(value){ if (!responded) { responded = true; answer = value; } }
-    for (var i = 0; i < list.length; i++) {
-      try {
-        var reply = list[i](message, sender, sendResponse);
-        if (reply !== undefined && answer === undefined) { answer = reply; }
-      } catch(e){}
-    }
-    return answer === undefined ? undefined : answer;
-  };
-  window.__explorerExtReply = function(id, jsonText){
-    var resolve = G.pending[id];
-    if (resolve) { delete G.pending[id]; try { resolve(parse(jsonText, undefined)); } catch(e){} }
-  };
-  function request(){
-    var id = String(G.nextId++);
-    var promise = new Promise(function(resolve){ G.pending[id] = resolve; });
-    return { id: id, promise: promise };
-  }
-  function callbackOf(){ 
-    for (var i = 0; i < arguments.length; i++) {
-      if (typeof arguments[i] === "function") { return arguments[i]; }
-    }
-    return null;
-  }
-  function answer(promise, callback){
-    if (callback) { promise.then(function(value){ try { callback(value); } catch(e){} }); }
-    return promise;
+  function b2(fn, arg, extra, fallback){
+    try { return (bridge && typeof bridge[fn] === "function") ? bridge[fn](TOKEN, arg, extra) : fallback; }
+    catch(e){ return fallback; }
   }
   function readArea(kind){
-    return parse(kind === "session" ? call("sessionGet", [TOKEN, EXT], "{}") : call("storageGet", [TOKEN, EXT], "{}"), {});
+    return parse(kind === "session" ? b1("sessionGet", EXT, "{}") : b1("storageGet", EXT, "{}"), {});
   }
   function writeArea(kind, data){
-    if (kind === "session") { call("sessionSet", [TOKEN, EXT, json(data)], ""); }
-    else { call("storageSet", [TOKEN, EXT, json(data)], ""); }
+    if (kind === "session") { b2("sessionSet", EXT, json(data), ""); }
+    else { b2("storageSet", EXT, json(data), ""); }
   }
   function storageArea(kind){
     return {
@@ -323,15 +254,11 @@ object ExtensionScripts {
         if (typeof callback === "function") { try { callback(); } catch(e){} }
         return Promise.resolve();
       },
-      getBytesInUse: function(keys, callback){
-        var size = json(readArea(kind)).length;
-        if (typeof callback === "function") { callback(size); }
-        return Promise.resolve(size);
-      },
+      getBytesInUse: function(keys, callback){ if (typeof callback === "function") callback(0); return Promise.resolve(0); },
       onChanged: { addListener: function(){}, removeListener: function(){} }
     };
   }
-  // ---- chrome.* ----------------------------------------------------------------------------
+  var listeners = [];
   var chrome = window.chrome || {};
   window.chrome = chrome;
   chrome.runtime = chrome.runtime || {};
@@ -339,36 +266,36 @@ object ExtensionScripts {
   chrome.runtime.getURL = function(path){
     return "https://$DOMAIN/" + EXT + "/" + String(path || "").replace(/^\/+/, "");
   };
-  chrome.runtime.getManifest = function(){ return parse(call("getManifest", [TOKEN, EXT], "{}"), {}); };
+  chrome.runtime.getManifest = function(){ return parse(b1("getManifest", EXT, "{}"), {}); };
   chrome.runtime.lastError = null;
   chrome.runtime.sendMessage = function(message, options, callback){
-    var cb = callbackOf(options, callback);
-    var request_ = request();
-    call("sendMessage", [TOKEN, EXT, request_.id, json(message)], "");
-    return answer(request_.promise, cb);
+    var answer = parse(b2("sendMessage", EXT, json(message), "null"), null);
+    if (answer === null) { answer = undefined; }
+    for (var i = 0; i < listeners.length; i++) {
+      try {
+        var reply = listeners[i](message, {}, function(){});
+        if (reply !== undefined) { answer = reply; }
+      } catch(e){}
+    }
+    if (typeof options === "function") { options(answer); }
+    else if (typeof callback === "function") { callback(answer); }
+    return Promise.resolve(answer);
   };
   chrome.runtime.onMessage = {
-    addListener: function(fn){ if (typeof fn === "function") { listeners().push(fn); } },
-    removeListener: function(fn){ var list = listeners(); var i = list.indexOf(fn); if (i >= 0) { list.splice(i, 1); } },
-    hasListener: function(fn){ return listeners().indexOf(fn) >= 0; }
+    addListener: function(fn){ if (typeof fn === "function") { listeners.push(fn); } },
+    removeListener: function(fn){ var i = listeners.indexOf(fn); if (i >= 0) { listeners.splice(i, 1); } },
+    hasListener: function(fn){ return listeners.indexOf(fn) >= 0; }
   };
   chrome.runtime.onInstalled = { addListener: function(){} };
   chrome.runtime.onStartup = { addListener: function(){} };
-  chrome.runtime.onConnect = { addListener: function(){}, removeListener: function(){} };
   chrome.runtime.connect = function(){
-    var port = {
-      name: "", postMessage: function(){}, disconnect: function(){},
+    return {
+      postMessage: function(){}, disconnect: function(){},
       onMessage: { addListener: function(){} },
       onDisconnect: { addListener: function(){} }
     };
-    return port;
   };
-  chrome.runtime.getPlatformInfo = function(callback){
-    var info = { os: "android", arch: "arm64", nacl_arch: "arm", client: "android" };
-    if (typeof callback === "function") { callback(info); }
-    return Promise.resolve(info);
-  };
-  chrome.runtime.openOptionsPage = function(){ call("openOptions", [TOKEN, EXT], ""); };
+  chrome.runtime.openOptionsPage = function(){ b1("openOptions", EXT, ""); };
   chrome.storage = chrome.storage || {};
   chrome.storage.local = chrome.storage.local || storageArea("local");
   chrome.storage.sync = chrome.storage.sync || storageArea("local");
@@ -380,160 +307,29 @@ object ExtensionScripts {
     getUILanguage: function(){ return (navigator.language || "en"); },
     getAcceptLanguages: function(cb){ var l = [(navigator.language || "en")]; if (cb) { cb(l); } return Promise.resolve(l); }
   };
-
-  function runScript(payload, callback){
-    var request_ = request();
-    call("executeScript", [TOKEN, EXT, request_.id, json(payload)], "");
-    return answer(request_.promise, callback);
-  }
-
-  var tabsApi = {
-    query: function(info, callback){
-      var list = parse(call("tabsQuery", [TOKEN, EXT], "[]"), []);
-      if (typeof info === "function") { info(list); } else if (typeof callback === "function") { callback(list); }
-      return Promise.resolve(list);
-    },
-    get: function(id, callback){
-      var tab = parse(call("tabsGet", [TOKEN, EXT, String(id)], "null"), null);
-      if (typeof callback === "function") { callback(tab); }
-      return Promise.resolve(tab);
-    },
-    sendMessage: function(tabId, message, options, callback){
-      var cb = callbackOf(options, callback);
-      var request_ = request();
-      call("tabSendMessage", [TOKEN, EXT, request_.id, String(tabId), json(message)], "");
-      return answer(request_.promise, cb);
-    },
-    create: function(options, callback){
-      if (options && options.url) { call("openTab", [TOKEN, String(options.url)], ""); }
-      var tab = parse(call("currentTab", [TOKEN, EXT], "null"), null);
-      if (typeof callback === "function") { callback(tab); }
-      return Promise.resolve(tab);
-    },
-    update: function(id, options, callback){
-      if (options && options.url) { call("openTab", [TOKEN, String(options.url)], ""); }
-      var tab = parse(call("currentTab", [TOKEN, EXT], "null"), null);
-      if (typeof callback === "function") { callback(tab); }
-      return Promise.resolve(tab);
-    },
-    reload: function(id, properties, callback){ call("reloadTab", [TOKEN, EXT], ""); },
-    captureVisibleTab: function(a, b, c){ return Promise.resolve(""); },
-    executeScript: function(tabId, details, callback){
-      if (typeof tabId === "object" && tabId !== null) { callback = details; details = tabId; }
-      var payload = { files: [], args: [], code: null, allFrames: false };
-      if (details) {
-        if (details.file) { payload.files = [String(details.file)]; }
-        if (details.files) { payload.files = details.files; }
-        if (typeof details.code === "string") { payload.code = "function(){" + details.code + "}"; }
-        if (typeof details.func === "function") { payload.code = details.func.toString(); }
-        if (details.args) { payload.args = details.args; }
-      }
-      return runScript(payload, callback);
-    },
-    onUpdated: { addListener: function(){}, removeListener: function(){} },
-    onRemoved: { addListener: function(){}, removeListener: function(){} },
-    onActivated: { addListener: function(){}, removeListener: function(){} },
-    onCreated: { addListener: function(){}, removeListener: function(){} }
-  };
-  chrome.tabs = chrome.tabs || tabsApi;
-  chrome.scripting = chrome.scripting || {};
-  chrome.scripting.executeScript = chrome.scripting.executeScript || function(injection, callback){
-    var payload = { files: [], args: [], code: null, allFrames: false };
-    if (injection) {
-      payload.args = injection.args || [];
-      payload.files = injection.files || [];
-      if (typeof injection.func === "function") { payload.code = injection.func.toString(); }
-      else if (typeof injection.code === "string") { payload.code = "function(){" + injection.code + "}"; }
-    }
-    return runScript(payload, callback);
-  };
-  chrome.scripting.insertCSS = chrome.scripting.insertCSS || function(injection, callback){
-    var request_ = request();
-    call("insertCss", [TOKEN, EXT, request_.id, json(injection || {})], "");
-    return answer(request_.promise, callback);
+  chrome.tabs = chrome.tabs || {
+    create: function(options){ if (options && options.url) { b1("openTab", String(options.url), ""); } },
+    update: function(id, options){ if (options && options.url) { b1("openTab", String(options.url), ""); } },
+    query: function(info, callback){ if (typeof callback === "function") { callback([]); } return Promise.resolve([]); },
+    sendMessage: function(){ return Promise.resolve(); },
+    onUpdated: { addListener: function(){} },
+    onRemoved: { addListener: function(){} }
   };
   chrome.action = chrome.action || {};
   chrome.action.setBadgeText = chrome.action.setBadgeText || function(){};
   chrome.action.setBadgeBackgroundColor = chrome.action.setBadgeBackgroundColor || function(){};
   chrome.action.setIcon = chrome.action.setIcon || function(){};
   chrome.action.setTitle = chrome.action.setTitle || function(){};
-  chrome.action.openPopup = chrome.action.openPopup || function(){};
   chrome.action.onClicked = chrome.action.onClicked || { addListener: function(){} };
   chrome.browserAction = chrome.browserAction || chrome.action;
   chrome.pageAction = chrome.pageAction || chrome.action;
+  chrome.scripting = chrome.scripting || { executeScript: function(){ return Promise.resolve([]); } };
   chrome.commands = chrome.commands || { onCommand: { addListener: function(){} } };
-  chrome.contextMenus = chrome.contextMenus || {
-    create: function(){}, update: function(){}, remove: function(){}, removeAll: function(){},
-    onClicked: { addListener: function(){} }
-  };
-  chrome.notifications = chrome.notifications || {
-    create: function(){}, clear: function(){}, onClicked: { addListener: function(){} }
-  };
-  chrome.permissions = chrome.permissions || {
-    contains: function(permissions, callback){ if (typeof callback === "function") { callback(true); } return Promise.resolve(true); },
-    request: function(permissions, callback){ if (typeof callback === "function") { callback(true); } return Promise.resolve(true); },
-    remove: function(permissions, callback){ if (typeof callback === "function") { callback(true); } return Promise.resolve(true); },
-    getAll: function(callback){ var all = { permissions: [], origins: [] }; if (typeof callback === "function") { callback(all); } return Promise.resolve(all); }
-  };
-  chrome.declarativeNetRequest = chrome.declarativeNetRequest || {
-    getDynamicRules: function(callback){ if (typeof callback === "function") { callback([]); } return Promise.resolve([]); },
-    updateDynamicRules: function(rules, callback){ if (typeof callback === "function") { callback(); } return Promise.resolve(); },
-    isRegexSupported: function(regex, callback){ if (typeof callback === "function") { callback({ isSupported: false }); } return Promise.resolve({ isSupported: false }); }
-  };
-  chrome.omnibox = chrome.omnibox || { setDefaultSuggestion: function(){}, onInputChanged: { addListener: function(){} } };
-  chrome.windows = chrome.windows || {
-    getCurrent: function(callback){ var w = { id: 1, focused: true, type: "normal" }; if (typeof callback === "function") { callback(w); } return Promise.resolve(w); },
-    getAll: function(callback){ var l = [{ id: 1, focused: true, type: "normal" }]; if (typeof callback === "function") { callback(l); } return Promise.resolve(l); }
-  };
-  chrome.webNavigation = chrome.webNavigation || {
-    getAllFrames: function(details, callback){ if (typeof callback === "function") { callback([]); } return Promise.resolve([]); },
-    onCommitted: { addListener: function(){} }, onCompleted: { addListener: function(){} }
-  };
-  // A popup closes itself with window.close(), as it does in Chrome.
-  var nativeClose = window.close;
-  window.close = function(){
-    call("closePopup", [TOKEN], "");
-    try { if (nativeClose) { nativeClose.call(window); } } catch(e){}
-  };
-  // How big the popup wants to be; the browser sizes its window with this.
-  // 18.0.0 beta 9 (item 8): the size the popup asks for is read from what the extension itself
-  // wrote — a `min-width` on `html` or on `body`, a fixed `width`, the scroll size — and not from
-  // the viewport, which is only as wide as the bubble happens to be and used to make every popup
-  // look the same size. The widest of them is the width the popup wants.
-  window.__explorerPopupSize = function(){
-    try {
-      var root = document.documentElement;
-      var body = document.body;
-      function px(value){ var n = parseFloat(value); return isNaN(n) ? 0 : n; }
-      function asked(node, which){
-        if (!node || !window.getComputedStyle) { return 0; }
-        var style = window.getComputedStyle(node);
-        return Math.ceil(Math.max(
-          px(style[which]),
-          px(style["min-" + which]) || 0
-        ));
-      }
-      var w = Math.ceil(Math.max(
-        root ? root.scrollWidth : 0, body ? body.scrollWidth : 0,
-        asked(root, "width"), asked(body, "width"),
-        root ? Math.ceil(root.getBoundingClientRect().width) : 0,
-        body ? Math.ceil(body.getBoundingClientRect().width) : 0
-      ));
-      var h = Math.ceil(Math.max(
-        root ? root.scrollHeight : 0, body ? body.scrollHeight : 0,
-        asked(root, "height"), asked(body, "height"),
-        body ? Math.ceil(body.getBoundingClientRect().height) : 0
-      ));
-      // The bubble is told again whenever the popup grows — a picture that arrives late, a list
-      // that is filled in — so a popup that is taller than its first paint is shown whole.
-      call("popupSize", [TOKEN, String(w), String(h)], "");
-    } catch(e){}
-  };
+  chrome.contextMenus = chrome.contextMenus || { create: function(){}, removeAll: function(){}, onClicked: { addListener: function(){} } };
+  chrome.notifications = chrome.notifications || { create: function(){} };
   window.browser = window.browser || chrome;
   window.browser.runtime = chrome.runtime;
   window.browser.storage = chrome.storage;
-  window.browser.tabs = chrome.tabs;
-  window.browser.scripting = chrome.scripting;
 })("__TOKEN__");
 """
 }

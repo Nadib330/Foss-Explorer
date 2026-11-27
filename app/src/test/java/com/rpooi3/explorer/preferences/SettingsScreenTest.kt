@@ -112,10 +112,8 @@ class SettingsScreenTest {
         val topics = allPrefs()
         assertEquals(
             listOf(
-                "Search engine", "Privacy and security", "xGuard", "Home page customization",
-                // 18.0.0: the profiles are managed from here as well as from their sheet.
-                "Profiles", "Tabs and groups",
-                "Appearance", "Accessibility", "Extension", "Site settings", "Downloads", "Backup",
+                "Search engine", "Privacy and security", "xGuard", "Home page customization", "Tabs and groups",
+                "Appearance", "Accessibility", "Extension", "Site settings", "Backup",
                 "Help and support", "About Explorer",
             ),
             topics.map { it.title.toString() },
@@ -287,8 +285,8 @@ class SettingsScreenTest {
 
         assertEquals("", input.text.toString())
         assertTrue(pref("section_accessibility").isVisible)
-        // 18.3.0 adds the Downloads topic below Site settings.
-        assertEquals(14, allPrefs().count { it.isVisible })
+        // 17.3.1: twelve rows on the first screen; "Extension" joined them.
+        assertEquals(12, allPrefs().count { it.isVisible })
     }
 
     @Test

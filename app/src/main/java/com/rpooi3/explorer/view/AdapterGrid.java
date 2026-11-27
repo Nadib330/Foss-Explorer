@@ -27,7 +27,7 @@ public class AdapterGrid extends BaseAdapter {
     public AdapterGrid(Context context, List<GridItem> list) {
         this.context = context;
         this.list = list;
-        this.sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+        this.sp = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     @Override

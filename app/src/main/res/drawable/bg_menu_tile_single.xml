@@ -3,8 +3,7 @@
      "Extensions" on the home page, where there is no "Zoom" beside it). It is rounded on all
      four corners like a group, because that is what it looks like: a group of one. -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?attr/colorControlHighlight"
-    android:radius="18dp">
+    android:color="?attr/colorControlHighlight">
     <item>
         <shape>
             <solid android:color="?attr/colorSurfaceBright" />

@@ -2,34 +2,6 @@
 <!-- The menu behind the three-dot button of the top bar. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 18.0.0 beta 6: the navigation of the page in front, as Firefox for Android has it at the
-         top of its three-dot menu — back, forward and reload as a row of icons. Each is enabled
-         only when it can do something. -->
-    <item
-        android:id="@+id/main_nav_back"
-        android:icon="@drawable/icon_arrow_back"
-        android:title="@string/menu_nav_back" />
-
-    <item
-        android:id="@+id/main_nav_forward"
-        android:icon="@drawable/icon_arrow_forward"
-        android:title="@string/menu_nav_forward" />
-
-    <!-- 18.0.0 beta 7 (item 4): the third button of the row is Print, in Chromium's way: the job
-         goes to Android's print service through the WebView's own print adapter. -->
-    <item
-        android:id="@+id/main_nav_print"
-        android:icon="@drawable/icon_print"
-        android:title="@string/menu_nav_print" />
-
-    <!-- 18.3.0 beta (items 13 and 14): Cromite's update indication in Chromium's context menu.
-         It is made visible only when the release check found a newer Explorer APK. -->
-    <item
-        android:id="@+id/main_nav_update"
-        android:icon="@drawable/icon_download"
-        android:title="@string/main_nav_update"
-        android:visible="false" />
-
     <item
         android:id="@+id/main_new_tab"
         android:icon="@drawable/icon_tab_plus"
@@ -82,12 +54,5 @@
         android:id="@+id/main_settings"
         android:icon="@drawable/icon_settings"
         android:title="@string/setting_label" />
-
-    <!-- 18.0.0 beta 6: Opera's quit button — the power icon at the foot of the menu. It closes every
-         tab (the private ones lose their data) and leaves the browser. -->
-    <item
-        android:id="@+id/main_exit"
-        android:icon="@drawable/icon_power"
-        android:title="@string/menu_exit" />
 
 </menu>

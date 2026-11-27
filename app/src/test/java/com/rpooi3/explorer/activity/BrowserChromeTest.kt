@@ -146,10 +146,10 @@ class BrowserChromeTest {
         assertEquals(HomePage.URL, web.url)
         assertEquals(View.VISIBLE, home.visibility)
 
-        // The new home page has its own search card and menu button; there is no top bar.
+        // The home page has its own search box and menu button; there is no top bar.
         assertEquals(View.GONE, topBar.visibility)
         assertFalse(activity.findViewById<View>(R.id.button_menu).isShown)
-        assertTrue(home.findViewById<View>(R.id.home_new_search).isShown)
+        assertTrue(home.findViewById<View>(R.id.home_search).isShown)
         assertTrue(home.findViewById<View>(R.id.home_menu).isShown)
         assertEquals(View.GONE, showToolbarButton.visibility)
     }

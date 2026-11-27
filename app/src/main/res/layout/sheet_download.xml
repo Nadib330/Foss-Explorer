@@ -44,7 +44,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="4dp"
-        android:background="@drawable/bg_ripple_small"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/download_prompt_close"
         android:scaleType="centerInside"
         android:src="@drawable/icon_cross"

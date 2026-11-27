@@ -192,9 +192,6 @@ object LinkContextMenu {
             }
         }
         dialog.show()
-        // Context menus are flat surfaces: remove the dialog window elevation as well as the
-        // rounded content background's own elevation.
-        dialog.window?.decorView?.elevation = 0f
         return dialog
     }
 
@@ -210,7 +207,9 @@ object LinkContextMenu {
         context.theme.resolveAttribute(com.google.android.material.R.attr.textAppearanceBodyLarge, appearance, true)
         setTextAppearance(appearance.resourceId)
         setTextColor(MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurface, 0))
-        setBackgroundResource(R.drawable.bg_ripple_small)
+        val ripple = TypedValue()
+        context.theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
+        setBackgroundResource(ripple.resourceId)
         isClickable = true
         isFocusable = true
         setOnClickListener { onClick() }
@@ -266,10 +265,7 @@ object LinkContextMenu {
             connection.connectTimeout = TIMEOUT_MS
             connection.readTimeout = TIMEOUT_MS
             if (userAgent != null) connection.setRequestProperty("User-Agent", userAgent)
-            // The cookies of the profile in front, not of the whole app (18.0.0).
-            com.rpooi3.explorer.profile.ProfileWebView
-                .cookieManager(com.rpooi3.explorer.activity.BrowserActivity.getAppContext())
-                .getCookie(url)?.let { connection.setRequestProperty("Cookie", it) }
+            CookieManager.getInstance().getCookie(url)?.let { connection.setRequestProperty("Cookie", it) }
             try {
                 connection.inputStream.use { stream ->
                     val bytes = stream.readBytes()

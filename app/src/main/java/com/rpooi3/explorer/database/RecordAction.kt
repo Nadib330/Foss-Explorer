@@ -7,7 +7,6 @@
  */
 package com.rpooi3.explorer.database
 
-import com.rpooi3.explorer.profile.ProfilePrefs
 import android.app.Activity
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
@@ -43,7 +42,7 @@ class RecordAction(context: Context) {
      * lists show them. With [filter], only those of the colour [filterBy].
      */
     fun listBookmark(context: Context, filter: Boolean, filterBy: Long): List<Record> {
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val list = Places.bookmarks(db)
             .filter { !filter || it.filter == filterBy }
             .map { Record(it.title, it.url, 0L, it.filter) }
@@ -65,7 +64,7 @@ class RecordAction(context: Context) {
     /** The pages of the history, the one visited last at the end; by website with "sort_historyDomain". */
     fun listHistory(context: Context): List<Record> {
         val list = Places.history(db).map { Record(it.title.ifEmpty { it.url }, it.url, it.lastVisit, 0L) }.toMutableList()
-        if (ProfilePrefs.settings(context).getBoolean("sort_historyDomain", false)) {
+        if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("sort_historyDomain", false)) {
             list.sortBy { it.domain }
         }
         return list

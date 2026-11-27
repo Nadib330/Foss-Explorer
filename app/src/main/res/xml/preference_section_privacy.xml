@@ -26,54 +26,6 @@
 
     </PreferenceCategory>
 
-    <!-- 18.0.0 beta 8 (item 3): the section of the switches that say what is deleted when the
-         browser is closed; read in ExitClear (see privacy/ClearOnExit.kt). -->
-    <PreferenceCategory android:key="advanced_group" android:title="@string/cr_advanced_section_title">
-
-        <Preference
-            android:key="clear_on_exit_header"
-            android:persistent="false"
-            android:selectable="false"
-            android:summary="@string/clear_on_exit_summary"
-            android:title="@string/clear_on_exit_title" />
-
-        <SwitchPreferenceCompat
-            android:key="clear_on_exit_cache"
-            android:defaultValue="false"
-            android:summary="@string/clear_on_exit_cache_summary"
-            android:title="@string/clear_on_exit_cache"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
-        <SwitchPreferenceCompat
-            android:key="clear_on_exit_tabs"
-            android:defaultValue="false"
-            android:summary="@string/clear_on_exit_tabs_summary"
-            android:title="@string/clear_on_exit_tabs"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
-        <SwitchPreferenceCompat
-            android:key="clear_on_exit_history"
-            android:defaultValue="false"
-            android:summary="@string/clear_on_exit_history_summary"
-            android:title="@string/clear_on_exit_history"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
-        <SwitchPreferenceCompat
-            android:key="clear_on_exit_webstorage"
-            android:defaultValue="false"
-            android:summary="@string/clear_on_exit_webstorage_summary"
-            android:title="@string/clear_on_exit_webstorage"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
-        <SwitchPreferenceCompat
-            android:key="clear_on_exit_appcache"
-            android:defaultValue="false"
-            android:summary="@string/clear_on_exit_appcache_summary"
-            android:title="@string/clear_on_exit_appcache"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
-    </PreferenceCategory>
-
     <PreferenceCategory android:key="security_group" android:title="@string/cr_security_section_title">
 
         <Preference

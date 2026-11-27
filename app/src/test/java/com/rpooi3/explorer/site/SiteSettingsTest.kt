@@ -89,7 +89,6 @@ class SiteSettingsTest {
             assertEquals("Site settings", activity.findViewById<Toolbar>(R.id.toolbar).title.toString())
             val groups = fragment.groups()
             // 16.1.0 (item 8): the profile group (Standard profile, Saved websites) is gone.
-            // 18.7.5: background audio belongs to the Sound tile, not to the index itself.
             assertEquals(3, groups.size)
 
             assertEquals("Permissions", groups[0].title.toString())
@@ -113,6 +112,7 @@ class SiteSettingsTest {
                 ),
                 groups[1].titles(),
             )
+            // Below them, a card of its own.
             assertNull(groups[2].title)
             assertEquals(listOf("Automatically remove permissions"), groups[2].titles())
             val toggle = groups[2].getPreference(0) as SwitchPreferenceCompat
@@ -126,16 +126,6 @@ class SiteSettingsTest {
             // 16.1.0 (item 8): the profiles left Site settings with their group.
             assertNull(fragment.findPreference<Preference>("settings_profile"))
             assertNull(fragment.findPreference<Preference>("edit_standard"))
-        }
-    }
-
-    @Test
-    fun soundCategory_containsTheBackgroundAudioSwitch() {
-        category(SiteCategory.SOUND) { _, fragment ->
-            val switch = fragment.findPreference<SwitchPreferenceCompat>("background_audio")
-            assertNotNull("background audio is inside the Sound tile", switch)
-            assertEquals("Keep playing in the background", switch!!.title.toString())
-            assertEquals("background_audio", switch.key)
         }
     }
 

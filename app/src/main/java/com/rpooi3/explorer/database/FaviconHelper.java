@@ -45,16 +45,8 @@ public class FaviconHelper extends SQLiteOpenHelper {
     private static final ExecutorService executor = Executors.newCachedThreadPool();
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    /**
-     * 18.0.0: every profile keeps the icons of its own sites, `favicon-<id>.db`. The first profile
-     * keeps `favicon.db`, where the icons of every version before 18.0.0 are.
-     */
     public FaviconHelper(Context context) {
-        super(
-                context.getApplicationContext(),
-                com.rpooi3.explorer.profile.Profiles.databaseName(context, DATABASE_NAME),
-                null,
-                DATABASE_VERSION);
+        super(context.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     public static byte[] convertBytes(Bitmap bitmap) {

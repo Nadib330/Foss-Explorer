@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Settings > About Explorer, like "About Chrome": the application version and the
-     dedicated update check are separate cards, followed by the operating system, legal
-     information, and developer entries. -->
+<!-- Settings > About Foss Explorer, like "About Chrome": Application version, Operating system and
+     Legal information as cards of their own, and Developer below them. -->
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -12,16 +11,6 @@
             android:key="about_app"
             android:title="@string/cr_application_version_title"
             android:selectable="false" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory>
-
-        <Preference
-            android:key="about_updates"
-            android:summary="@string/about_check_updates_summary"
-            android:title="@string/about_check_updates_title"
-            android:selectable="true" />
 
     </PreferenceCategory>
 

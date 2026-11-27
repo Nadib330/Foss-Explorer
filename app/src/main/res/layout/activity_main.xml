@@ -9,20 +9,12 @@
     android:background="?attr/colorSurfaceContainer"
     tools:ignore="ContentDescription">
 
-    <!-- Landscape-style tab strip. It is also optionally enabled in portrait from Settings > Layout. -->
-    <include
-        layout="@layout/include_tab_bar"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_alignParentTop="true" />
-
     <!-- Top bar. The address bar and the find-in-page bar share this place. -->
     <FrameLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
-        android:layout_below="@id/tabBar"
-        android:layout_alignWithParentIfMissing="true">
+        android:layout_alignParentTop="true">
 
         <include layout="@layout/include_appbar" />
 
@@ -63,18 +55,6 @@
         android:layout_above="@id/bottomBar"
         android:layout_below="@id/topBar"
         android:layout_alignWithParentIfMissing="true" />
-
-    <!-- 18.0.0 beta 6: what floats over a page without belonging to it — the notice of a download,
-         from Chrome's download bubble. Its own layer, so that the pages are left as they are. -->
-    <FrameLayout
-        android:id="@+id/overlay_content"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomBar"
-        android:layout_below="@id/topBar"
-        android:layout_alignWithParentIfMissing="true"
-        android:clipChildren="false"
-        android:clipToPadding="false" />
 
     <!-- Brings hidden bars back. Only visible while they are hidden. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton

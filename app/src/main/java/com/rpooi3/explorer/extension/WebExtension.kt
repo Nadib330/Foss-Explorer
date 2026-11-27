@@ -33,18 +33,6 @@ class WebExtension(
     val hostPermissions: List<String>,
     val contentScripts: List<ContentScriptRule>,
     val manifestVersion: Int,
-    /**
-     * 17.3.4: the file of the background — `background.service_worker` in Manifest V3, the first of
-     * `background.scripts` or `background.page` before it. It runs in a hidden WebView of its own;
-     * null for an extension that brings none.
-     */
-    val backgroundPath: String? = null,
-    /**
-     * 17.4.0: `chrome_url_overrides.newtab`, the page the extension puts in the place of the new
-     * tab. Explorer names it in the install prompt as Chrome does; it does not replace the home
-     * page of the browser with it.
-     */
-    val newTabPath: String? = null,
 ) {
 
     /** A `content_scripts` entry of the manifest. */
@@ -105,8 +93,6 @@ class WebExtension(
         put("permissions", JSONArray(permissions))
         put("hosts", JSONArray(hostPermissions))
         put("mv", manifestVersion)
-        put("background", backgroundPath ?: JSONObject.NULL)
-        put("newtab", newTabPath ?: JSONObject.NULL)
         put("rules", JSONArray().apply {
             contentScripts.forEach { rule ->
                 put(
@@ -155,8 +141,6 @@ class WebExtension(
                 hostPermissions = strings(json.optJSONArray("hosts")),
                 contentScripts = rules,
                 manifestVersion = json.optInt("mv", 2),
-                backgroundPath = json.optString("background").takeUnless { it.isEmpty() || it == "null" },
-                newTabPath = json.optString("newtab").takeUnless { it.isEmpty() || it == "null" },
             )
         }
 

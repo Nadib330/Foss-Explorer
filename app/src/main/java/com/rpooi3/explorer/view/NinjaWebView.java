@@ -1,12 +1,9 @@
 package com.rpooi3.explorer.view;
 
-import com.rpooi3.explorer.activity.BrowserActivity;
 import com.rpooi3.explorer.privacy.PrivateTabs;
-import com.rpooi3.explorer.profile.ProfileWebView;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -129,13 +126,8 @@ public class NinjaWebView extends WebView implements AlbumController {
         super(context);
         // Must happen before anything else is done with the WebView.
         this.privateTab = privateTab;
-        // 18.0.0: the tab carries the profile in front, and that has to be said on the WebView
-        // before it is loaded or a script is run (WebViewCompat.setProfile, MULTI_PROFILE).
-        // A private tab keeps its own profile instead, and needs no other.
         this.privateIsolated = privateTab && PrivateTabs.attach(this);
-        this.profileBound = !privateTab && ProfileWebView.bind(context, this);
-        // The settings of the profile in front, over the settings of the app.
-        sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+        sp = PreferenceManager.getDefaultSharedPreferences(context);
         String profile = sp.getString("profile", "standard");
         this.context = context;
         this.foreground = false;
@@ -163,14 +155,6 @@ public class NinjaWebView extends WebView implements AlbumController {
     /** What the chrome.* shim of the extensions calls; null before {@link #initWebView()}. */
     public com.rpooi3.explorer.extension.ChromeApiBridge getExtensionBridge() {
         return extensionBridge;
-    }
-
-    /** Whether this tab carries the profile of its own (cookies, storage, cache). */
-    private boolean profileBound;
-
-    /** Whether this tab's cookies and site data belong to the profile it was opened in. */
-    public boolean isProfileBound() {
-        return profileBound;
     }
 
     /** Whether this is a private tab. */
@@ -274,111 +258,6 @@ public class NinjaWebView extends WebView implements AlbumController {
         showOwnPage(failedUrl, true, OfflinePage.offlineHtml(context, failedUrl));
     }
 
-    /**
-     * 18.0.0 beta 4: shows Explorer's own page for a website that could not be loaded, in place of
-     * the error page of Android System WebView. The tab keeps the address of the website, so the
-     * reload button tries it again.
-     *
-     * @param description what the WebView said, e.g. {@code net::ERR_NAME_NOT_RESOLVED}
-     */
-    public void showErrorPage(@NonNull String failedUrl, @Nullable CharSequence description) {
-        // Not the offline notice: the device may have a connection and the site may simply be gone.
-        // The tab still keeps the address, and the reload button tries it again (see reload()).
-        showOwnPage(
-                failedUrl,
-                false,
-                com.rpooi3.explorer.browser.ErrorPage.html(context, failedUrl, description));
-    }
-
-    // The warning of a certificate (18.0.0 beta 4) -------------------------------------------------
-
-    /** The answer that is waiting for the user while the warning is on the screen. */
-    private android.webkit.SslErrorHandler pendingSsl;
-    private String pendingSslUrl;
-    private int pendingSslError;
-
-    /**
-     * Shows the warning of Firefox for Android in place of the site at {@code url}, whose
-     * certificate the WebView refused.
-     *
-     * 18.0.0 beta 5: the warning is a screen of Explorer's own, drawn over the page by the
-     * activity, and not a page inside this WebView. A page inside it cannot work: the answer to the
-     * certificate stays pending while any page is up after such an error, so the WebView kept
-     * asking for the same address and the warning reloaded by itself, and going back went straight
-     * back into the same failing load. Here nothing is loaded at all — the load is stopped and the
-     * answer waits until the user picks one of the two buttons.
-     */
-    public void showSslWarning(@NonNull final String url, final android.webkit.SslErrorHandler handler, final int primaryError) {
-        pendingSsl = handler;
-        pendingSslUrl = url;
-        pendingSslError = primaryError;
-        stopLoading();
-        post(() -> {
-            Activity activity = HelperUtils.getActivity(context);
-            if (activity instanceof BrowserActivity browser) {
-                browser.showSecurityWarning(url, primaryError);
-            }
-        });
-    }
-
-    /** Takes the warning off the screen; the page under it is untouched. */
-    private void hideSslWarningView() {
-        Activity activity = HelperUtils.getActivity(context);
-        if (activity instanceof BrowserActivity browser) browser.hideSecurityWarning();
-    }
-
-    /** Whether a certificate warning is waiting for an answer. */
-    public boolean hasSslWarning() {
-        return null != pendingSsl;
-    }
-
-    /** "Accept the Risk and Continue": the page is loaded after all, as the user asked. */
-    public void acceptSslWarning() {
-        final android.webkit.SslErrorHandler handler = pendingSsl;
-        final String url = pendingSslUrl;
-        pendingSsl = null;
-        pendingSslUrl = null;
-        // The warning goes at once, whether or not the certificate is still waiting.
-        hideSslWarningView();
-        if (null == handler) return;
-        post(() -> {
-            try {
-                handler.proceed();
-            } catch (RuntimeException e) {
-                Log.w(TAG, "The certificate was already answered: " + e);
-            }
-            standInUrl = null;
-            standInIsOffline = false;
-            hideSslWarningView();
-            if (null != url) NinjaWebView.this.loadUrl(url);
-        });
-    }
-
-    /** "Go Back": the warning stays behind, and the tab goes back or to the home page. */
-    public void cancelSslWarning() {
-        final android.webkit.SslErrorHandler handler = pendingSsl;
-        final boolean fromDeeper = canGoBack();
-        pendingSsl = null;
-        pendingSslUrl = null;
-        standInUrl = null;
-        standInIsOffline = false;
-        hideSslWarningView();
-        if (null != handler) {
-            try {
-                handler.cancel();
-            } catch (RuntimeException e) {
-                Log.w(TAG, "The certificate was already answered: " + e);
-            }
-        }
-        post(() -> {
-            if (fromDeeper) {
-                goBack();
-            } else {
-                loadUrl(com.rpooi3.explorer.home.HomePage.startUrl(getContext()));
-            }
-        });
-    }
-
     /** Shows the dinosaur game on its own, under {@link OfflinePage#DINO_URL}. */
     public void showDinoPage() {
         showOwnPage(OfflinePage.DINO_URL, false, OfflinePage.dinoHtml(context));
@@ -446,14 +325,15 @@ public class NinjaWebView extends WebView implements AlbumController {
 
     /** Whether this tab asks websites for their desktop version. */
     public boolean isDesktopSite() {
-        // 18.2.0 beta (item 2): the Chrome Web Store is no longer an exception. "Desktop site" is
-        // the user's, on every page: it is what decides how the store is laid out, and it can be
-        // turned off like anywhere else.
+        // The store is always asked for its desktop version; there is no other one that installs.
+        if (isChromeWebStore()) return true;
         return null != desktopSite ? desktopSite : sp.getBoolean(getProfile() + "_desktop", false);
     }
 
     /** Switches this tab between the mobile and the desktop version of websites and reloads the page. */
     public void setDesktopSite(boolean desktop) {
+        // 17.3.2: on the Chrome Web Store "Desktop site" is always on and cannot be turned off.
+        if (isChromeWebStore()) desktop = true;
         desktopSite = desktop;
         reload();
     }
@@ -520,52 +400,30 @@ public class NinjaWebView extends WebView implements AlbumController {
         // Websites see Google Chrome on Android (with this device's Android version) instead of
         // an embedded WebView; "Desktop site" sends what Chrome sends for it. See ChromeUserAgent.
         final String defaultAgent = WebSettings.getDefaultUserAgent(context);
-        // 18.1.0 beta (item 6): the store is no longer forced into the desktop layout. It keeps
-        // the desktop agent (item 4 of 18.2.0 needs it for the handshake of its install button),
-        // and the layout is whatever "Desktop site" says — which, since 18.2.0 beta (item 2), the
-        // user can turn off on the store as on every other page.
+        // 17.3.2: the Chrome Web Store is always the desktop one, whatever this tab is set to.
         final boolean store = com.rpooi3.explorer.extension.CrxDownloader.isStoreUrl(url);
-        final boolean desktop = null != desktopSite ? desktopSite : sp.getBoolean(profile + "_desktop", false);
+        final boolean desktop = store || (null != desktopSite ? desktopSite : sp.getBoolean(profile + "_desktop", false));
         // The client hints have to agree with the user agent.
-        ChromeUserAgent.applyClientHints(
-                webSettings, defaultAgent, ChromeUserAgent.platformOf(store, desktop));
+        ChromeUserAgent.applyClientHints(webSettings, defaultAgent, desktop);
         requestedWithHidden = ChromeUserAgent.hideRequestedWithHeader(webSettings);
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
-        if (store) {
-            // 18.1.0 beta (item 6): the Chrome Web Store, without a line of CSS injected into it.
-            // The desktop agent of Chrome on Linux is what its install button is offered to
-            // (18.2.0 beta, item 4 gives it the rest of that handshake), and it is sent whatever
-            // the layout is. 18.2.0 beta (item 2): the **layout** follows "Desktop site" — wide
-            // viewport on for a desktop window, off for the width of the phone, where the store's
-            // own responsive page is the mobile one.
-            webSettings.setUserAgentString(ChromeUserAgent.store(defaultAgent));
-            webSettings.setUseWideViewPort(desktop);
-            webSettings.setLoadWithOverviewMode(desktop);
-            this.setInitialScale(desktop ? 100 : 0);
-            com.rpooi3.explorer.browser.DesktopIdentity.apply(
-                    this,
-                    com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(defaultAgent),
-                    com.rpooi3.explorer.browser.DesktopIdentity.LINUX);
-        } else if (desktop) {
-            // 17.4.0: every website in desktop mode is Chrome on Windows (17.3.3).
+        if (desktop) {
             webSettings.setUserAgentString(ChromeUserAgent.desktop(defaultAgent));
             // Lay the page out as wide as a desktop window and show all of it.
             webSettings.setUseWideViewPort(true);
             webSettings.setLoadWithOverviewMode(true);
             this.setInitialScale(100);
-            // The page itself is told the same as its agent.
+            // 17.3.3: navigator.platform and the client hints of the page say Windows as well.
             com.rpooi3.explorer.browser.DesktopIdentity.apply(
-                    this,
-                    com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(defaultAgent),
-                    com.rpooi3.explorer.browser.DesktopIdentity.WINDOWS);
+                    this, com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(defaultAgent));
         } else {
             webSettings.setUserAgentString(ChromeUserAgent.mobile(defaultAgent));
             webSettings.setUseWideViewPort(false);
             webSettings.setLoadWithOverviewMode(false);
             this.setInitialScale(0);
-            // A mobile page is told nothing of Windows either.
+            // 17.3.3: a mobile page is told nothing of Windows; the script of desktop mode goes.
             com.rpooi3.explorer.browser.DesktopIdentity.clear(this);
         }
         // What this site may do: the site settings (general choice of the profile, or the site's own exception).
@@ -589,8 +447,7 @@ public class NinjaWebView extends WebView implements AlbumController {
         camera = SiteSettings.State.BLOCK != SiteSettings.state(sp, SiteCategory.CAMERA, url, profile);
 
         try {
-            // 18.0.0: the cookies of the profile this tab belongs to, not of the whole app.
-            CookieManager manager = ProfileWebView.cookieManager(context);
+            CookieManager manager = CookieManager.getInstance();
             manager.setAcceptCookie(siteData);
             manager.setAcceptThirdPartyCookies(this, SiteSettings.isAllowed(sp, SiteCategory.THIRD_PARTY_COOKIES, url, profile));
             manager.getCookie(url);
@@ -604,19 +461,13 @@ public class NinjaWebView extends WebView implements AlbumController {
                 context.getApplicationContext(),
                 null,
                 extensionId -> {
-                    // 17.4.0: the extension is fetched, what it asks for is put in front of the
-                    // user, and only then is it added. Once it is in, the page is loaded again, so
-                    // the store's button says that it is there and the content scripts start.
+                    // 17.3.2: once the extension is in, the page is loaded again, so the button
+                    // of the store says that it is there and its content scripts start working.
                     final NinjaWebView tab = NinjaWebView.this;
-                    final android.app.Activity host = context instanceof android.app.Activity
-                            ? (android.app.Activity) context
-                            : null;
-                    if (null == host) {
-                        CatToast.show(context, R.string.extensions_no_window);
-                        return kotlin.Unit.INSTANCE;
-                    }
-                    host.runOnUiThread(() -> com.rpooi3.explorer.extension.ExtensionPrompt.request(
-                            host, extensionId, installed -> {
+                    com.rpooi3.explorer.extension.StoreHook.install(
+                            context.getApplicationContext(), extensionId, installed -> {
+                                // 17.3.3: only a tab that is still there is loaded again; the
+                                // callback comes from the install, and the tab may be gone.
                                 if (null != installed && !tab.isDestroyed()) {
                                     try {
                                         tab.reload();
@@ -625,24 +476,19 @@ public class NinjaWebView extends WebView implements AlbumController {
                                     }
                                 }
                                 return kotlin.Unit.INSTANCE;
-                            }));
+                            });
                     return kotlin.Unit.INSTANCE;
                 });
         this.addJavascriptInterface(this.extensionBridge, "ExplorerChrome");
-        // 18.2.0 beta (item 4): what a page of the Chrome Web Store finds as
-        // `ExplorerStoreBridge` — the object its own `beginInstallWithManifest3` shim forwards
-        // the install to. Nothing else can reach it: the shim is only handed to store pages.
-        this.addJavascriptInterface(
-                new com.rpooi3.explorer.extension.StoreBridge(context.getApplicationContext()),
-                "ExplorerStoreBridge");
-        // 18.0.0 beta 4: the two answers of the certificate warning.
         profile = profileOriginal;
     }
 
     public void setProfileDefaultValues() {
 
-        // Do not seed a first-run bookmark. Existing bookmarks are user data and are left alone;
-        // the new GitHub repository shortcut is supplied by HomeShortcuts instead.
+        RecordAction action = new RecordAction(context);
+        action.open(true);
+        action.addBookmark(new Record("FOSS Browser - WIKI", "https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki", 0, 0));
+        action.close();
 
         sp.edit()
                 .putBoolean("profileStandard_saveData", true)
@@ -735,16 +581,14 @@ public class NinjaWebView extends WebView implements AlbumController {
     @Override
     public synchronized void reload() {
         if (null != standInUrl) {
-            // Reloading the offline notice — or the page of a site that could not be loaded — means
-            // trying the website again; the game starts over.
+            // Reloading the offline notice means trying the website again; the game starts over.
             final String url = standInUrl;
-            if (com.rpooi3.explorer.browser.OfflinePage.isDinoUrl(url)) {
+            if (standInIsOffline) {
+                standInUrl = null;
+                loadUrl(url);
+            } else {
                 showDinoPage();
-                return;
             }
-            standInUrl = null;
-            standInIsOffline = false;
-            loadUrl(url);
             return;
         }
         stopped = false;
@@ -754,14 +598,6 @@ public class NinjaWebView extends WebView implements AlbumController {
 
     @Override
     public synchronized void loadUrl(@NonNull String url) {
-        // A certificate that was warned about and then left behind is not proceeded after the fact.
-        if (null != pendingSsl) {
-            pendingSsl.cancel();
-            pendingSsl = null;
-            pendingSslUrl = null;
-            // The warning goes with the certificate it was about.
-            hideSslWarningView();
-        }
 
         InputMethodManager imm = (InputMethodManager) this.context.getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(this.getWindowToken(), 0);

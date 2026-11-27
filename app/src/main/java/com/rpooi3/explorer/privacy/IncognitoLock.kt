@@ -4,7 +4,6 @@
  */
 package com.rpooi3.explorer.privacy
 
-import com.rpooi3.explorer.profile.ProfilePrefs
 import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
@@ -38,7 +37,7 @@ object IncognitoLock {
     /** Whether the setting is on and can work. */
     @JvmStatic
     fun isEnabled(context: Context): Boolean =
-        ProfilePrefs.settings(context).getBoolean(KEY, false) && canLock(context)
+        PreferenceManager.getDefaultSharedPreferences(context).getBoolean(KEY, false) && canLock(context)
 
     /** The app goes to the background. */
     @JvmStatic

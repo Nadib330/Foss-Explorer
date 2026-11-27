@@ -10,16 +10,6 @@
         android:key="home_custom_description"
         android:summary="@string/home_custom_description" />
 
-    <!-- 18.3.0 beta (item 1): the two home pages, side by side, each with a glance at itself. -->
-    <PreferenceCategory android:key="home_group_style">
-
-        <com.rpooi3.explorer.preferences.HomeStylePreference
-            android:key="home_style"
-            android:selectable="false"
-            android:title="@string/home_style_group" />
-
-    </PreferenceCategory>
-
     <PreferenceCategory android:key="home_group_wallpaper" android:title="@string/home_wallpaper">
 
         <Preference
@@ -61,15 +51,6 @@
             android:title="@string/home_show_logo"
             android:widgetLayout="@layout/preference_switch_widget" />
 
-        <!-- 18.0.0 beta 6 (item 8): what stands on the page, and how. -->
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:icon="@drawable/icon_search"
-            android:key="home_show_search"
-            android:summary="@string/home_show_search_summary"
-            android:title="@string/home_show_search"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
         <SwitchPreferenceCompat
             android:defaultValue="true"
             android:icon="@drawable/icon_apps"
@@ -77,46 +58,6 @@
             android:summary="@string/home_show_shortcuts_summary"
             android:title="@string/home_show_shortcuts"
             android:widgetLayout="@layout/preference_switch_widget" />
-
-        <EditTextPreference
-            android:icon="@drawable/icon_edit"
-            android:key="home_title_text"
-            android:summary="@string/home_title_text_summary"
-            android:title="@string/home_title_text" />
-
-        <ListPreference
-            android:defaultValue="4"
-            android:entries="@array/home_columns_entries"
-            android:entryValues="@array/home_columns_values"
-            android:icon="@drawable/icon_apps"
-            android:key="home_shortcuts_columns"
-            android:summary="@string/home_columns_summary"
-            android:title="@string/home_columns" />
-
-    </PreferenceCategory>
-
-    <!-- 18.0.0 beta 7 (item 5): the home page can be written by the user, in HTML, CSS and
-         JavaScript. It is drawn under the bars of the browser, which are not touched by it. -->
-    <PreferenceCategory android:key="home_group_code" android:title="@string/home_code">
-
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:icon="@drawable/icon_extension"
-            android:key="home_code_on"
-            android:summary="@string/home_code_use_summary"
-            android:title="@string/home_code_use"
-            android:widgetLayout="@layout/preference_switch_widget" />
-
-        <Preference
-            android:icon="@drawable/icon_edit"
-            android:key="home_code_edit"
-            android:summary="@string/home_code_edit_summary"
-            android:title="@string/home_code_edit" />
-
-        <Preference
-            android:icon="@drawable/icon_delete"
-            android:key="home_code_clear"
-            android:title="@string/home_code_clear" />
 
     </PreferenceCategory>
 

@@ -1,8 +1,6 @@
 package com.rpooi3.explorer.library
 
 import android.app.Activity
-import android.app.DownloadManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Looper
@@ -16,16 +14,13 @@ import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Clear
 import com.rpooi3.explorer.database.Record
 import com.rpooi3.explorer.database.RecordAction
-import com.rpooi3.explorer.downloads.DownloadEngine
 import com.rpooi3.explorer.downloads.DownloadLog
-import com.rpooi3.explorer.downloads.DownloadStore
 import com.rpooi3.explorer.downloads.DownloadsActivity
 import com.rpooi3.explorer.library.LibraryActivity.Row
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -41,18 +36,6 @@ class LibraryScreensTest {
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
     private val day = 24 * 60 * 60 * 1000L
     private val now = System.currentTimeMillis()
-
-    @Before
-    fun clearDownloads() {
-        DownloadStore.active(context).forEach { DownloadEngine.cancel(context, it.id) }
-        DownloadStore.clear(context)
-        context.getSharedPreferences("downloads_log", android.content.Context.MODE_PRIVATE).edit().clear().commit()
-        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        manager.query(DownloadManager.Query())?.use { cursor ->
-            val id = cursor.getColumnIndex(DownloadManager.COLUMN_ID)
-            while (cursor.moveToNext()) manager.remove(cursor.getLong(id))
-        }
-    }
 
     private class Screen<A : LibraryActivity>(val activity: A) {
         val list: RecyclerView = activity.findViewById(R.id.library_list)
