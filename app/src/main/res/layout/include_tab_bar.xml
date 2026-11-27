@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact tab strip shown in landscape and optionally in portrait. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/tabBar"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:background="?attr/colorSurfaceContainer"
+    android:clipChildren="false"
+    android:visibility="gone">
+
+    <HorizontalScrollView
+        android:id="@+id/tab_bar_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="56dp"
+        android:clipToPadding="false"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/tab_bar_tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <ImageButton
+        android:id="@+id/tab_bar_new"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="6dp"
+        android:background="@drawable/bg_bottom_new_tab"
+        android:contentDescription="@string/menu_new_tab"
+        android:padding="10dp"
+        android:src="@drawable/icon_plus"
+        app:tint="?attr/colorOnSurface" />
+</FrameLayout>
