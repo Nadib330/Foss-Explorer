@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The cross of a tab card in the switcher: a dark disc that reads on any page behind it,
+     with the ripple of a Material button (18.0.0 beta 4, after Chrome's card). -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF"
+    android:radius="18dp">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#73000000" />
+        </shape>
+    </item>
+</ripple>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Layout: browser-screen arrangement only. The home page is not moved by these switches. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:key="layout_group" android:title="@string/setting_section_layout">
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:icon="@drawable/icon_arrow_down"
+            android:key="layout_address_bar_bottom"
+            android:summary="@string/layout_address_bar_bottom_summary"
+            android:title="@string/layout_address_bar_bottom_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:icon="@drawable/icon_tab"
+            android:key="layout_show_tab_bar"
+            android:summary="@string/layout_show_tab_bar_summary"
+            android:title="@string/layout_show_tab_bar_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+    </PreferenceCategory>
+</PreferenceScreen>

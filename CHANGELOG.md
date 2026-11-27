@@ -1,5 +1,470 @@
 # Changelog
 
+## 18.0.0 beta 6
+
+The eleven things asked for after beta 5.
+
+### 1. Firefox's navigation in the three-dot menu
+- The menu now opens with a row of icons, as Firefox for Android's does: **Back**, **Forward** and
+  **Reload**. Back and forward are there — and only there — when the tab has somewhere to go, and
+  each does exactly what the arrow of the bar does.
+
+### 2. The floating parts of the tab switcher are flat
+- The pill at the foot of the switcher and the round button beside it are **2D** now: a flat surface
+  of the theme with a hairline edge instead of a shadow, so that they read as part of the page.
+
+### 3. A power button, as Opera has it
+- **Exit** stands beside Settings at the foot of the menu, with the power icon. It closes the menu
+  and the switcher, throws away the private tabs and their data, and leaves the browser — nothing of
+  the history, the bookmarks or the settings is touched.
+
+### 4. Closing a tab says so, and can be taken back
+- Closing a tab — the cross of a card, a swipe, the tab list — shows Chrome's notice at the foot of
+  the screen: **"Tab closed"** (or "Private tab closed") with **Undo**. Undo opens the tab again
+  where it stood, with the page it was showing; a private tab comes back as a private tab.
+
+### 5. A download announces itself, as Chrome's does
+- When a download starts, a small card rises from the foot of the page with the download arrow on
+  it: the ring turns while the size is unknown, then fills with the bytes that arrive, and the name
+  of the file stands beside it. It follows the system's download manager to the end, and it can be
+  dismissed with its cross.
+
+### 6. A finished download can be opened at once
+- When the file is there the ring gives way to a check mark, the card says **"Downloaded"** and
+  offers **Open**, which starts the file in whatever app the device has for it — Chrome's bubble with
+  its green tick, brought to the phone. The same for the files the browser writes itself (`data:`
+  files, files from a script), which now remember where they were written.
+
+### 7. Chrome's pencil on the home page
+- The home page has the pencil of Chrome's new tab page beside its menu. It leads straight to
+  **Settings › Home page customization**.
+
+### 8. More of the home page is the user's own
+- **Search box**: on or off.
+- **Name of the page**: what stands at the top instead of "Explorer" (empty for the app's name).
+- **Sites in a row**: three, four or five tiles side by side, instead of the fixed four.
+
+### 9. Bugs
+- A certificate warning no longer stands over the tab switcher: opening the switcher puts it away.
+- Tabs closed from the switcher close cleanly and are counted right away; a private tab is not
+  reported as a normal one.
+
+### 10. UI glitches
+- The search of the switcher no longer stays open behind the page: leaving the switcher closes it,
+  keyboard and all.
+- The search key of the keyboard puts the keyboard away and keeps the narrowed cards, as in Chrome.
+- The tab switcher's cards keep their distance from the pill after the pill was made flat.
+
+### 11. Anything else
+- The values the download card needs (`StorageCompat.writeToDownloads`) and the path of a `data:`
+  file are handed back, so that opening them works on Android 8 and 9 as well as on 10 and newer.
+- The build now writes JUnit XML reports of a test run, so a failure can be read where it happened.
+- Nine new tests for the eleven items (see below), and the tests of 12.1.2, 14.2.3 and 17.3.2 were
+  brought up to the menu and the home page as they are now.
+
+## 18.0.0 beta 5
+
+The two things reported against beta 4.
+
+### 1. The tab switcher of the screenshot
+- **The top row is a title row now**: the arrow back to the page on the left, the word **Tabs** in a
+  bold heading beside it, then the magnifier and the menu — the row of the screenshot, with the
+  same widths and the same distances as the bar of the browser.
+- **The search is a place of its own.** The magnifier turns the title row into the search field
+  (the arrow beside it leads back to the title row); the field takes the keyboard at once, narrows
+  the cards by name and address while the user types, and the cross empties it. Closing the search
+  shows every tab again — every opening of the switcher starts with the title row and with all tabs.
+- **The foot of the switcher**: a floating pill with the tabs on the left (the counter with the
+  number of open tabs, drawn exactly as the button of the bottom bar draws it) and the private tabs
+  on the right (**Explorer's own private icon**, kept as it was), and beside the pill the round
+  button that opens a new tab of the kind that is in front.
+- The arrow of the title row and the back button of the device both leave the switcher for the page
+  that was in front.
+
+### 2. The warning of an untrusted certificate no longer reloads, and its back arrow works
+- **The warning is a screen of Explorer's own, not a page inside the WebView.** That was the cause
+  of both troubles: while such a page is up the answer to the certificate stays pending, so the
+  WebView asked for the same address again and again — the warning reloaded by itself — and going
+  back went straight back into the same failing load, so the back arrow seemed dead. Now the load
+  is stopped before the warning appears, nothing is loaded behind it and nothing reloads.
+- The screen keeps the words and the shape of Firefox for Android: **Warning: Potential Security
+  Risk Ahead**, the site it is about, **Go Back**, and behind **Advanced** the reason, the error
+  code of Firefox (`SEC_ERROR_UNKNOWN_ISSUER`, `SEC_ERROR_EXPIRED_CERTIFICATE`,
+  `SSL_ERROR_BAD_CERT_DOMAIN`) and **Accept the Risk and Continue**.
+- **Go Back**, the back arrow of the bar and the back button of the device all leave the warning
+  without loading the site; **Accept the Risk and Continue** loads it after all.
+
+## 18.0.0 beta 4
+
+The nine things reported against beta 3, in the order they were reported.
+
+### 1. A website that cannot be loaded has Explorer's own page
+- **The error page of Android System WebView is gone for good.** Every page the browser could not
+  load now shows Explorer's own page (`assets/error/error.html`): a picture, the heading, what
+  happened to the address, and a button that searches for the site in the search engine the user
+  chose. It is written in the language of the app, follows the system's light and dark mode, and
+  says which error it was (`ERR_NAME_NOT_RESOLVED`, `ERR_CONNECTION_REFUSED`, …) with the sentence
+  that belongs to it. The tab keeps the address of the site, so the reload button tries it again.
+- A load the browser ended itself (`ERR_ABORTED`, `ERR_BLOCKED_BY_CLIENT`) gets no page: nothing
+  went wrong there.
+- Without a connection the "No internet" notice with the dinosaur game stays what it was.
+
+### 2. The cards of the tab switcher are Chrome's now
+- **A card is the page itself**: its picture fills the card, the cross to close it sits in its
+  upper corner, and under the picture runs a band in the colour of the site, with the site's icon
+  and its name. The colour is read from the top of the page's own picture — which is where a site
+  paints its colour — so it is the right one for every site and costs nothing; a page with no
+  colour of its own (white, or never drawn) keeps the colours of the theme.
+- The tab in front is **ringed** in the accent colour, as Chromium rings it, instead of being drawn
+  in inverse colours.
+
+### 3. The profile and the three dots on the home page
+- **They no longer crowd into each other.** The home page has one row for both — the profile, then
+  the three dots — and the row stands exactly where the row of the top bar stands: the same widths,
+  the same distance from the edges, and an empty place where the shield of the bar sits. The row
+  also comes last in the layout, so both buttons can be tapped while the page scrolls under them.
+
+### 4. A tab that comes back was faded in the colour of the theme
+- **Choosing a tab in the switcher now puts the page back to its size and colour.** The switcher
+  steps the page back a little (92 %, 60 % opacity) while it is open; the way back out of it was
+  attached to the three-dot path only, so a tab that was opened straight from a card — and every
+  tab it had been before — came back faded and shrunk, and stayed that way. The page is now reset
+  wherever a tab is shown, a new tab grows on its own instead of pulling the whole container with
+  it (which used to cancel the reset), and the transition always ends on the plain page.
+
+### 5. The spacing of the bar, and a profile that never moves
+- **The actions of the top bar sit closer together**: the back arrow, the shield, the profile and
+  the three dots are 44 dp wide instead of 48 dp, and the bar keeps 2 dp to the screen edge, so the
+  gaps between the icons are even and small.
+- **The shield keeps its place when there is nothing to show.** It used to be `gone`, which moved
+  the profile and the menu by the width of a button whenever the page changed; it is invisible
+  instead. Together with the row of the home page that mirrors the bar, the profile stands at the
+  same place on the home page and on a website, to the pixel.
+
+### 6. Untrusted sites get Firefox's warning
+- **The certificate warning is a page of its own now, not the small dialog of FOSS Browser.** Its
+  shape and its words follow Firefox for Android: "Warning: Potential Security Risk Ahead", the
+  site it is about, "Go Back" as the way out, and behind "Advanced" the reason, the error code in
+  Firefox's own spelling (`SEC_ERROR_EXPIRED_CERTIFICATE`, `SSL_ERROR_BAD_CERT_DOMAIN`,
+  `SEC_ERROR_UNKNOWN_ISSUER`, …) and "Accept the Risk and Continue". Nothing of the site is loaded
+  until that is chosen, and if the tab goes somewhere else the waiting answer is dropped. The page
+  and `NinjaWebView` talk through the `ExplorerSsl` bridge; no code or file of Firefox is copied.
+
+### 7. A guest session shares nothing, and leaves nothing
+- **A guest session no longer finds what an earlier one left behind.** A session that ended badly —
+  the app was killed, the battery went — used to leave its history, its icons and its WebView
+  profile on the disk: the next guest started on top of them. Those are wiped when a guest starts,
+  and the history, the icons, the folder, the preferences and the WebView profile of the guest are
+  deleted when the session ends.
+
+### 8. Clearing data clears one profile
+- **"Clear browsing data" emptied the whole app.** The screen deleted every database of every
+  profile, cleared every file of `shared_prefs` — including the list of the profiles — and wiped
+  the WebView folder, so clearing in one profile left the others empty or without their profiles.
+  Now it clears the profile in front and nothing else: its database (`places-<id>.sqlite`), its
+  icons (`favicon-<id>.db`), its web storage, its cookies (the site permissions that allow them are
+  kept), its own preference files only, and its own folder. The list of the profiles and the files
+  of every other profile stay, and so do the switches of the screen itself. The automatic clearing
+  at the end of a session reads the switches of the profile in front.
+
+### 9. The smaller things
+- `TabSwitcher.bandColour` and `isDark` answer for a card, so a card's colour can be tested without
+  a screen.
+- The two new pages are read once and cached, and follow the language of the app.
+- The reload of a page that could not be loaded is now told apart from the reload of the offline
+  notice, so a site that is merely gone is not reported as a missing connection any more.
+
+### Under the hood
+- New `browser/ErrorPage.kt` and `browser/SslWarningPage.kt`, with `assets/error/error.html` and
+  `assets/error/ssl.html`.
+- `ProfileWebView.clearStorage()` and `ProfileWebView.storageDirectory()`: what a profile keeps on
+  the web side, for the screen that clears data.
+- `Profiles.wipeGuestLeftovers()` and `Profiles.deleteGuestDatabases()`.
+- New tests in `Release1800Beta4Test` (2 SDK levels): 950 tests, no failures.
+
+## 18.0.0 beta 3
+
+Nine things that were reported against beta 2, in the order they were reported.
+
+### 1. and 3. Changing the profile went round in a circle
+- **Every change of the profile in front is now on the disk before the browser starts again in it.**
+  A switch writes the new profile, the answer to the question of the start and the flag that keeps
+  that question from being asked again — and then it restarts the screen, which ends the process. The
+  writes were asynchronous, so they were regularly lost with the process: the browser came back in
+  the old profile and asked again, which looked like an endless loop of switching. All of them are
+  committed now (`Profiles.save`, `switchTo`, `setSkipsAskOnce`, `consumeSkip`, the guest, the
+  checkbox and the setup flag), and a test reads the source to make sure no asynchronous write is
+  left on that path.
+
+### 2. Profiles shared one history, one set of bookmarks and one set of extensions
+- **What a profile stores now belongs to that profile.** The extensions of a profile live in its own
+  folder (`files/extensions` for the first profile, `files/profiles/<id>/extensions` for the others),
+  and their lists and their storage (`extensions`, `extension_storage`, `extension_session`) are
+  read through `ProfilePrefs`, so they are `…@<id>`. History, bookmarks, site icons, downloads, site
+  permissions and settings were already per profile; the extensions were the last thing that was
+  not. The first profile keeps every folder it had, so an update neither moves nor loses anything.
+
+### 4. The profile was not on the home page
+- **The home page now carries the profile too**, in its top corner: the picture or the letter of the
+  profile in front. Tapping it opens the sheet of the profiles, a long press opens the settings of
+  the profiles. The top bar is hidden on the home page, so until now the profile could only be
+  reached once a page was open.
+
+### 5. The gallery icon on every row of the settings is gone
+- **A row of *Settings > Profiles* is the disc, the name, the pencil and the bin.** The little
+  gallery button that sat on every row is gone; the disc is no longer a button either. The picture
+  is changed from the pencil — the dialog that names a profile also holds its picture.
+
+### 6. A picture can be chosen while a profile is being made
+- **The dialog that makes a profile and the dialog that changes one are one dialog**, with the same
+  picture row: the disc, *Choose a picture* and *Remove the picture*. A profile that was made on the
+  home page used to have no way of getting a face at all, because the row only existed when a
+  profile was edited from the settings. A picture chosen while the profile is being made is kept as
+  soon as the profile exists — before the browser starts again in it.
+
+### 7. A profile could not be made from the home page
+- **The sheet of the profiles makes one from wherever it is opened**, and it is reachable from the
+  home page (4) and on every start it is asked for (the checkbox *Always show on startup*). The
+  welcome on the very first start shows the same picture row.
+
+### 8. One backup for every profile
+- **A backup now holds the data of one profile.** It is the profile in front that is written: its
+  databases (history, bookmarks, downloads, saved websites, site icons), its preferences file and its
+  own folder. The zip carries a small manifest saying which profile it came from, and a restore puts
+  what came back into the profile in front, renaming the files as it goes — `places-1a2b3c4d.sqlite`
+  becomes `places-9f8e7d6c.sqlite`, `settings@1a2b.xml` becomes `settings@9f8e.xml`. Files of another
+  profile are left out rather than dropped in, which is how two profiles could formerly end up with
+  one history through a backup file. The suggested file name names the profile
+  (`Foss_Explorer_Work_backup_full.zip`), and a restored database is loaded by a fresh start.
+- A backup taken with a version before 18.0.0 carries no manifest; it is read as the first profile's,
+  which is where its data came from anyway.
+
+### 9. The store's *Add to Explorer* did nothing
+- **The button now installs.** The word from the page to the browser answered nothing, so a refused
+  call — the token of another page, a string that is not an extension id, no bridge at all — looked
+  exactly like a tap that did nothing, while the very same install from the three-dot menu worked.
+  The bridge answers with a boolean now; if it did not take the install, the script turns the tap
+  into `explorer-install://<id>`, and the browser intercepts that link and installs through exactly
+  the code of the three-dot menu. The button cannot stay stuck either: it unlocks itself after two
+  minutes if the install never reports back.
+
+### Under the hood
+- `ProfilePicturePicker` is the one place that opens the system's picker for a picture; the three
+  screens that show the dialog pass its answer back (`ProfilesActivity`, `WelcomeActivity`,
+  `BrowserActivity`).
+- New `ProfileBackup` (Kotlin): what a profile has on disk, the manifest, and the renaming of a
+  restore. `BackupUtils` is a thin way into it, so nothing else had to change.
+- 20 new tests in `Release1800Beta3Test` (2 SDK levels): 924 tests, no failures.
+
+## 18.0.0 beta 2
+
+### The crash of *Settings > Profiles*
+- **Tapping the row *Profiles* in the settings closed the app.** The row carried an `<intent>`
+  element with a target class and no target package, so androidx.preference built an intent no
+  component answers; `Preference.performClick` then threw `ActivityNotFoundException` on the main
+  thread (`No Activity found to handle Intent { xflg=0x4 }`, three times in the attached logcat,
+  22:07, 22:08 and 22:33). The row is now opened in code (`SettingsScreens.bindProfiles`) and the
+  intent element is gone from `preference_setting.xml`; opening it can no longer crash, and if the
+  screen is missing the app says so instead of dying.
+
+### Switching a profile is now visible, and is not asked again
+- **The switcher no longer opens again and again.** Choosing a profile answered the question of the
+  start of the browser, but the browser then started again in the new profile and asked the same
+  question, in a loop that looked like nothing had happened. A switch now marks the question as
+  answered for exactly one start (`Profiles.setSkipsAskOnce` / `consumeSkip`): the next ordinary
+  start asks again, the start caused by a switch does not.
+- **The browser says which profile it is in.** After a switch it shows *Now browsing as …* with the
+  name of the profile, and the profile in front on the bar carries the name as its description.
+  The sheet names it *Current profile · N tab(s)*, and its card leads to the settings of the
+  profiles.
+
+### A picture for every profile
+- **A profile can carry a picture chosen from the user's files.** *Manage profiles* (or the card of
+  the current profile in the sheet) → tap the disc of a profile → the system's picker; the picture
+  is squared around its middle, shrunk to 512 px and copied into the profile's own folder as
+  `avatar.png`, so it belongs to that profile alone and is deleted with it. A long press on the disc
+  takes the picture away again, and the profile shows its letter in its colour once more.
+- The picture is shown wherever the profile is: in the sheet, in the list of *Profiles*, in the
+  dialog that names a profile, and on the bar.
+
+### The profile in front, on the bar
+- **Left of the three-dot menu there is now the profile**: the picture the user chose, or the first
+  letter of the profile in its colour. A tap opens the sheet of the profiles — switch to another
+  one, open the guest, or go on to the settings of the profiles; a long press goes straight there.
+- The shield of xGuard keeps its place left of the profile, so the bar is
+  *back · address · shield · profile · menu*.
+
+### Tests
+- 18 new tests (`profile/Release1800Beta2Test`) hold what this beta does: the settings row carries
+  no intent of its own and the screen of the profiles opens and lists every profile, a switch
+  suppresses the question for one start only, the sheet has the button to the settings, a picture is
+  squared, kept in the profile's folder, not shared with another profile and deleted with it, a
+  profile without a picture keeps its letter, and the profile really stands left of the three dots.
+- The test of the bar (one shield, three buttons) and the test of the shield's place were updated
+  for the new button, as they describe the layout of the bar.
+
+## 18.0.0 beta
+
+### Profiles
+- **A profile is a name, a colour and a set of data of its own.** Explorer now keeps cookies, web
+  storage, the HTTP cache, service workers, history, bookmarks, the lists of saved sites, favicons,
+  the log of downloads and the site permissions of a profile apart from those of every other one,
+  and each profile carries its own colour on its disc. Profiles are local: nothing is signed in,
+  there is no account, no address and no sync — Chrome's forced sign-in is not part of Explorer.
+- **The sheet of the profiles**, laid out as Chrome's is: the profile in front on a card of its own
+  colour, the other profiles below it, the guest, *Add profile*, *Manage profiles*, and — at the
+  bottom — the checkbox **Always show on startup**. It opens from the three-dot menu (*Profiles*)
+  and, at every start of the browser, while that checkbox is ticked.
+- **The welcome asks for the first profile.** On the first start, the welcome ends with the name and
+  the colour of the profile; skipping it keeps *Personal*. Every later start opens the switcher.
+- **Switching profiles** closes the WebViews of the one that is left, closes the database of its
+  profile and starts the browser in the other; each profile comes back with its own tabs.
+- **Guest**: a profile whose data lives below `cache/` and is deleted when the session is left —
+  cookies, web storage, history, permissions and downloads go with it.
+- **Deleting a profile** is refused for the profile in use and for the last profile, and the dialog
+  names what goes (history, bookmarks, saved lists, cookies, site permissions, downloads) before
+  anything is removed. Deleting it also removes its database, its preferences files, its folder and
+  its WebView profile.
+- **One active profile at a time** in this beta, as asked: side-by-side windows of two profiles come
+  later.
+
+### How the data is kept apart
+- **The WebView side uses AndroidX WebKit's profiles** (`WebViewFeature.MULTI_PROFILE`,
+  `WebViewCompat.setProfile`, `ProfileStore`): a tab is bound to its profile the moment the WebView
+  is made — before a page is loaded and before a script is run — so its cookies, its web storage,
+  its cache and its service workers are the profile's own. Private tabs keep the separate profile
+  they already had.
+- **Where the System WebView of the device has no profiles** (AndroidX WebKit returns false for
+  `MULTI_PROFILE`, which is the case on many older WebViews), Explorer does not fail: the cookies
+  stay in the one jar of the device, and everything Explorer itself keeps — history, bookmarks,
+  saved lists, favicons, downloads, site permissions, tabs — is still separate. *Manage profiles*
+  says which of the two the device does.
+- **Explorer's own data** moved without being copied: the first profile keeps `files/`,
+  `places.sqlite`, `favicon.db` and the settings of the app, so an update finds every bookmark,
+  every entry of the history and every setting where it was. A further profile gets
+  `places-<id>.sqlite`, `favicon-<id>.db`, `files/profiles/<id>/` and its own preferences files
+  (`<name>@<id>`), and reads the settings of the app until it changes one.
+
+### Tests
+- 40 new tests (`profile/Release1800Test`) hold the promises: the first profile keeps the old data,
+  profiles survive being written and read, the last and the in-use profile cannot be deleted, a
+  deleted profile takes its database, its preferences and its folder with it, the guest leaves
+  nothing, the switcher is offered until the checkbox is taken away, the download log and the site
+  permissions of a profile are its own, and a device without WebView profiles loses nothing but the
+  cookie separation.
+
+## 17.4.3
+
+### The row "Open source components" is gone from Legal information
+- **The licences stay, the list of components goes.** *Settings > About > Legal information* keeps
+  the GNU licences (GPL-3.0, AGPL-3.0), Chromium's BSD 3-clause licence, the Mozilla Public
+  License 2.0 and the source rows (Explorer, Chromium, Cromite, Firefox, FOSS Browser). The row
+  **Open source components** and the text behind it are removed: the licences, the notices and
+  what was taken from which project are kept in `LICENSE.md` of the repository.
+- The asset that held that text (`app/src/main/assets/licenses/components.txt`) is out of the app
+  and out of `tools/build_license_assets.py`, so it cannot come back with the next build.
+- The summary of *Source code of FOSS Browser* pointed at that row; it names `LICENSE.md` now,
+  and the tests of the screen no longer ask for a row that does not exist.
+
+## 17.4.2
+
+### The names of the extensions are their names again
+- **`__MSG_app_name_chrome__` is not a name.** A published extension keeps its words in
+  `_locales/<default_locale>/messages.json` and puts a placeholder in its manifest
+  (`"name": "__MSG_app_name__"`), which is what the list of installed extensions showed. The
+  placeholder is now resolved when the manifest is read (`extension/Locales`, new), for the name
+  and the description, with Chromium's rules: the locale named by `default_locale`, English where
+  that one is not in the `.crx`, keys matched whatever their case, and `$NAME$` placeholders taken
+  from the message's `placeholders` object. A placeholder the extension has no message for falls
+  back to the id instead of being shown.
+- **An extension that was installed before this release is repaired on the spot**: its manifest
+  is read again the first time the list is opened, and the list is written back with the name the
+  extension actually has (`ExtensionStore.installed`).
+
+### An extension's page is drawn, not printed
+- **`<!doctype html> …` on the screen was the source of the page, not the page.** Explorer handed
+  the WebView the file with its charset inside the mime type (`"text/html; charset=utf-8"`) and no
+  encoding of its own; a WebView that reads it that way treats the file as an unknown type and
+  shows its text. Type and charset are separate values now (`ExtensionFiles.mimeType` /
+  `encodingOf`, and the background page and the "not found" answer with them), so a popup, an
+  options page and a page of the extension in a tab are rendered as the pages they are.
+- The response also keeps the `Cache-Control` and `Access-Control-Allow-Origin` headers it had,
+  so a restored page is not served from a stale cache.
+
+### A tap shows the extension, a long press shows what can be done
+- **Tapping an installed extension in *Settings > Extensions* opens the extension itself** — its
+  popup, or its options page where the manifest names no popup — in the same bubble the
+  three-dot menu opens in the browser. On, off, options and remove are behind a long press on the
+  row, so the first tap is never a list of choices.
+- The note on that screen no longer says that a popup opens in a sheet or that a background is
+  not run: it says what the extension can do now (its own popup, its background page, messages
+  between its parts) and what is still left out.
+
+## 17.4.0
+
+### An extension is asked about before it is added, as Chrome asks
+- **The store's button no longer adds an extension the moment it is pressed.** The `.crx` is
+  fetched, its `manifest.json` is read into a staging folder (`cacheDir/staged/<id>`, see
+  `extension/ExtensionStore.stage`), and what the extension asked for is put in front of the
+  person adding it — the sheet of Chrome, with the puzzle piece over the question:
+  `Add "<name>"?`, then `It can:` and one line per permission, nothing else —
+  *Read and change all your data on all websites*, *Replace the page you see when opening a new
+  tab*, *Read and change your browsing history on all your signed-in devices*, *Display
+  notifications*, *Read and change your bookmarks*, *Manage your downloads* — with **Cancel**
+  and **Add extension** under it. The words are Chromium's own permission strings
+  (`extension/ExtensionPrompt.kt`); `tabs` says *Read your browsing history* and `history` the
+  long line above, as in Chrome, and a permission that says nothing worth reading (`storage`,
+  `alarms`, …) gets no line at all.
+- **Only a yes moves the files into place** (`ExtensionStore.accept`); Cancel throws the staging
+  folder away (`ExtensionStore.discard`) and nothing of the extension stays behind. A `storage`
+  or `alarms` permission is not worth a line, as in Chrome, and an extension that asks for
+  nothing says so.
+- Every way in goes through the same question: the store's own button, the sheet of the
+  three-dot menu, and *Settings > Extensions > Add an extension by address*.
+
+### The extensions do their work, and their click shows their own interface
+- **The background page starts with the browser**, not only with the first page a content script
+  runs on (`extension/ExtensionBus.attach`), and a message to a background that is not running
+  yet starts it and waits for it — Chrome wakes the worker for the same reason. So the first
+  message a popup sends finds the listeners of its extension instead of a document that does not
+  exist yet.
+- **A popup, an options page and a background page are documents of the extension**, served from
+  its own folder by `extension/ExtensionFiles` and handed the `chrome.*` interfaces
+  (`ExtensionRuntime.onExtensionPage`, `ExtensionBus.startBackground`), so clicking an added
+  extension opens its own interface in the bubble instead of a page that means nothing. Messages
+  go between the three through `chrome.runtime.sendMessage` / `chrome.tabs.sendMessage`.
+- `chrome_url_overrides.newtab` is read from the manifest and named in the prompt as Chrome
+  names it.
+
+### The old desktop agent belongs to the Chrome Web Store, and to nothing else
+- **Every other website keeps 17.3.3's Windows agent**: "Desktop site" sends
+  `Mozilla/5.0 (Windows NT 10.0; Win64; x64) … Chrome/<version>.0.0.0 Safari/537.36`, with
+  `platform: "Windows"` and `platformVersion: "15.0.0"` in its client hints.
+- **The Chrome Web Store alone gets back the agent Explorer served it before 17.3.3** —
+  `Mozilla/5.0 (X11; Linux x86_64) … Chrome/<version>.0.0.0 Safari/537.36`
+  (`ChromeUserAgent.store`), with `Linux` as its platform hint.
+- **The page itself follows its agent** (`browser/DesktopIdentity`): a desktop page is told
+  `navigator.platform`, `navigator.vendor` and a `navigator.userAgentData` of the computer it was
+  served as — `Win32` / `platform: "Windows"` for a website, `Linux x86_64` /
+  `platform: "Linux"` for the store, whose pages read these values and draw themselves. A page in
+  mobile mode is told nothing of the kind.
+
+### Taken from Cromite
+- **The install prompt and its warning lines follow Cromite** (`https://github.com/uazo/cromite`,
+  GPL-3.0), as does the ad blocker of 17.3.3: Adblock Plus lists matched by url, by path and by
+  kind of request, and element rules hidden with a style sheet written into the page before it
+  is painted (`browser/AdFilter`, `browser/AdBlocker`).
+- **Cromite is named in *Legal information***, in a row of its own below Chromium's, with its
+  source address; `LICENSE.md` and the components list of the app say what was taken.
+
+### Also in this release
+- The tile *Extensions* on the home page is rounded on all four corners like the group it is.
+- The licences of Chromium (BSD 3-clause) and of the Mozilla Public License 2.0 are rows of
+  their own in *Legal information*; the list of open source components names only what the app
+  actually carries.
+- *About* says **Copyright 2026 rpooi3. Free software under GPL-3.0.**
+- No settings row carries an "Opens the …" summary any more; each says what it does.
+
 ## 17.3.3
 
 ### Desktop mode is a computer running Chrome, and it says so
