@@ -30,9 +30,6 @@ public class Settings_Filter extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationIcon(R.drawable.icon_back_stylized);
-        toolbar.setNavigationContentDescription(R.string.bar_back);
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         FrameLayout content_frame = findViewById(R.id.content_frame);
         View scrollDividerTop = findViewById(R.id.scrollDividerTop);

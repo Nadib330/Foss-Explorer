@@ -1,0 +1,12 @@
+<!-- 18.0.0 beta 6: the power button of Opera's three-dot menu, in Material's outline stroke
+     (the same shape as the power key of the device). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M11,3 L13,3 L13,12 L11,12 Z M7.05,5.93 L8.46,7.34 C6.98,8.48 6,10.13 6,12 C6,15.31 8.69,18 12,18 C15.31,18 18,15.31 18,12 C18,10.13 17.02,8.48 15.54,7.34 L16.95,5.93 C18.83,7.42 20,9.55 20,12 C20,16.42 16.42,20 12,20 C7.58,20 4,16.42 4,12 C4,9.55 5.17,7.42 7.05,5.93 Z"/>
+</vector>

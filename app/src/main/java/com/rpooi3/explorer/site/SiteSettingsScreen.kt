@@ -132,26 +132,6 @@ class SiteCategoryFragment : BasePreferenceFragment() {
             }
         }
 
-        // The browser-wide background-audio switch belongs to the Sound tile itself. It is not a
-        // separate section at the foot of the Site settings index: the tile opens this screen.
-        if (category == SiteCategory.SOUND) {
-            PreferenceCategory(context).also { sound ->
-                sound.key = KEY_SOUND_SETTINGS
-                sound.title = getString(R.string.appearance_sound_group)
-                screen.addPreference(sound)
-                sound.addPreference(
-                    SwitchPreferenceCompat(context).apply {
-                        key = com.rpooi3.explorer.media.BackgroundAudio.KEY
-                        setDefaultValue(true)
-                        setIcon(R.drawable.icon_play)
-                        setSummary(R.string.media_background_summary)
-                        setTitle(R.string.media_background_title)
-                        widgetLayoutResource = R.layout.preference_switch_widget
-                    },
-                )
-            }
-        }
-
         if (category == SiteCategory.ADS) {
             // 15.2.1: the ad blocker's settings are xGuard's now; this row leads there.
             PreferenceCategory(context).also { screen.addPreference(it) }.addPreference(
@@ -360,7 +340,6 @@ class SiteCategoryFragment : BasePreferenceFragment() {
         const val KEY_ALLOWED = "site_category_allowed"
         const val KEY_BLOCKED = "site_category_blocked"
         const val KEY_XGUARD = "site_category_xguard"
-        const val KEY_SOUND_SETTINGS = "site_category_sound_settings"
 
         /**
          * [icon] with a stroke through it, the way Material draws "off" icons:

@@ -39,9 +39,6 @@ public class Settings_Clear extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationIcon(R.drawable.icon_back_stylized);
-        toolbar.setNavigationContentDescription(R.string.bar_back);
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         NestedScrollView scrollView = findViewById(R.id.scrollView);
         View scrollDividerTop = findViewById(R.id.scrollDividerTop);
@@ -50,7 +47,7 @@ public class Settings_Clear extends AppCompatActivity {
         assert scrollDividerBottom != null;
         HelperUtils.setupDialogDividers(scrollView, scrollDividerTop, scrollDividerBottom);
 
-        prefs = com.rpooi3.explorer.profile.ProfilePrefs.settings(this);
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         MaterialButton btnClearNow = findViewById(R.id.btn_clear_now);
         btnClearNow.setOnClickListener(v -> {
             CoordinatorLayout root = findViewById(R.id.root);

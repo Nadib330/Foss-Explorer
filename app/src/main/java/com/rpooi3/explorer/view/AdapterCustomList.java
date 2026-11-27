@@ -82,7 +82,7 @@ public class AdapterCustomList extends RecyclerView.Adapter<AdapterCustomList.Un
 
     @Override
     public void onBindViewHolder(@NonNull UniversalViewHolder holder, int position) {
-        SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         CustomItemsUtils.CustomItem current = redirects.get(position);
 
         TypedValue typedValue = new TypedValue();
@@ -230,7 +230,7 @@ public class AdapterCustomList extends RecyclerView.Adapter<AdapterCustomList.Un
     public void addRedirect(CustomItemsUtils.CustomItem redirect) {
         redirects.add(redirect);
         if (adapterType == TYPE_REDIRECTS) {
-            SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
             sp.edit().putBoolean(redirect.source(), true).apply();
         }
         notifyItemInserted(getItemCount() - 1);

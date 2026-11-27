@@ -82,7 +82,7 @@ public class BrowserUnit {
             }
             return query;
         } else {
-            SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
             String customSearchEngine = sp.getString("sp_search_engine_custom", "");
             String customSearches = sp.getString("sp_search_customSearches", "");
             query = query.replace("&", "%26");
@@ -135,8 +135,7 @@ public class BrowserUnit {
             for (int i = 0; i < redirects.size(); i++) {
                 CustomItemsUtils.CustomItem customRedirect = redirects.get(i);
                 if (url.contains(customRedirect.source()) && sp.getBoolean(customRedirect.source(), true)) {
-                    // 18.0.0 beta 7: an address is rewritten without a tab as well (a test, a save).
-                    if (ninjaWebView != null) ninjaWebView.stopLoading();
+                    ninjaWebView.stopLoading();
                     url = url.replace(customRedirect.source(), customRedirect.target());
                     return url;
                 }
@@ -149,7 +148,7 @@ public class BrowserUnit {
 
     public static void openInBackground(Activity activity, WebView webView) {
         if (activity == null || webView == null) return;
-        SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(activity);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
         if (!sp.getBoolean("sp_tabBackground", false)) return;
         String dialogSetting = sp.getString("openBackground_dialog", "show");
         if ("never".equals(dialogSetting)) return;

@@ -28,33 +28,14 @@ public class CustomItemsUtils {
         String prefData = preferences.getString(KEY_REDIRECTS, "[]");
 
         if (Objects.requireNonNull(preferences.getString("saved_redirect_ok", "no")).equals("no")) {
-            // 18.0.0 beta 7 (item 2): YouTube is no longer sent anywhere of its own.
+            list.add(new CustomItem("://youtube.com", preferences.getString("sp_youTube_string_domain", "invidious.nerdvpn.de")));
+            list.add(new CustomItem("youtube.com", preferences.getString("sp_youTube_string_domain", "invidious.nerdvpn.de")));
             list.add(new CustomItem("twitter.com", preferences.getString("sp_twitter_string_domain", "nitter.net")));
             saveRedirects(list);
             preferences.edit().putString("saved_redirect_ok", "yes").apply();
         }
 
         loadJsonItems(prefData, list);
-
-        // 18.0.0 beta 7 (item 2): youtube.com and music.youtube.com open as they are.
-        //
-        // Every install up to beta 6 was given two redirects of its own — "youtube.com" and
-        // "://youtube.com" to an Invidious site — the first time it started, so changing the
-        // defaults above would only have helped a new install. The entries are taken out of the
-        // list that is stored, once, and the list is written back; a redirect the user adds by
-        // hand later stays, because this runs only the one time (key "youtube_redirect_removed").
-        if (!preferences.getBoolean("youtube_redirect_removed", false)) {
-            ArrayList<CustomItem> kept = new ArrayList<>();
-            for (CustomItem item : list) {
-                String source = item.source() == null ? "" : item.source().toLowerCase(java.util.Locale.ROOT);
-                if (source.contains("youtube")) continue;
-                kept.add(item);
-            }
-            list.clear();
-            list.addAll(kept);
-            saveJsonItems(preferences, KEY_REDIRECTS, list);
-            preferences.edit().putBoolean("youtube_redirect_removed", true).apply();
-        }
         return list;
     }
 
@@ -93,12 +74,7 @@ public class CustomItemsUtils {
     }
 
     private static void saveJsonItems(String prefKey, ArrayList<CustomItem> list) throws JSONException {
-        saveJsonItems(com.rpooi3.explorer.profile.ProfilePrefs.settings(BrowserActivity.getAppContext()), prefKey, list);
-    }
-
-    // 18.0.0 beta 7: the same writing, into the settings that are being read, so that a list which
-    // is cleaned while it is read stays cleaned on disk and no later read brings YouTube back.
-    private static void saveJsonItems(SharedPreferences preferences, String prefKey, ArrayList<CustomItem> list) throws JSONException {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(BrowserActivity.getAppContext());
         JSONArray array = new JSONArray();
         for (CustomItem item : list) {
             JSONObject object = new JSONObject();

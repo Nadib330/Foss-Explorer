@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The shared selection thumb; its position and size are moved by SpringPillSelector. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="28dp" />
+    <solid android:color="?attr/colorSecondaryContainer" />
+</shape>

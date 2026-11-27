@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 18.3.0 beta (item 1): the round arrow at the end of the search field. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="?attr/colorSecondaryContainer" />
+</shape>

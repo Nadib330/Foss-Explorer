@@ -30,44 +30,186 @@ import com.rpooi3.explorer.database.RecordUnit;
 public class BackupUtils {
     private static final String TAG = "BackupUtils";
 
-    // 18.0.0 beta 3, issue 8: a backup is the backup of one profile.
-    //
-    // Every method here is a thin way into com.rpooi3.explorer.profile.ProfileBackup, because what
-    // a profile has on disk is known there: the databases carry its id in their names, its
-    // preferences end in @<id>, and its folder is files/profiles/<id> (files/ for the first one).
-    // Before this the backup took the databases of the whole app and the restore dropped them in
-    // whatever profile was in front, which is how two profiles could share a history.
-
-    /** Everything the profile in front has: its databases, its preferences and its own folder. */
     public static boolean backupAllData(Context context, Uri targetUri) {
-        return com.rpooi3.explorer.profile.ProfileBackup.backup(
-                context,
-                targetUri,
-                com.rpooi3.explorer.profile.Profiles.current(context),
-                true);
+        File appDataDir = context.getFilesDir().getParentFile();
+        if (appDataDir == null || !appDataDir.exists()) {
+            return false;
+        }
+        try {
+            android.webkit.CookieManager.getInstance().flush();
+        } catch (Exception ignored) {}
+
+        try (OutputStream outputStream = context.getContentResolver().openOutputStream(targetUri);
+             ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
+            zipFileOrDirectory(appDataDir, "", zipOut);
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Fehler beim Komplett-Backup", e);
+            return false;
+        }
     }
 
-    /** Puts a backup into the profile in front; no other profile is touched. */
     public static boolean restoreAllData(Context context, Uri sourceUri) {
-        final com.rpooi3.explorer.profile.ProfileBackup.Restored restored =
-                com.rpooi3.explorer.profile.ProfileBackup.restore(context, sourceUri);
-        Log.i(TAG, "Restored " + restored.getFiles() + " files from the backup of the profile "
-                + restored.getFromProfile() + " into the profile in front");
-        return restored.getFound();
-    }
+        File appDataDir = context.getFilesDir().getParentFile();
+        if (appDataDir == null) return false;
 
-    /** The databases of the profile in front: history, bookmarks, downloads, icons. */
+        try (InputStream inputStream = context.getContentResolver().openInputStream(sourceUri)) {
+            if (inputStream == null) return false;
+
+            File[] children = appDataDir.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    if (!child.getName().equals("lib")) {
+                        try {
+                            deleteRecursive(child.toPath());
+                        } catch (IOException e) {
+                            System.err.println("Fehler beim Löschen von " + child.getName() + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+
+            try (ZipInputStream zipIn = new ZipInputStream(inputStream)) {
+                ZipEntry entry = zipIn.getNextEntry();
+                boolean dataExtracted = false;
+
+                while (entry != null) {
+                    String entryName = entry.getName();
+                    if (!entryName.isEmpty()) {
+                        File outFile = new File(appDataDir, entryName);
+                        if (entry.isDirectory()) {
+                            Files.createDirectories(outFile.toPath());
+                        } else {
+                            File parent = outFile.getParentFile();
+                            if (parent != null) {
+                                Files.createDirectories(parent.toPath());
+                            }
+                            try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                                byte[] buffer = new byte[1024];
+                                int len;
+                                while ((len = zipIn.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, len);
+                                }
+                            }
+                            dataExtracted = true;
+                        }
+                    }
+                    zipIn.closeEntry();
+                    entry = zipIn.getNextEntry();
+                }
+                return dataExtracted;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Fehler beim Komplett-Restore", e);
+            return false;
+        }
+    }
     public static boolean backupDatabasesOnly(Context context, Uri targetUri) {
-        return com.rpooi3.explorer.profile.ProfileBackup.backup(
-                context,
-                targetUri,
-                com.rpooi3.explorer.profile.Profiles.current(context),
-                false);
-    }
+        File dbDir = new File(context.getFilesDir().getParentFile(), "databases");
+        if (!dbDir.exists()) {
+            Log.w(TAG, "Datenbank-Verzeichnis existiert nicht.");
+            return false;
+        }
 
-    /** The databases of a backup, renamed for the profile in front. */
+        // Filtert alle Dateien, die mit "Ninja4.db" beginnen
+        // 15.0.0: history and bookmarks are in places.sqlite; an old Ninja4.db is taken along if one is still there.
+        com.rpooi3.explorer.database.places.PlacesDatabase.get(context).getWritableDatabase().rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).close();
+        File[] dbFiles = dbDir.listFiles((dir, name) -> name.startsWith("Ninja4.db") || name.startsWith("places.sqlite"));
+        if (dbFiles == null || dbFiles.length == 0) {
+            Log.w(TAG, "Keine passenden Ninja4.db Dateien zum Sichern gefunden.");
+            return false;
+        }
+
+        try (OutputStream outputStream = context.getContentResolver().openOutputStream(targetUri);
+             ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
+
+            for (File file : dbFiles) {
+                // Speichert die Dateien im Zip unter "databases/Dateiname"
+                zipFileOrDirectory(file, "databases/" + file.getName(), zipOut);
+            }
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Fehler beim Datenbank-Backup", e);
+            return false;
+        }
+    }
     public static boolean restoreDatabasesOnly(Context context, Uri sourceUri) {
-        return com.rpooi3.explorer.profile.ProfileBackup.restore(context, sourceUri).getFound();
+        File appDataDir = context.getFilesDir().getParentFile();
+        File dbDir = new File(appDataDir, "databases");
+        if (appDataDir == null) return false;
+
+        if (!dbDir.exists()) {
+            if (!dbDir.mkdirs()) {
+                Log.e(TAG, "Datenbank-Verzeichnis konnte nicht erstellt werden.");
+                return false;
+            }
+        } else {
+            com.rpooi3.explorer.database.places.PlacesDatabase.release();
+            File[] oldFiles = dbDir.listFiles((dir, name) -> name.startsWith("Ninja4.db") || name.startsWith("places.sqlite"));
+            if (oldFiles != null) {
+                for (File oldFile : oldFiles) {
+                    if (!oldFile.delete()) {
+                        Log.w(TAG, "Alte Datei konnte nicht gelöscht werden: " + oldFile.getName());
+                    }
+                }
+            }
+        }
+
+        try (InputStream inputStream = context.getContentResolver().openInputStream(sourceUri)) {
+            if (inputStream == null) return false;
+
+            try (ZipInputStream zipIn = new ZipInputStream(inputStream)) {
+                ZipEntry entry = zipIn.getNextEntry();
+                boolean dataExtracted = false;
+                while (entry != null) {
+                    String entryName = entry.getName();
+                    if (entryName.startsWith("databases/Ninja4.db") || entryName.startsWith("databases/places.sqlite")) {
+                        File outFile = new File(appDataDir, entryName);
+                        if (!entry.isDirectory()) {
+                            File parent = outFile.getParentFile();
+                            if (parent != null) {
+                                Files.createDirectories(parent.toPath());
+                            }
+                            try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                                byte[] buffer = new byte[1024];
+                                int len;
+                                while ((len = zipIn.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, len);
+                                }
+                            }
+                            dataExtracted = true;
+                        }
+                    }
+                    zipIn.closeEntry();
+                    entry = zipIn.getNextEntry();
+                }
+
+                // Wenn der Restore erfolgreich war, passen wir die Version an und löschen Einträge
+                // (Only a backup of a version before 15.0.0 has this file; its content is taken over at the next start.)
+                if (dataExtracted && context.getDatabasePath("Ninja4.db").isFile()) {
+                    try {
+                        // 1. ABSOLUTEN PFAD VERWENDEN: Holt den exakten Pfad zur entpackten Ninja4.db
+                        File dbFile = context.getDatabasePath("Ninja4.db");
+                        android.database.sqlite.SQLiteDatabase db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbFile, null);
+                        // 2. Alte Tabellen entfernen
+                        db.execSQL("DROP TABLE IF EXISTS GRID");
+                        db.execSQL("DROP TABLE IF EXISTS JAVASCRIPT");
+                        db.execSQL("DROP TABLE IF EXISTS COOKIE");
+                        db.delete("REMOTE", null, null);
+                        // 4. Version auf 5 zwingen
+                        db.setVersion(5);
+                        db.close();
+                        Log.i(TAG, "Datenbank-Restore erfolgreich: v5 erzwungen und STANDARD geleert.");
+                    } catch (Exception dbEx) {
+                        Log.e(TAG, "Fehler beim Bereinigen der Datenbank nach dem Restore", dbEx);
+                    }
+                }
+                return dataExtracted;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Fehler beim Datenbank-Restore", e);
+            return false;
+        }
     }
 
     public static boolean exportBookmarksToUri(Context context, Uri targetUri) {

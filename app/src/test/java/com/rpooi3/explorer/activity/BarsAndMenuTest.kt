@@ -145,11 +145,9 @@ class BarsAndMenuTest {
         assertTrue(back.isShown && pill.isShown && menu.isShown)
         assertTrue("back, then pill", back.right <= pill.left)
         assertTrue("pill, then menu", pill.right <= menu.left)
-        // 18.0.0 beta 2 put the profile in front on the bar as well, so on the narrowest phones
-        // (320dp) the back arrow, the shield, the profile and the three dots leave the pill a third
-        // of the width — still the widest single element of the bar.
-        assertTrue("the pill still takes the largest part of the width", pill.width >= content.width / 3)
-        assertTrue("and is much wider than a button", pill.width > 2 * menu.width)
+        // On the narrowest phones (320dp) the shield (15.0.0) leaves the pill exactly half of the width.
+        assertTrue("the pill takes the largest part of the width", pill.width >= content.width / 2)
+        assertTrue(pill.width > 3 * menu.width)
     }
 
     @Test
@@ -198,13 +196,12 @@ class BarsAndMenuTest {
     // ------------------------------------------------------------------- menu
 
     @Test
-    fun menu_hasTheEntriesOfTheBrowser_withoutHelp() = launch {
-        // 18.0.0 beta 6: Firefox's navigation opened the menu, and Opera's power button closes it.
+    fun menu_hasTheNineEntries_withoutHelp() = launch {
+        // 17.3.2: "Extensions" is on the home page as well, where "Zoom" has nothing to do.
         assertEquals(
             listOf(
-                "Back", "Forward", "Print",
                 "New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Extensions",
-                "Desktop site", "Settings", "Exit",
+                "Desktop site", "Settings",
             ),
             menuTitles(),
         )

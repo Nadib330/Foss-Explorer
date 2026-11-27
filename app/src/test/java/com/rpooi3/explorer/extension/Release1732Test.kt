@@ -96,32 +96,36 @@ class Release1732Test {
         assertTrue(script, script.contains("window.chrome.csi"))
         assertTrue(script, script.contains("window.chrome.loadTimes"))
         // A tap on the store's own button calls the bridge, with the token and the id.
-        assertTrue(script, script.contains("installFromStore(TOKEN, String(id))"))
+        assertTrue(script, script.contains("installFromStore(TOKEN, ID)"))
         assertTrue(script, script.contains("var TOKEN = 'the-token';"))
     }
 
     @Test
-    fun theStoresOwnButton_installThroughTheBridge() {
+    fun theStoresOwnButton_saysAddToExplorer() {
         val script = StoreHook.script(context, extensionId, "the-token")
-        // 18.1.0 beta (item 6): the page is left exactly as the store drew it. No second button,
-        // no relabelled one, nothing looked after while the page lives — only the bridge.
+        // 17.3.2: no button of Explorer's own any more — the store's blue one is relabelled.
         assertFalse("no second button is put on the page", script.contains("createElement('button')"))
-        assertFalse("nothing is marked on the page", script.contains("data-explorer-extension"))
-        assertFalse("nothing is renamed", script.contains("function relabel("))
-        assertFalse("and nothing is watched", script.contains("MutationObserver"))
-        // What is there is Chrome's own install call, handed to the browser.
-        assertTrue(script, script.contains("beginInstallWithManifest3"))
-        assertTrue(script, script.contains("installFromStore"))
+        assertFalse(script.contains("explorer-add-extension"))
+        assertTrue("the store's button is found by its words", script.contains("'add to chrome'"))
+        assertTrue("its label is written over", script.contains("data-explorer-extension"))
+        assertTrue(script.contains("function relabel("))
+        assertTrue(script.contains("LABEL"))
         assertEquals(
-            "the wording of the menu is unchanged",
             "Add to Explorer",
             context.getString(R.string.extensions_site_hook),
         )
+        assertTrue(script, script.contains("Add to Explorer"))
+        // And it is looked after while the page lives, because the store draws it again.
+        assertTrue(script, script.contains("MutationObserver"))
+        assertTrue(script, script.contains("function apply()"))
+        // Whatever is left of the old labels is still understood.
+        assertTrue(script, script.contains("switch to chrome"))
     }
 
     @Test
     fun theButtonSaysAlreadyAdded_onceTheExtensionIsIn() {
         val before = StoreHook.script(context, extensionId, "t")
+        assertTrue(before, before.contains(context.getString(R.string.extensions_site_hook)))
         assertTrue(before, before.contains("var INSTALLED = false;"))
 
         ExtensionStore.directoryOf(context, extensionId).mkdirs()
@@ -144,6 +148,7 @@ class Release1732Test {
         )
         val after = StoreHook.script(context, extensionId, "t")
         assertTrue(after, after.contains("var INSTALLED = true;"))
+        assertTrue(after, after.contains(context.getString(R.string.extensions_site_hook_done)))
     }
 
     // 2. The sheet of the three-dot menu ------------------------------------------------------

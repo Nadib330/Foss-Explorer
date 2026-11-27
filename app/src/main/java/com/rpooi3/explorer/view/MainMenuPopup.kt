@@ -28,16 +28,12 @@ import com.rpooi3.explorer.R
  */
 class MainMenuPopup(
     private val anchor: View,
-    @MenuRes menuRes: Int = 0,
+    @MenuRes menuRes: Int,
     private val onItemSelected: (itemId: Int) -> Unit,
 ) {
-    /** Programmatic-menu overload used by list context menus. */
-    constructor(anchor: View, onItemSelected: (itemId: Int) -> Unit) :
-        this(anchor, 0, onItemSelected)
-
     // Only the model: it parses the menu resource and is never shown itself.
     private val model = PopupMenu(anchor.context, anchor).apply {
-        if (menuRes != 0) inflate(menuRes)
+        inflate(menuRes)
         setOnMenuItemClickListener { item ->
             // Not PopupMenu.dismiss(): that one is never shown.
             this@MainMenuPopup.dismiss()

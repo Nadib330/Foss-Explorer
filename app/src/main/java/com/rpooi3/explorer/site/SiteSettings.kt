@@ -38,8 +38,7 @@ object SiteSettings {
     )
 
     @JvmStatic
-    fun prefs(context: Context): SharedPreferences =
-        com.rpooi3.explorer.profile.ProfilePrefs.settings(context)
+    fun prefs(context: Context): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     /**
      * The site a web address or origin belongs to: its host in lower case

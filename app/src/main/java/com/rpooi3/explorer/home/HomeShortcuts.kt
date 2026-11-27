@@ -1,6 +1,5 @@
 package com.rpooi3.explorer.home
 
-import com.rpooi3.explorer.profile.ProfilePrefs
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
@@ -20,21 +19,16 @@ import java.util.Locale
  */
 object HomeShortcuts {
 
-    /** Tiles available to the home page source list; the built-in page displays four. */
+    /** Tiles on the home page: two rows of four. */
     const val MAX_SHORTCUTS = 8
 
     private const val TAG = "HomeShortcuts"
     private const val KEY_HIDDEN = "home_hidden_shortcuts"
 
-    /** 18.3.0 beta (item 1): the shortcuts the user added himself, as JSON. */
-    private const val KEY_USER = "home_user_shortcuts"
-
-    private const val MAX_USER_SHORTCUTS = 12
-
     /** Suggestions used to fill up the grid. Free and open projects only. */
     @JvmField
     val DEFAULTS: List<Shortcut> = listOf(
-        Shortcut("GitHub", "https://github.com/nadib330/Foss-Explorer/"),
+        Shortcut("Wikipedia", "https://www.wikipedia.org/"),
         Shortcut("OpenStreetMap", "https://www.openstreetmap.org/"),
         Shortcut("F-Droid", "https://f-droid.org/"),
         Shortcut("Codeberg", "https://codeberg.org/"),
@@ -129,68 +123,18 @@ object HomeShortcuts {
                 Log.w(TAG, "Could not close the database", e)
             }
         }
-        val users = userShortcuts(app)
-        val picked = users + select(
-            bookmarks.map(::toShortcut),
-            history.map(::toShortcut),
-            hidden(app),
-        )
-        return picked.distinctBy { it.url }
-    }
-
-    /**
-     * A shortcut saved by an older version's "Add Shortcut" card. Keep these entries first so an
-     * upgrade does not silently lose a user's home-page shortcuts, even though 18.4 no longer
-     * exposes an add card.
-     */
-    @JvmStatic
-    fun add(context: Context, title: String, url: String) {
-        val address = url.trim().let { if (it.contains("://")) it else "https://$it" }
-        if (address.isEmpty()) return
-        val name = title.trim().ifEmpty { siteOf(address) ?: address }
-        val stored = userShortcuts(context).toMutableList()
-        stored.removeAll { it.url == address }
-        stored.add(0, Shortcut(name, address))
-        val json = org.json.JSONArray()
-        for (shortcut in stored.take(MAX_USER_SHORTCUTS)) {
-            json.put(org.json.JSONObject().put("title", shortcut.title).put("url", shortcut.url))
-        }
-        ProfilePrefs.settings(context).edit { putString(KEY_USER, json.toString()) }
-    }
-
-    /** The shortcuts the user added, newest first. */
-    @JvmStatic
-    fun userShortcuts(context: Context): List<Shortcut> = try {
-        val raw = ProfilePrefs.settings(context).getString(KEY_USER, null) ?: return emptyList()
-        val json = org.json.JSONArray(raw)
-        (0 until json.length()).mapNotNull { index ->
-            val item = json.optJSONObject(index) ?: return@mapNotNull null
-            val url = item.optString("url")
-            if (url.isEmpty()) null else Shortcut(item.optString("title"), url)
-        }
-    } catch (e: Exception) {
-        Log.w(TAG, "Could not read the shortcuts of the user", e)
-        emptyList()
+        return select(bookmarks.map(::toShortcut), history.map(::toShortcut), hidden(app))
     }
 
     /** Removes a tile from the home page. The bookmark or history entry itself stays. */
     @JvmStatic
     fun hide(context: Context, shortcut: Shortcut) {
-        // A shortcut the user added is taken away rather than hidden: there is nothing behind it.
-        val users = userShortcuts(context)
-        if (users.any { it.url == shortcut.url }) {
-            val left = users.filterNot { it.url == shortcut.url }
-            val json = org.json.JSONArray()
-            for (item in left) json.put(org.json.JSONObject().put("title", item.title).put("url", item.url))
-            ProfilePrefs.settings(context).edit { putString(KEY_USER, json.toString()) }
-            return
-        }
         val updated = hidden(context) + shortcut.key
-        ProfilePrefs.settings(context).edit { putStringSet(KEY_HIDDEN, updated) }
+        PreferenceManager.getDefaultSharedPreferences(context).edit { putStringSet(KEY_HIDDEN, updated) }
     }
 
     private fun hidden(context: Context): Set<String> =
-        ProfilePrefs.settings(context)
+        PreferenceManager.getDefaultSharedPreferences(context)
             .getStringSet(KEY_HIDDEN, emptySet())?.toSet() ?: emptySet()
 
     private fun toShortcut(record: Record): Shortcut = Shortcut(record.title.orEmpty(), record.url.orEmpty())

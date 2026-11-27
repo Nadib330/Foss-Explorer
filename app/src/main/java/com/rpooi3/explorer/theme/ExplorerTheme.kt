@@ -1,12 +1,10 @@
 package com.rpooi3.explorer.theme
 
-import com.rpooi3.explorer.profile.ProfilePrefs
 import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
-import com.google.android.material.color.DynamicColorsOptions
 import com.rpooi3.explorer.R
 
 /**
@@ -53,15 +51,7 @@ object ExplorerTheme {
         AppCompatDelegate.setDefaultNightMode(mode)
     }
 
-    /**
-     * Sets the activity theme. Call before `setContentView`.
-     *
-     * 18.0.0 beta 9 (item 7): a color chosen in Settings &gt; Appearance &gt; Colors comes first. It
-     * is the seed color of one of Chromium's preset color schemes, and Material's content-based
-     * dynamic colors turns it into the whole palette of the app — light and dark, surfaces and
-     * accents — so the colors of the system (and of the wallpaper) are overridden, exactly as a
-     * color of Chrome's own color picker overrides them.
-     */
+    /** Sets the activity theme. Call before `setContentView`. */
     @JvmStatic
     fun applyTo(activity: Activity) {
         val theme = if (usesDynamicColor(activity)) {
@@ -74,48 +64,9 @@ object ExplorerTheme {
             R.style.AppTheme
         }
         activity.setTheme(theme)
-        applyChosenColor(activity)
-    }
-
-    /**
-     * Paints [activity] with the color scheme that was chosen, if one was. The seed is enough:
-     * Material derives the rest, and the light/dark choice of the theme still decides which side
-     * of the palette is used.
-     */
-    @JvmStatic
-    fun applyChosenColor(activity: Activity) {
-        // 18.1.0 beta (item 3): a color of the user's own paints the browser as a preset does.
-        val scheme = ColorSchemes.chosen(
-            com.rpooi3.explorer.profile.ProfilePrefs.settings(activity),
-        ) ?: return
-        try {
-            val options = DynamicColorsOptions.Builder()
-                .setContentBasedSource(scheme.seed)
-                .build()
-            if (DynamicColors.isDynamicColorAvailable()) {
-                DynamicColors.applyToActivityIfAvailable(activity, options)
-            } else {
-                // Android 8 to 11 have no palette of the system to replace — the browser paints
-                // itself from its own colors there — and a theme cannot be given other colors
-                // while it runs. What the browser paints itself is the bars around the page, and
-                // they take the two tones of the color that was chosen.
-                val dark = (activity.resources.configuration.uiMode and
-                    android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                    android.content.res.Configuration.UI_MODE_NIGHT_YES
-                val tones = com.google.android.material.color.utilities.SchemeTonalSpot(
-                    com.google.android.material.color.utilities.Hct.fromInt(scheme.seed),
-                    dark,
-                    0.0,
-                )
-                activity.window.statusBarColor = tones.primaryContainer
-                activity.window.navigationBarColor = tones.primaryContainer
-            }
-        } catch (e: Throwable) {
-            // A device without dynamic color keeps the theme it was given.
-        }
     }
 
     private fun themePreference(context: Context): String =
-        ProfilePrefs.settings(context)
+        PreferenceManager.getDefaultSharedPreferences(context)
             .getString(KEY_THEME, THEME_SYSTEM) ?: THEME_SYSTEM
 }

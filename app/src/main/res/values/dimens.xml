@@ -31,15 +31,7 @@
     <!-- Top and bottom bar (1.2.0) -->
     <dimen name="bar_button_size">48dp</dimen>
     <dimen name="address_pill_height">44dp</dimen>
-    <!-- 18.0.0 beta 4: the cards of the tab switcher, and the buttons of the top bar.
-         The trailing actions (shield, profile, menu) are a little narrower than they were, so
-         that they sit close to each other and to the address pill instead of drifting right. -->
-    <dimen name="tab_card_corner">18dp</dimen>
-    <dimen name="bar_button_size_compact">40dp</dimen>
     <dimen name="bottom_bar_height">56dp</dimen>
-    <!-- 18.4.0: both plus controls use one rounded-square silhouette. -->
-    <dimen name="new_tab_button_size">40dp</dimen>
-    <dimen name="new_tab_corner_radius">12dp</dimen>
     <!-- Settings cards (1.2.0) -->
     <dimen name="settings_card_margin">16dp</dimen>
     <dimen name="settings_card_gap">2dp</dimen>
@@ -57,6 +49,4 @@
     <dimen name="menu_item_gap">2dp</dimen>
     <dimen name="menu_group_gap">12dp</dimen>
     <dimen name="menu_item_height">52dp</dimen>
-    <!-- 18.0.0 beta 6: the card of a download, after Chrome's download bubble. -->
-    <dimen name="download_chip_radius">20dp</dimen>
 </resources>

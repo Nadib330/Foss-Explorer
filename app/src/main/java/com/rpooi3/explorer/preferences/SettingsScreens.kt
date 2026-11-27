@@ -5,7 +5,6 @@
  */
 package com.rpooi3.explorer.preferences
 
-import com.rpooi3.explorer.profile.ProfilePrefs
 import androidx.core.content.edit
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -62,34 +61,7 @@ object SettingsScreens {
         bindMarkedAds(fragment)
         bindSearchEngines(fragment)
         bindExtensions(fragment)
-        bindProfiles(fragment)
         bindAbout(fragment)
-    }
-
-    /**
-     * 18.0.0: the row *Profiles* of the first settings screen opens the screen of the profiles.
-     *
-     * It is wired here rather than with an `<intent>` in the layout: an intent that carries only a
-     * target class has no package, so androidx.preference found no activity to start and the app
-     * crashed with `ActivityNotFoundException` when the row was tapped.
-     */
-    private fun bindProfiles(fragment: PreferenceFragmentCompat) {
-        val context = fragment.requireContext()
-        // The rows of the first screen carry their title only, so no summary is set here; what
-        // the row does is said by the screen it opens.
-        fragment.findPreference<Preference>("section_profiles")?.let { row ->
-            row.setOnPreferenceClickListener {
-                try {
-                    context.startActivity(
-                        Intent(context, com.rpooi3.explorer.profile.ProfilesActivity::class.java),
-                    )
-                } catch (e: ActivityNotFoundException) {
-                    // Nothing to open is not worth a crash; the sheet in the browser still works.
-                    CatToast.show(context, R.string.profiles_picture_failed, 1)
-                }
-                true
-            }
-        }
     }
 
     private fun radios(fragment: PreferenceFragmentCompat, vararg keys: Pair<String, String>): List<RadioRowPreference> =
@@ -101,7 +73,7 @@ object SettingsScreens {
 
     private fun bindPrivacy(fragment: PreferenceFragmentCompat) {
         val context = fragment.requireContext()
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         fragment.findPreference<Preference>("section_preload")?.setSummary(
             if (PrivacySettings.preload(prefs) == PrivacySettings.PRELOAD_STANDARD) R.string.cr_preload_standard_title
             else R.string.cr_preload_none_title,
@@ -137,7 +109,7 @@ object SettingsScreens {
         )
         if (rows.isEmpty()) return
         val context = fragment.requireContext()
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         fun store(value: String) = prefs.edit { putString(PrivacySettings.KEY_SAFE_BROWSING, value) }
         RadioRowPreference.group(rows, PrivacySettings.safeBrowsing(prefs)) { value ->
             if (value == PrivacySettings.SAFE_BROWSING_OFF) {
@@ -166,7 +138,7 @@ object SettingsScreens {
             "preload_standard" to PrivacySettings.PRELOAD_STANDARD,
         )
         if (rows.isEmpty()) return
-        val prefs = ProfilePrefs.settings(fragment.requireContext())
+        val prefs = PreferenceManager.getDefaultSharedPreferences(fragment.requireContext())
         val supported = PrivacySettings.isPreloadSupported()
         // An Android System WebView that cannot preload leaves one choice.
         rows.firstOrNull { it.value == PrivacySettings.PRELOAD_STANDARD }?.isEnabled = supported
@@ -212,7 +184,7 @@ object SettingsScreens {
 
     private fun bindTabs(fragment: PreferenceFragmentCompat) {
         val context = fragment.requireContext()
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         fragment.findPreference<Preference>("section_inactive_tabs")?.summary =
             inactiveSummary(context, InactiveTabs.days(prefs))
         val rows = radios(fragment, "inactive_never" to "0", "inactive_7" to "7", "inactive_14" to "14", "inactive_21" to "21")
@@ -232,7 +204,7 @@ object SettingsScreens {
 
     private fun bindAccessibility(fragment: PreferenceFragmentCompat) {
         val context = fragment.requireContext()
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         fragment.findPreference<PageZoomPreference>("page_zoom_default_zoom")?.let { zoom ->
             zoom.zoom = PageZoom.defaultZoom(prefs)
             zoom.onZoomChanged = { PageZoom.setDefaultZoom(prefs, it) }
@@ -262,7 +234,7 @@ object SettingsScreens {
         val screen = fragment.preferenceScreen
         if (fragment.arguments?.getString("section") != "section_saved_zoom") return
         val context = fragment.requireContext()
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         screen.removeAll()
         val zooms = PageZoom.siteZooms(prefs)
         if (zooms.isEmpty()) {
@@ -344,31 +316,17 @@ object SettingsScreens {
 
         val installed = com.rpooi3.explorer.extension.ExtensionStore.installed(context)
         installed.forEach { extension ->
-            // A long press is caught on the row itself: androidx.preference offers no listener of
-            // its own for one, so the row overrides the binding of its view.
-            val row = object : Preference(context) {
-                override fun onBindViewHolder(holder: androidx.preference.PreferenceViewHolder) {
-                    super.onBindViewHolder(holder)
-                    holder.itemView.setOnLongClickListener {
-                        extensionActions(fragment, extension)
-                        true
-                    }
-                }
-            }.apply {
+            val row = Preference(context).apply {
                 key = EXTENSION_ROW + extension.id
                 title = extension.name
                 isSingleLineTitle = false
                 icon = com.rpooi3.explorer.view.ExtensionIcons.orDefault(context, extension)
                 summary = extensionSummary(context, extension)
-                // 17.4.1: a tap shows the extension itself — its popup, or its options page if
-                // that is all it has — the way a tap on its tile in the browser does. What can be
-                // done with it (on or off, its options, remove) is behind a long press, so that
-                // the first tap is the extension's own interface and never a row of choices.
+                // A tap opens what can be done with it: on or off, its options, remove.
                 setOnPreferenceClickListener {
-                    openExtensionUi(fragment, extension)
+                    extensionActions(fragment, extension)
                     true
                 }
-
             }
             category.addPreference(row)
         }
@@ -406,34 +364,6 @@ object SettingsScreens {
             else -> context.getString(R.string.extensions_no_popup)
         }.ifBlank { context.getString(R.string.extensions_no_popup) }
         return context.getString(R.string.extensions_row_summary, version, where)
-    }
-
-    /**
-     * 17.4.1: the interface of [extension] in a bubble, as the three-dot menu opens it in the
-     * browser: its popup, or its options page where the manifest names no popup.
-     */
-    private fun openExtensionUi(
-        fragment: PreferenceFragmentCompat,
-        extension: com.rpooi3.explorer.extension.WebExtension,
-    ) {
-        val context = fragment.requireContext()
-        val page = when {
-            extension.popupPath != null -> null
-            extension.optionsPath != null -> extension.optionsPath
-            else -> {
-                // Nothing that can be shown: the choices are the only thing left to offer.
-                extensionActions(fragment, extension)
-                return
-            }
-        }
-        com.rpooi3.explorer.extension.ExtensionPopup(
-            context,
-            extension,
-            null,
-            null,
-            null,
-            page,
-        ).show()
     }
 
     /** Options (if the manifest names a page) and Remove, for a long press on an extension. */
@@ -508,12 +438,8 @@ object SettingsScreens {
                     CatToast.show(context, R.string.extensions_install_invalid)
                     return@setPositiveButton
                 }
-                // 17.4.0: what the extension asks for is shown before it is added.
-                com.rpooi3.explorer.extension.ExtensionPrompt.request(
-                    fragment.requireActivity(),
-                    id,
-                ) { installed ->
-                    if (installed == null) return@request
+                com.rpooi3.explorer.extension.StoreHook.install(context, id) { installed ->
+                    if (installed == null) return@install
                     fragment.view?.post {
                         if (fragment.isAdded) bindExtensions(fragment)
                     }
@@ -526,7 +452,7 @@ object SettingsScreens {
 
     private fun bindSearchEngines(fragment: PreferenceFragmentCompat) {
         val context = fragment.requireContext()
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val rows = ArrayList<RadioRowPreference>()
         for (engine in SearchEngines.ALL) {
             val row = fragment.findPreference<RadioRowPreference>("engine_" + engine.key) ?: continue
@@ -610,7 +536,7 @@ object SettingsScreens {
         val context = fragment.requireContext()
         // Only the xGuard screen has these rows; every other screen is left alone.
         if (fragment.findPreference<Preference>("xguard_trackers_known") == null) return
-        val prefs = ProfilePrefs.settings(context)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
         // The ad blocker: one switch for the profile in use, stored as the engine reads it.
         fragment.findPreference<SwitchPreferenceCompat>("xguard_block_ads")?.let { row ->
@@ -839,19 +765,8 @@ object SettingsScreens {
 
     private fun bindAbout(fragment: PreferenceFragmentCompat) {
         val context = fragment.requireContext()
-        fragment.findPreference<Preference>("about_app")?.apply {
-            summary = context.getString(R.string.about_application_version, SettingsSections.versionName(context))
-            // The installed version is informational. Manual checking has its own tile below it.
-            isSelectable = false
-            setOnPreferenceClickListener(null)
-        }
-        fragment.findPreference<Preference>("about_updates")?.apply {
-            title = context.getString(R.string.about_check_updates_title)
-            setOnPreferenceClickListener {
-                com.rpooi3.explorer.update.UpdateActivity.open(fragment.requireActivity())
-                true
-            }
-        }
+        fragment.findPreference<Preference>("about_app")?.summary =
+            context.getString(R.string.about_application_version, SettingsSections.versionName(context))
         fragment.findPreference<Preference>("about_os")?.summary = operatingSystem()
         fragment.findPreference<Preference>("section_legal")?.summary =
             context.getString(R.string.about_legal_summary, COPYRIGHT_YEAR.toString())
@@ -861,6 +776,7 @@ object SettingsScreens {
             "about_license_chromium" to
                 (R.string.about_license_chromium to "licenses/Chromium-BSD-3-Clause.txt"),
             "about_license_mpl" to (R.string.about_license_mpl to "licenses/MPL-2.0.txt"),
+            "about_third_party" to (R.string.about_components_title to "licenses/components.txt"),
         ).forEach { (key, what) ->
             fragment.findPreference<Preference>(key)?.setOnPreferenceClickListener {
                 showText(context, what.first, what.second)

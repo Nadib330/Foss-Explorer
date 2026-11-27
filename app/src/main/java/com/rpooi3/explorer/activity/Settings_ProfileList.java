@@ -53,9 +53,6 @@ public class Settings_ProfileList extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationIcon(R.drawable.icon_back_stylized);
-        toolbar.setNavigationContentDescription(R.string.bar_back);
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         ListView listView = findViewById(R.id.whitelist);
         View scrollDividerTop = findViewById(R.id.scrollDividerTop);
@@ -100,9 +97,7 @@ public class Settings_ProfileList extends AppCompatActivity {
                                     "_saveHistory", "_camera", "_microphone", "_dom", "_night",
                                     "_drm", "_desktop"
                             };
-                            // 18.0.0 beta 9 (item 3): the settings of a site belong to the profile
-                            // in front, as every other setting does.
-                            SharedPreferences.Editor editor = com.rpooi3.explorer.profile.ProfilePrefs.settings(this.getContext()).edit();
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this.getContext()).edit();
                             for (String key : keysToClear) {
                                 editor.remove(domain + key);
                             }
@@ -144,7 +139,7 @@ public class Settings_ProfileList extends AppCompatActivity {
             snackbarDelete.setAction(this.getString(R.string.app_ok), v2 -> {
                 try {
                     // 1. SharedPreferences bereinigen
-                    SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(this);
+                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
                     SharedPreferences.Editor editor = sp.edit();
                     String[] suffixes = {
                             "_saveData", "_images", "_adBlock", "_trackingULS", "_location",

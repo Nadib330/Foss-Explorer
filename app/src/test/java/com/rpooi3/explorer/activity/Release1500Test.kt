@@ -255,30 +255,20 @@ class Release1500Test {
         showSwitcher()
 
         // Top row: a filled button for a new tab, the switch with the number of tabs, the menu.
-        assertTrue(view<View>(R.id.tabs_fab) is android.widget.ImageButton)
+        assertTrue(view<View>(R.id.tabs_new) is android.widget.ImageButton)
         val counter = view<MaterialButton>(R.id.tabs_mode_normal).icon as TabCountDrawable
         assertEquals("2", counter.label)
         assertNotNull(view<MaterialButton>(R.id.tabs_mode_private).icon)
         val search = view<EditText>(R.id.tabs_search)
         assertEquals("Search your tabs", search.hint.toString())
 
-        // The tab in front stands out with a ring, as in Chromium (18.0.0 beta 4; the cards carry
-        // the colour of the site under the picture since then).
+        // The tab in front stands out in the inverse colours.
         val cards = cards()
         assertEquals(listOf(false, true), cards.map { it.isSelected })
         fun color(attr: Int) = MaterialColors.getColor(activity, attr, 0)
-        assertTrue("the tab in front is ringed", (cards[1] as MaterialCardView).strokeWidth > 0)
-        assertEquals(color(androidx.appcompat.R.attr.colorPrimary), (cards[1] as MaterialCardView).strokeColor)
-        assertEquals("and none of the others", 0, (cards[0] as MaterialCardView).strokeWidth)
-        // A page with no colour of its own (nothing was drawn for it here) keeps the theme's.
-        assertEquals(
-            color(com.google.android.material.R.attr.colorSurfaceContainerHigh),
-            (cards[1] as MaterialCardView).cardBackgroundColor.defaultColor,
-        )
-        assertEquals(
-            color(com.google.android.material.R.attr.colorSurfaceContainerHighest),
-            (cards[0] as MaterialCardView).cardBackgroundColor.defaultColor,
-        )
+        assertEquals(color(com.google.android.material.R.attr.colorSurfaceInverse), (cards[1] as MaterialCardView).cardBackgroundColor.defaultColor)
+        assertEquals(color(com.google.android.material.R.attr.colorOnSurfaceInverse), cards[1].findViewById<TextView>(R.id.tab_card_title).currentTextColor)
+        assertEquals(color(com.google.android.material.R.attr.colorSurfaceContainerHighest), (cards[0] as MaterialCardView).cardBackgroundColor.defaultColor)
 
         // Searching narrows the cards by title and address.
         search.setText("wiki")
@@ -314,18 +304,13 @@ class Release1500Test {
 
     @Test
     fun theShield_standsLeftOfTheThreeDots_onWebsitesOnly() = browser {
-        // 18.0.0 beta 4: the shield keeps its place on the home page, invisible, so that the profile
-        // and the menu beside it never move by the width of a button (issue 5 of beta 4).
-        assertEquals("not on the home page", View.INVISIBLE, shield.visibility)
+        assertEquals("not on the home page", View.GONE, shield.visibility)
         open("https://example.org/")
         assertEquals(View.VISIBLE, shield.visibility)
         val bar = shield.parent as ViewGroup
-        // 18.0.0 beta 2: the profile in front stands between the shield and the three dots, so the
-        // shield is next to the profile and the profile next to the menu.
-        assertEquals("next to the profile in front", bar.indexOfChild(view(R.id.button_profile)) - 1, bar.indexOfChild(shield))
-        assertEquals("and the profile directly before the three dots", bar.indexOfChild(view(R.id.button_menu)) - 1, bar.indexOfChild(view(R.id.button_profile)))
+        assertEquals("directly before the three dots", bar.indexOfChild(view(R.id.button_menu)) - 1, bar.indexOfChild(shield))
         open("explorer://dino")
-        assertEquals("not on Explorer's own pages", View.INVISIBLE, shield.visibility)
+        assertEquals("not on Explorer's own pages", View.GONE, shield.visibility)
     }
 
     @Test
@@ -452,8 +437,8 @@ class Release1500Test {
 
     @Test
     fun theNoteOnFossBrowser_isGone_andTheSourceOfItIsNamed() {
-        // 16.1.0 (item 21): no card calls Explorer a fork any more. 17.4.3 removed the list of
-        // components it used to point at; LICENSE.md of the repository holds it now.
+        // 16.1.0 (item 21): no card calls Explorer a fork any more. What is still FOSS Browser's
+        // is named in the components list, and Legal information opens its repository.
         val intent = Intent(context, Settings_Activity::class.java).putExtra(Settings_Activity.EXTRA_SECTION, "section_legal")
         Robolectric.buildActivity(Settings_Activity::class.java, intent).setup().use { controller ->
             shadowOf(Looper.getMainLooper()).idle()
@@ -461,16 +446,15 @@ class Release1500Test {
             assertNull("the fork card is gone", fragment.findPreference<Preference>("about_fork"))
             val upstream = fragment.findPreference<Preference>("about_source_upstream")!!
             assertEquals("Source code of FOSS Browser", upstream.title.toString())
-            assertTrue(upstream.summary.toString().startsWith("FOSS Browser by Gaukler Faun"))
+            assertTrue(upstream.summary.toString().startsWith("FOSS Browser by Gaukler Faun."))
         }
     }
 
     @Test
-    fun theVersion_isStill18_0_0_ofThisCycle() {
-        // 18.0.0 beta 5 replaced beta 4; what changed is described in Release1800Beta5Test.
-        // 18.1.0 beta moved the name on; what 15.0.0 asks is that this is still 18.
-        assertTrue(SettingsSections.versionName(context).startsWith("18."))
+    fun theVersion_is17_3_2() {
+        // 17.3.3 replaced 17.3.2; what changed is described in Release1733Test.
+        assertEquals("17.3.3", SettingsSections.versionName(context))
         @Suppress("DEPRECATION")
-        assertTrue(context.packageManager.getPackageInfo(context.packageName, 0).versionCode >= 21)
+        assertEquals(13, context.packageManager.getPackageInfo(context.packageName, 0).versionCode)
     }
 }

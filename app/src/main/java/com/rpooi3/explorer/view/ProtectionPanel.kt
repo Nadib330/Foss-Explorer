@@ -157,7 +157,7 @@ object ProtectionPanel {
                 .setMessage(activity.getString(R.string.clear_site_data_dialog_description, host))
                 .setNegativeButton(R.string.clear_site_data_dialog_negative_button_text, null)
                 .setPositiveButton(R.string.clear_site_data_dialog_positive_button_text) { _, _ ->
-                    TrackingProtection.clearSiteData(activity, url)
+                    TrackingProtection.clearSiteData(url)
                     sheet.dismiss()
                     tab.reload()
                 }

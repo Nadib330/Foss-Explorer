@@ -50,7 +50,7 @@ public class CustomRedirectsDialog extends DialogFragment {
         if (spacer != null) spacer.setVisibility(View.VISIBLE);
 
         // 3. Daten laden & Adapter setzen
-        SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(requireContext());
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(requireContext());
         ArrayList<CustomItemsUtils.CustomItem> redirects = new ArrayList<>();
         try {
             redirects = CustomItemsUtils.getRedirects(sp);

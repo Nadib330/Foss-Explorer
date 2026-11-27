@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings > Downloads, laid out like Chromium's: where the files go, and what the browser does
+     with them. The folder row shows the path as the system writes it, and the picker behind it is
+     the one of Android (18.3.0 beta, item 12). -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:key="download_group_location" android:title="@string/download_location_group">
+
+        <Preference
+            android:icon="@drawable/icon_download"
+            android:key="download_location"
+            android:summary="@string/download_location_summary"
+            android:title="@string/download_location" />
+
+        <Preference
+            android:icon="@drawable/icon_delete"
+            android:key="download_location_reset"
+            android:title="@string/download_location_reset" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:key="download_group_behaviour" android:title="@string/download_group_behaviour">
+
+        <Preference
+            android:icon="@drawable/icon_download_circle"
+            android:key="download_open_list"
+            android:title="@string/download_show_all" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/icon_info"
+            android:key="download_notification"
+            android:summary="@string/download_notification_summary"
+            android:title="@string/download_notification_title"
+            android:widgetLayout="@layout/preference_switch_widget" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

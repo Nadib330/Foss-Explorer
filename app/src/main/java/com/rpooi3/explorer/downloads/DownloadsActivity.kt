@@ -9,7 +9,7 @@ import android.os.Looper
 import android.os.StatFs
 import android.text.format.Formatter
 import android.view.View
-import com.rpooi3.explorer.view.MainMenuPopup
+import androidx.appcompat.widget.PopupMenu
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.downloads.DownloadItem.Kind
@@ -84,18 +84,8 @@ class DownloadsActivity : LibraryActivity() {
                 if (item.totalBytes >= 0) Formatter.formatShortFileSize(this, item.totalBytes) else null,
                 site,
             ).joinToString(SEPARATOR)
-            // 18.3.0 beta (item 7): a download that is running says how far it is, in per cent
-            // and in bytes, and a paused one says that it is paused.
-            State.RUNNING -> item.percent?.let {
-                getString(
-                    R.string.downloads_running_detail,
-                    it,
-                    Formatter.formatShortFileSize(this, item.downloadedBytes),
-                    Formatter.formatShortFileSize(this, item.totalBytes),
-                )
-            } ?: getString(R.string.downloads_running)
-            State.PAUSED -> item.percent?.let { getString(R.string.downloads_paused_percent, it) }
-                ?: getString(R.string.downloads_paused)
+            State.RUNNING -> item.percent?.let { getString(R.string.downloads_running_percent, it) }
+                ?: getString(R.string.downloads_running)
             State.WAITING -> getString(R.string.downloads_waiting)
             State.FAILED -> listOfNotNull(getString(R.string.downloads_failed), site).joinToString(SEPARATOR)
         }
@@ -138,77 +128,35 @@ class DownloadsActivity : LibraryActivity() {
         handler.removeCallbacks(refresh)
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Returning from Android's install-permission screen completes the APK tap.
-        ApkInstaller.installPending(this)
-    }
-
     override fun onItemClick(item: Row.Item) = open(item.payload as DownloadItem)
 
     override fun onItemAction(item: Row.Item, anchor: View) {
         val download = item.payload as DownloadItem
-        val popup = MainMenuPopup(anchor) { itemId ->
-            when (itemId) {
-                MENU_OPEN -> open(download)
-                MENU_SHARE -> share(download)
-                MENU_COPY -> copyToClipboard(download.sourceUrl.orEmpty())
-                MENU_PAUSE -> {
-                    Downloads.task(this@DownloadsActivity, download)?.let { DownloadEngine.pause(this@DownloadsActivity, it.id) }
-                    reload()
-                }
-                MENU_RESUME -> {
-                    Downloads.task(this@DownloadsActivity, download)?.let { DownloadEngine.resume(this@DownloadsActivity, it.id) }
-                    reload()
-                }
-                MENU_INSTALL -> install(download)
-                MENU_DELETE -> confirmDelete(download)
+        PopupMenu(this, anchor).apply {
+            if (download.state == State.DONE) {
+                menu.add(0, MENU_OPEN, 0, R.string.downloads_open)
+                if (download.uri != null) menu.add(0, MENU_SHARE, 1, R.string.downloads_share)
             }
-        }
-        if (download.state == State.DONE) {
-            popup.menu.add(0, MENU_OPEN, 0, R.string.downloads_open)
-            // Built-in downloads in the app's folder carry a file path rather than a URI;
-            // resolve that path through the FileProvider just as the Open action does.
-            if (Downloads.uriFor(this@DownloadsActivity, download) != null) {
-                popup.menu.add(0, MENU_SHARE, 1, R.string.downloads_share)
+            if (download.sourceUrl != null) menu.add(0, MENU_COPY, 2, R.string.library_copy_link)
+            menu.add(0, MENU_DELETE, 3, if (download.state == State.DONE || download.state == State.FAILED) R.string.menu_delete else R.string.downloads_cancel)
+            setOnMenuItemClickListener { choice ->
+                when (choice.itemId) {
+                    MENU_OPEN -> open(download)
+                    MENU_SHARE -> share(download)
+                    MENU_COPY -> copyToClipboard(download.sourceUrl.orEmpty())
+                    MENU_DELETE -> confirmDelete(download)
+                }
+                true
             }
-        }
-        // 18.3.0 beta (item 6): a download that is on its way can be paused and carried on.
-        if (download.engine && download.state == State.RUNNING) {
-            popup.menu.add(0, MENU_PAUSE, 5, R.string.download_action_pause)
-        }
-        if (download.engine && download.state == State.PAUSED) {
-            popup.menu.add(0, MENU_RESUME, 5, R.string.download_action_resume)
-        }
-        // 18.3.0 beta (item 8): an app package is installed from here.
-        if (download.state == State.DONE && download.isPackage) {
-            popup.menu.add(0, MENU_INSTALL, 0, R.string.download_install)
-        }
-        if (download.sourceUrl != null) popup.menu.add(0, MENU_COPY, 2, R.string.library_copy_link)
-        popup.menu.add(0, MENU_DELETE, 3, if (download.state == State.DONE || download.state == State.FAILED) R.string.menu_delete else R.string.downloads_cancel)
-        popup.show()
-    }
-
-    /** 18.3.0 beta (item 8): hands a downloaded package to the installer of Android. */
-    private fun install(download: DownloadItem) {
-        Downloads.task(this, download)?.let { task ->
-            ApkInstaller.install(this, task)
-            return
-        }
-        val uri = Downloads.uriFor(this, download) ?: return
-        ApkInstaller.open(this, uri, ApkInstaller.MIME_APK, download.name)
+        }.show()
     }
 
     private fun open(download: DownloadItem) {
         when (download.state) {
-            State.RUNNING, State.WAITING, State.PAUSED -> CatToast.show(this, R.string.downloads_not_finished)
+            State.RUNNING, State.WAITING -> CatToast.show(this, R.string.downloads_not_finished)
             State.FAILED -> CatToast.show(this, R.string.downloads_failed)
             State.DONE -> {
-                if (download.isPackage) {
-                    install(download)
-                    return
-                }
-                val uri = Downloads.uriFor(this, download)
+                val uri = download.uri
                 if (uri == null) {
                     // No handle on the file itself (Android 9 and older): the system's downloads app has it.
                     openSystemDownloads()
@@ -237,7 +185,7 @@ class DownloadsActivity : LibraryActivity() {
     }
 
     private fun share(download: DownloadItem) {
-        val uri = Downloads.uriFor(this, download) ?: return
+        val uri = download.uri ?: return
         val send = Intent(Intent.ACTION_SEND)
             .setType(download.mimeType ?: "*/*")
             .putExtra(Intent.EXTRA_STREAM, uri)
@@ -270,8 +218,5 @@ class DownloadsActivity : LibraryActivity() {
         private const val MENU_SHARE = 2
         private const val MENU_COPY = 3
         private const val MENU_DELETE = 4
-        private const val MENU_PAUSE = 5
-        private const val MENU_RESUME = 6
-        private const val MENU_INSTALL = 7
     }
 }

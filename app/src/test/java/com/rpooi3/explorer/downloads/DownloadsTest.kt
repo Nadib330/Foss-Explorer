@@ -9,7 +9,6 @@ import com.rpooi3.explorer.downloads.DownloadItem.State
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -21,18 +20,6 @@ import org.robolectric.annotation.Config
 class DownloadsTest {
 
     private val context = ApplicationProvider.getApplicationContext<android.app.Application>()
-
-    @Before
-    fun clearState() {
-        DownloadStore.active(context).forEach { DownloadEngine.cancel(context, it.id) }
-        DownloadStore.clear(context)
-        context.getSharedPreferences("downloads_log", Context.MODE_PRIVATE).edit().clear().commit()
-        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        manager.query(DownloadManager.Query())?.use { cursor ->
-            val id = cursor.getColumnIndex(DownloadManager.COLUMN_ID)
-            while (cursor.moveToNext()) manager.remove(cursor.getLong(id))
-        }
-    }
 
     @Test
     fun theLog_remembersWhatWasAdded_andGivesEachEntryItsOwnId() {

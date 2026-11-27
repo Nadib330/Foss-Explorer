@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.File
 
 /**
  * What 17.3.3 changes: desktop mode is Chrome on Windows, in the header and inside the page; the
@@ -33,30 +32,16 @@ class Release1733Test {
         "Mozilla/5.0 (Linux; Android 16; X6850 Build/BP2A.250605.031.A3) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.58 Mobile Safari/537.36"
 
-    // 1. Desktop mode is Chrome on Windows — for every site but the Chrome Web Store ---------
+    // 1. Desktop mode is Chrome on Windows -----------------------------------------------------
 
     @Test
     fun desktopMode_isChromeOnWindows() {
         val desktop = ChromeUserAgent.desktop(mobileAgent)
         assertTrue(desktop, desktop.startsWith("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
-        assertEquals("Windows", ChromeUserAgent.DESKTOP_PLATFORM)
+        assertEquals(ChromeUserAgent.DESKTOP_PLATFORM, "Windows")
         // The version of the WebView, not a version of its own.
         assertTrue(desktop, desktop.contains("Chrome/130.0.0.0"))
         assertTrue(desktop.endsWith("Safari/537.36"))
-    }
-
-    @Test
-    fun onlyTheStore_getsTheOldLinuxAgent() {
-        // 17.4.0: the agent Explorer served the store before 17.3.3 is back for the store alone.
-        val store = ChromeUserAgent.store(mobileAgent)
-        assertTrue(store, store.startsWith("Mozilla/5.0 (X11; Linux x86_64)"))
-        assertEquals("Linux", ChromeUserAgent.STORE_PLATFORM)
-        // 18.2.0 beta (item 4): never older than 131, whatever the WebView reports, so that the
-        // store does not grey its install button out for an old engine.
-        assertTrue(store, store.contains("Chrome/131.0.0.0"))
-        assertEquals("Linux", ChromeUserAgent.platformOf(store = true, desktop = true))
-        assertEquals("Windows", ChromeUserAgent.platformOf(store = false, desktop = true))
-        assertEquals("Android", ChromeUserAgent.platformOf(store = false, desktop = false))
     }
 
     @Test
@@ -74,18 +59,11 @@ class Release1733Test {
     @Test
     fun thePageIsToldWindowsToo_platformAndTheClientHints() {
         val script = DesktopIdentity.script("130")
-        // 17.4.0: the platform of the script is the platform of the agent — Windows for a
-        // website, Linux for the Chrome Web Store.
         assertTrue(script.contains("'Win32'"))
-        assertTrue(script.contains("'Linux x86_64'"))
-        assertTrue(script.contains("'platform', NAVIGATOR_PLATFORM"))
+        assertTrue(script.contains("'platform', 'Windows'"))
         assertTrue(script.contains("mobile: false"))
         assertTrue(script.contains("'Google Chrome'"))
         assertTrue(script.contains("Chrome/130") || script.contains("MAJOR + '.0.0.0'"))
-        // Windows as the platform of a desktop page, Linux as the one of the store's.
-        assertTrue(DesktopIdentity.script("130", DesktopIdentity.WINDOWS).contains("'Windows'"))
-        assertTrue(DesktopIdentity.script("130", DesktopIdentity.LINUX).contains("'Linux'"))
-        assertEquals(DesktopIdentity.WINDOWS, ChromeUserAgent.DESKTOP_PLATFORM)
         // It runs before the page does, where the WebView has document-start scripts.
         assertNotNull(DesktopIdentity::class.java.getDeclaredMethod("apply", android.webkit.WebView::class.java, String::class.java))
         assertNotNull(DesktopIdentity::class.java.getDeclaredMethod("applyNow", android.webkit.WebView::class.java, String::class.java))
@@ -299,16 +277,12 @@ class Release1733Test {
     }
 
     @Test
-    fun theLicenceFileSaysOnlyWhatIsStillFOSSBrowsers() {
-        // 17.4.3: the app no longer carries a list of components (its row is gone and the file
-        // with it); the repository's LICENSE.md holds what it said.
-        assertNull(
-            com.rpooi3.explorer.preferences.SettingsScreens.readAsset(context, "licenses/components.txt"),
-        )
-        val text = File("../LICENSE.md").readText()
-        assertTrue("FOSS Browser is still named where it still is", text.contains("FOSS Browser"))
+    fun theComponentsSayOnlyWhatIsStillFOSSBrowsers() {
+        val text = com.rpooi3.explorer.preferences.SettingsScreens.readAsset(context, "licenses/components.txt")
+        assertNotNull(text)
+        assertTrue("FOSS Browser is still named where it still is", text!!.contains("FOSS Browser"))
         assertFalse("its ad blocker is not", text.contains("the ad blocker with its filter list"))
-        assertTrue("the blocker of this release is", text.contains("Cromite"))
+        assertTrue("the blocker of this release is", text.contains("after Chromite"))
         assertTrue("with the lists it reads", text.contains("EasyList"))
     }
 

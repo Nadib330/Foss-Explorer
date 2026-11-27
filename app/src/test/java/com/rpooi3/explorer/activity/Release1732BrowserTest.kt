@@ -20,10 +20,9 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
- * 17.3.2, item 1, as the browser shows it, and 18.2.0 beta (item 2) which reverses the first
- * half of it: the store is given its desktop agent but "Desktop site" can be turned off on it,
- * and the extension tile of the three-dot menu is on the home page as well, where it takes the
- * whole row that "Zoom" and "Extensions" share on a website.
+ * 17.3.2, item 1, as the browser shows it: the Chrome Web Store is always the desktop one and
+ * cannot be turned off there, and the extension tile of the three-dot menu is on the home page
+ * as well, where it takes the whole row that "Zoom" and "Extensions" share on a website.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 34], qualifiers = "w411dp-h891dp-notnight-xxhdpi")
@@ -66,52 +65,34 @@ class Release1732BrowserTest {
     }
 
     @Test
-    fun theStore_keepsItsDesktopAgent_butDesktopSiteCanBeTurnedOff() = browser {
+    fun theStore_isAlwaysTheDesktopOne_andCannotBeTurnedOff() = browser {
         open("https://chromewebstore.google.com/detail/x/$extensionId")
 
         assertTrue("the tab knows that it is on the store", web.isChromeWebStore())
-        // 18.2.0 beta (item 2): 17.3.2 had forced the store into the desktop layout and greyed
-        // the entry of the menu out. The store is given its desktop agent either way — that is
-        // what offers its install button (18.1.0 beta, item 6; 18.2.0 beta, item 4) — but the
-        // layout is the user's.
-        assertFalse("a new tab is a mobile one, even on the store", web.isDesktopSite)
-        val mobileAgent = web.settings.userAgentString
-        assertTrue("a Chrome user agent of a computer: $mobileAgent", mobileAgent.contains("X11; Linux x86_64"))
-        assertFalse("not the one of a phone: $mobileAgent", mobileAgent.contains("Mobile"))
-        // The phone's width: the store's own responsive page is the mobile one.
-        assertFalse("the store is not laid out as a desktop window", web.settings.useWideViewPort)
+        assertTrue("the store is a desktop site", web.isDesktopSite)
+        val agent = web.settings.userAgentString
+        // 17.3.3: the computer is one running Windows.
+        assertTrue("a Chrome user agent of a computer: $agent", agent.contains("Windows NT 10.0"))
+        assertFalse("not the one of a phone: $agent", agent.contains("Mobile"))
 
-        // It can be turned on, and that is a desktop window.
-        web.setDesktopSite(true)
-        idle()
-        assertTrue("the store is the desktop site", web.isDesktopSite)
-        assertTrue("laid out as a desktop window", web.settings.useWideViewPort)
-        assertTrue(
-            "and told so inside itself",
-            web.settings.userAgentString.contains("X11; Linux x86_64"),
-        )
-
-        // And off again — the store is not an exception any more.
+        // Turning it off does nothing there.
         web.setDesktopSite(false)
         idle()
-        assertFalse("it goes back to the phone's layout", web.isDesktopSite)
-        assertFalse("with the width of the page", web.settings.useWideViewPort)
+        assertTrue("it stays the desktop site", web.isDesktopSite)
 
-        // The entry of the menu is the ordinary one: it can be used, and it shows the state.
+        // And the entry of the menu cannot be used either.
         openMenu()
-        val menu = activity.mainMenu
-        assertTrue("Desktop site is a switch like anywhere else", menu.menu.findItem(R.id.main_desktop_site).isEnabled)
-        assertFalse("and shows that it is off", menu.menu.findItem(R.id.main_desktop_site).isChecked)
+        val storeMenu = activity.mainMenu
+        assertFalse(
+            "Desktop site is switched off in the menu",
+            storeMenu.menu.findItem(R.id.main_desktop_site).isEnabled,
+        )
+        assertTrue("it shows as on", storeMenu.menu.findItem(R.id.main_desktop_site).isChecked)
 
-        // On any other site the switch is the same, and the computer is one running Windows.
+        // On any other site the switch is the site's own again.
         open("https://example.com/")
         assertFalse(web.isChromeWebStore())
-        assertFalse("a website starts as the mobile one too", web.isDesktopSite)
-        web.setDesktopSite(true)
-        idle()
-        val other = web.settings.userAgentString
-        assertTrue("a website is served Windows: $other", other.contains("Windows NT 10.0"))
-        assertFalse("and not the Linux one of the store: $other", other.contains("X11; Linux"))
+        assertTrue(web.isDesktopSite)
     }
 
     @Test

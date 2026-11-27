@@ -22,8 +22,8 @@ android {
         minSdk = 26
         targetSdk = 37
 
-        versionCode = 36
-        versionName = "18.8.2"
+        versionCode = 13
+        versionName = "17.3.3"
     }
 
     signingConfigs {
@@ -64,13 +64,10 @@ android {
             // Robolectric needs the merged resources and manifest.
             isIncludeAndroidResources = true
             all {
-                it.maxHeapSize = "512m"
+                it.maxHeapSize = "1g"
                 // Robolectric keeps the files of every test until the run is over (about 1.5 MB
                 // per test). They go to the build directory; /tmp is a small RAM disk on some machines.
                 it.systemProperty("java.io.tmpdir", it.temporaryDir.absolutePath)
-                // 18.0.0 beta 6: the report of a run as JUnit XML too, so that a failure can be read
-                // where it happened instead of only in the console.
-                it.reports.junitXml.required.set(true)
             }
         }
     }
@@ -81,7 +78,6 @@ dependencies {
     // Already on the classpath through Material at this version; declared because the Kotlin code uses it directly.
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.preference)
-    implementation(libs.androidx.dynamicanimation)
     implementation(libs.androidx.webkit)
     implementation(libs.androidx.documentfile)
 

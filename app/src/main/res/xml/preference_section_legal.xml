@@ -34,8 +34,10 @@
             android:summary="@string/about_license_mpl_summary"
             android:title="@string/about_license_mpl" />
 
-        <!-- 17.4.3: no row of its own for the list of components any more; the licences, the
-             notices and what was taken from where are in the repository's LICENSE.md. -->
+        <Preference
+            android:key="about_third_party"
+            android:summary="@string/about_components_summary"
+            android:title="@string/about_components_title" />
 
     </PreferenceCategory>
 
@@ -51,13 +53,6 @@
             android:key="about_source_chromium"
             android:summary="@string/about_source_chromium_summary"
             android:title="@string/about_source_chromium_title" />
-
-        <!-- 17.4.0: Cromite, the fork the install prompt and the ad blocker follow, directly
-             under Chromium, whose code Cromite is a fork of. -->
-        <Preference
-            android:key="about_source_cromite"
-            android:summary="@string/about_source_cromite_summary"
-            android:title="@string/about_source_cromite_title" />
 
         <Preference
             android:key="about_source_firefox"

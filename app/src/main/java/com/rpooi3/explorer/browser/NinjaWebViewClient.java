@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Message;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.HttpAuthHandler;
@@ -47,11 +46,6 @@ import com.rpooi3.explorer.view.NinjaWebView;
 
 public class NinjaWebViewClient extends WebViewClient {
 
-    private static final String TAG = "NinjaWebViewClient";
-
-    /** The link a store button becomes when the chrome.* bridge cannot take the install. */
-    private static final String INSTALL_LINK = "explorer-install://";
-
     private final NinjaWebView ninjaWebView;
     private final Context context;
     private final SharedPreferences sp;
@@ -59,7 +53,7 @@ public class NinjaWebViewClient extends WebViewClient {
     public NinjaWebViewClient(NinjaWebView ninjaWebView) {
         this.ninjaWebView = ninjaWebView;
         this.context = ninjaWebView.getContext();
-        this.sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
+        this.sp = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     @Override
@@ -79,8 +73,7 @@ public class NinjaWebViewClient extends WebViewClient {
 
         if (ninjaWebView.isForeground()) ninjaWebView.invalidate();
         else ninjaWebView.postInvalidate();
-        com.rpooi3.explorer.profile.ProfileWebView
-                .cookieManager(ninjaWebView.getContext()).flush();
+        CookieManager.getInstance().flush();
 
         // The address of a private tab is not written to the preferences.
         if (!ninjaWebView.isPrivateTab()) sp.edit().putString("mCurrentUrl", url).apply();
@@ -138,9 +131,8 @@ public class NinjaWebViewClient extends WebViewClient {
 
     /**
      * Answers a page that could not be loaded: with the game if its address
-     * was asked for, with the offline notice if the connection is missing, and
-     * otherwise — since 18.0.0 beta 4 — with Explorer's own error page, in the
-     * colours of the phone, instead of the error page of Android System WebView.
+     * was asked for, with the offline notice if the connection is missing.
+     * Other errors keep the WebView's own error page.
      */
     public void onMainFrameError(final WebView view, final String failedUrl, final CharSequence description) {
         if (OfflinePage.isDinoUrl(failedUrl)) {
@@ -152,17 +144,6 @@ public class NinjaWebViewClient extends WebViewClient {
         if (OfflinePage.isOfflineError(description, OfflinePage.isOffline(context))) {
             // Not from inside the callback: the failed load is still being wound up.
             view.post(() -> ninjaWebView.showOfflinePage(failedUrl));
-            return;
-        }
-        // Every other error the WebView reports is answered by Explorer's own page as well: one that
-        // says what happened, in the language of the app and in its colours.
-        if (com.rpooi3.explorer.browser.ErrorPage.isWorthShowing(description)) {
-            view.post(() -> {
-                // A page that was already replaced by another load is not replaced again.
-                final String shown = ninjaWebView.getUrl();
-                if (null != shown && !shown.equals(failedUrl)) return;
-                ninjaWebView.showErrorPage(failedUrl, description);
-            });
         }
     }
 
@@ -171,19 +152,12 @@ public class NinjaWebViewClient extends WebViewClient {
         // A new page: what was blocked on the page before is not counted for it.
         com.rpooi3.explorer.privacy.TrackingProtection.onPageStarted(ninjaWebView);
         com.rpooi3.explorer.privacy.TrackingAnalysis.onPageStarted(ninjaWebView);
-        // 17.4.0: a page is told inside itself what its user agent said — Windows for a website in
-        // desktop mode, Linux for the Chrome Web Store. Where the WebView has document-start
-        // scripts this has already happened; coming twice is harmless.
-        // 18.2.0 beta (item 2): the store keeps its Linux identity even when "Desktop site" is
-        // turned off on it — its agent is the desktop one either way.
-        if (ninjaWebView.isDesktopSite() || ninjaWebView.isChromeWebStore()) {
+        // 17.3.3: a page of the desktop version is told that it is talking to Chrome on Windows —
+        // in the page itself, not only in the user agent (navigator.platform and the client hints).
+        if (ninjaWebView.isDesktopSite()) {
             final String agent = view.getSettings().getUserAgentString();
             com.rpooi3.explorer.browser.DesktopIdentity.applyNow(
-                    view,
-                    com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(agent),
-                    ninjaWebView.isChromeWebStore()
-                            ? com.rpooi3.explorer.browser.DesktopIdentity.LINUX
-                            : com.rpooi3.explorer.browser.DesktopIdentity.WINDOWS);
+                    view, com.rpooi3.explorer.browser.ChromeUserAgent.majorVersion(agent));
         }
         // 17.3.3: the element rules of the lists, written into the page before it is painted —
         // Chromite's other half of blocking, which stops the ad that is served by the site itself.
@@ -192,10 +166,6 @@ public class NinjaWebViewClient extends WebViewClient {
         }
         // 17.3.1: what an extension asks to run before the page is parsed.
         com.rpooi3.explorer.extension.ExtensionRuntime.onPageStarted(view, url);
-        // 17.3.4: a page of an extension in a tab has the chrome.* interfaces of that extension.
-        if (com.rpooi3.explorer.extension.ExtensionScripts.isExtensionUrl(url)) {
-            com.rpooi3.explorer.extension.ExtensionRuntime.onExtensionPage(view, url);
-        }
         // 17.3.2: the button of a Chrome Web Store page, as early as there is a page for it.
         com.rpooi3.explorer.extension.StoreHook.onPageStarted(view, url);
 
@@ -584,33 +554,6 @@ public class NinjaWebViewClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
         final Uri uri = request.getUrl();
         String url = uri.toString();
-        // 18.0.0 beta 3: the store page's own button, when the bridge could not take the install.
-        // The script turns that tap into this link; the extension is then added through the very
-        // code the three-dot menu uses, and the page stays where it is.
-        if (url.startsWith(INSTALL_LINK)) {
-            final String extensionId = url.substring(INSTALL_LINK.length());
-            final Context host = view.getContext();
-            if (host instanceof Activity) {
-                final Activity activity = (Activity) host;
-                activity.runOnUiThread(() ->
-                        com.rpooi3.explorer.extension.ExtensionPrompt.request(
-                                activity,
-                                extensionId,
-                                installed -> {
-                                    if (null != installed) {
-                                        try {
-                                            view.reload();
-                                        } catch (RuntimeException e) {
-                                            Log.w(TAG, "Cannot reload after the install: " + e);
-                                        }
-                                    }
-                                    return kotlin.Unit.INSTANCE;
-                                }));
-            } else {
-                com.rpooi3.explorer.extension.StoreHook.install(host, extensionId, null);
-            }
-            return true;
-        }
         if (OfflinePage.isDinoUrl(url)) {
             // The game is a page of this browser, not something for another app.
             view.loadUrl(OfflinePage.DINO_URL);
@@ -755,30 +698,42 @@ public class NinjaWebViewClient extends WebViewClient {
         );
     }
 
-    /**
-     * A certificate this device cannot trust.
-     *
-     * 18.0.0 beta 4: the site is not answered with a dialog any more. Firefox for Android, whose
-     * shape Explorer follows, shows the warning as a page of its own — "Warning: Potential
-     * Security Risk Ahead", with "Go Back" and, behind "Advanced", the error code and the way on.
-     * Nothing of the site is loaded until the user says so, and if the tab goes somewhere else, the
-     * waiting answer is dropped (see {@code NinjaWebView#loadUrl}).
-     */
-    @SuppressLint({"WebViewClientOnReceivedSslError", "SetJavaScriptEnabled"})
+    @SuppressLint("WebViewClientOnReceivedSslError")
     @Override
     public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
         view.stopLoading();
-        final String url = null != error.getUrl() && !error.getUrl().isEmpty()
-                ? error.getUrl()
-                : ninjaWebView.getUrl();
-        if (null == url || url.isEmpty()) {
-            // Nothing to warn about: the load is simply refused.
-            handler.cancel();
-            return;
-        }
-        final int primaryError = null == error ? SslError.SSL_UNTRUSTED : error.getPrimaryError();
-        view.post(() -> ninjaWebView.showSslWarning(url, handler, primaryError));
+
+        String message = switch (error.getPrimaryError()) {
+            case SslError.SSL_UNTRUSTED -> "Certificate authority is not trusted.";
+            case SslError.SSL_EXPIRED -> "Certificate has expired.";
+            case SslError.SSL_IDMISMATCH -> "Certificate Hostname mismatch.";
+            case SslError.SSL_NOTYETVALID -> "Certificate is not yet valid.";
+            case SslError.SSL_DATE_INVALID -> "Certificate date is invalid.";
+            default -> "Certificate is invalid.";
+        };
+
+        String text = message + " - " + context.getString(R.string.dialog_content_ssl_error);
+
+        HelperUtils.showCustomMaterialDialogWithTwoActions(
+                context,
+                R.drawable.icon_alert,
+                view.getTitle(),
+                text,
+                ninjaWebView.getUrl(),
+
+                () -> {
+                    handler.proceed();
+                    ninjaWebView.reload();
+                    return true;
+                },
+
+                () -> {
+                    handler.cancel();
+                    return true;
+                }
+        );
     }
+
 
     @Override
     public void onReceivedHttpAuthRequest(WebView view, @NonNull final HttpAuthHandler handler, String host, String realm) {
