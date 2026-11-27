@@ -21,16 +21,24 @@ object ExtensionStore {
     private const val KEY_LIST = "extensions_list"
     private const val KEY_ENABLED = "extensions_enabled"
 
-    /** `files/extensions`, where every extension has a folder named after its id. */
+    /**
+     * The folder of the extensions of the profile in front: `files/extensions` for the first
+     * profile, `files/profiles/<id>/extensions` for every other one (18.0.0 beta 3).
+     *
+     * The first profile keeps the folder it always had, so an update finds the installed extensions
+     * where they were; nothing is copied and no extension is lost.
+     */
     @JvmStatic
-    fun directory(context: Context): File = File(context.filesDir, "extensions")
+    fun directory(context: Context): File =
+        File(com.rpooi3.explorer.profile.Profiles.currentDir(context.applicationContext), "extensions")
 
     /** The folder of [extensionId]. */
     @JvmStatic
     fun directoryOf(context: Context, extensionId: String): File =
         File(directory(context), extensionId)
 
-    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    /** The list of the profile in front: `extensions` or `extensions@<id>`. */
+    private fun prefs(context: Context) = com.rpooi3.explorer.profile.ProfilePrefs.get(context, PREFS)
 
     /** What is installed, in the order it was installed. */
     @JvmStatic
@@ -39,12 +47,31 @@ object ExtensionStore {
         return try {
             val array = JSONArray(text)
             val list = ArrayList<WebExtension>(array.length())
+            var repaired = false
             for (i in 0 until array.length()) {
                 val item = array.optJSONObject(i) ?: continue
-                val extension = WebExtension.fromJson(item)
+                var extension = WebExtension.fromJson(item)
                 // A folder that was removed under us does not count as installed.
-                if (File(extension.rootDir).isDirectory) list.add(extension)
+                if (!File(extension.rootDir).isDirectory) continue
+                // 17.4.1: what was installed before the words of `_locales` were read carries
+                // `__MSG_…__` as its name. Its manifest is read again, once, and the list is
+                // written back with the name the extension actually has.
+                if (Locales.hasPlaceholder(extension.name) ||
+                    Locales.hasPlaceholder(extension.description)
+                ) {
+                    val fresh = try {
+                        ManifestParser.parse(extension.id, File(extension.rootDir))
+                    } catch (e: Exception) {
+                        null
+                    }
+                    if (fresh != null) {
+                        extension = fresh
+                        repaired = true
+                    }
+                }
+                list.add(extension)
             }
+            if (repaired) write(context, list)
             list
         } catch (e: Exception) {
             Log.w(TAG, "Cannot read the list: " + e)
@@ -105,9 +132,9 @@ object ExtensionStore {
         val current = prefs(context).getStringSet(KEY_ENABLED, null)?.toMutableSet() ?: mutableSetOf()
         current.remove(extensionId)
         prefs(context).edit().putStringSet(KEY_ENABLED, current).apply()
-        context.getSharedPreferences("extension_storage", Context.MODE_PRIVATE)
+        com.rpooi3.explorer.profile.ProfilePrefs.get(context, "extension_storage")
             .edit().remove("ext_" + extensionId).apply()
-        context.getSharedPreferences("extension_session", Context.MODE_PRIVATE)
+        com.rpooi3.explorer.profile.ProfilePrefs.get(context, "extension_session")
             .edit().remove("ext_" + extensionId).apply()
         try {
             directoryOf(context, extensionId).deleteRecursively()
@@ -122,6 +149,75 @@ object ExtensionStore {
         val array = JSONArray()
         list.forEach { array.put(it.toJson()) }
         prefs(context).edit().putString(KEY_LIST, array.toString()).apply()
+    }
+
+    /** Where a fetched extension waits while it is being asked about. */
+    @JvmStatic
+    fun stagingOf(context: Context, extensionId: String): File =
+        File(File(context.cacheDir, "staged"), extensionId)
+
+    /**
+     * 17.4.0: unpacks [crx] into a staging folder and reads its manifest, without adding it.
+     * The install prompt shows what the extension asks for, and only then is it added
+     * ([accept]), so nothing of an extension that was turned down stays in place.
+     *
+     * @return the extension as its manifest describes it, or null if it cannot be read
+     */
+    @JvmStatic
+    fun stage(context: Context, crx: File, extensionId: String): WebExtension? {
+        if (!extensionId.matches(Regex("[a-p]{32}"))) return null
+        val target = stagingOf(context, extensionId)
+        target.deleteRecursively()
+        target.mkdirs()
+        return try {
+            CrxExtractor.unpack(crx, target)
+            val parsed = ManifestParser.parse(extensionId, target)
+            if (parsed == null) target.deleteRecursively()
+            parsed
+        } catch (e: Exception) {
+            Log.w(TAG, "Cannot stage " + extensionId + ": " + e)
+            target.deleteRecursively()
+            null
+        }
+    }
+
+    /** Throws away what [stage] unpacked, after the question was answered with no. */
+    @JvmStatic
+    fun discard(context: Context, extensionId: String) {
+        try {
+            stagingOf(context, extensionId).deleteRecursively()
+        } catch (e: Exception) {
+            Log.w(TAG, "Cannot discard the staging folder: " + e)
+        }
+    }
+
+    /**
+     * 17.4.0: adds what [stage] unpacked — its files move into the extension's own folder and the
+     * staging folder goes.
+     *
+     * @return the installed extension, or null if it could not be moved or read
+     */
+    @JvmStatic
+    fun accept(context: Context, staged: WebExtension): WebExtension? {
+        val source = File(staged.rootDir)
+        if (!source.isDirectory) return null
+        val target = directoryOf(context, staged.id)
+        return try {
+            target.deleteRecursively()
+            target.mkdirs()
+            source.copyRecursively(target, overwrite = true)
+            val parsed = ManifestParser.parse(staged.id, target) ?: run {
+                target.deleteRecursively()
+                return null
+            }
+            add(context, parsed)
+            source.deleteRecursively()
+            parsed
+        } catch (e: Exception) {
+            Log.w(TAG, "Cannot accept " + staged.id + ": " + e)
+            target.deleteRecursively()
+            null
+        }
     }
 
     /**

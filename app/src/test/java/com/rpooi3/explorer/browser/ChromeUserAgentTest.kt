@@ -94,6 +94,24 @@ class ChromeUserAgentTest {
         assertEquals("Windows", ChromeUserAgent.DESKTOP_PLATFORM)
     }
 
+    @Test
+    fun store_isChromeOnLinux_andNothingElseGetsIt() {
+        // 17.4.0: the Chrome Web Store alone gets the desktop agent of before 17.3.3.
+        assertEquals(
+            // 18.1.0 beta (item 6): with the brand token of this browser, which the store's own
+            // pages expect beside the engine they were given. 18.2.0 beta (item 4): and never with
+            // an engine older than 131 — this WebView reports 126, the store is told 131.
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/131.0.0.0 Safari/537.36 Explorer/1.0",
+            ChromeUserAgent.store(webView),
+        )
+        assertEquals("Linux", ChromeUserAgent.STORE_PLATFORM)
+        assertEquals("", ChromeUserAgent.STORE_PLATFORM_VERSION)
+        assertEquals("Linux", ChromeUserAgent.platformOf(store = true, desktop = true))
+        assertEquals("Windows", ChromeUserAgent.platformOf(store = false, desktop = true))
+        assertEquals("Android", ChromeUserAgent.platformOf(store = false, desktop = false))
+    }
+
     // ------------------------------------------------------------ in the app
 
     private fun firstTab(block: (WebView) -> Unit) {

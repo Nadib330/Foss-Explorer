@@ -6,20 +6,55 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
+import java.io.File
 
 /**
- * Reads and deletes this browser's downloads. They come from two places: the
- * system's download manager, which fetches everything that has a web address
- * and only ever reports the downloads this app started, and [DownloadLog]
- * for the files the browser wrote itself.
+ * Reads and deletes this browser's downloads.
+ *
+ * 18.3.0 beta (item 9): the downloads Explorer makes itself are the ones of [DownloadStore] — they
+ * are the ones that can be paused and whose progress is known. The two older sources are still
+ * read so that nothing that was downloaded before disappears from the screen: the files the
+ * system's download manager fetched in earlier versions, and the `data:` files of [DownloadLog].
  */
 object Downloads {
     private const val TAG = "Downloads"
 
     /** All downloads, newest first. */
     @JvmStatic
-    fun list(context: Context): List<DownloadItem> =
-        (fromManager(context) + DownloadLog.list(context)).sortedByDescending { it.time }
+    fun list(context: Context): List<DownloadItem> {
+        val mine = DownloadStore.list(context).map { it.toItem() }
+        val ours = mine.map { it.sourceUrl }.toSet()
+        val logged = DownloadLog.list(context)
+        val before = fromManager(context).filterNot { it.sourceUrl != null && it.sourceUrl in ours }
+        return (mine + logged + before).sortedByDescending { it.time }
+    }
+
+    /** The download Explorer is making itself, if this row is one of those. */
+    @JvmStatic
+    fun task(context: Context, item: DownloadItem): DownloadTask? =
+        if (!item.engine) null else DownloadStore.find(context, item.id)
+
+    /** A `content://` address for a row, if there is one. */
+    @JvmStatic
+    fun uriFor(context: Context, item: DownloadItem): Uri? {
+        task(context, item)?.let { task ->
+            task.fileUri?.let { return runCatching { Uri.parse(it) }.getOrNull() }
+            task.filePath?.let { return ApkInstaller.uriOf(context, File(it)) }
+        }
+        item.uri?.let { uri ->
+            // A file of the app's own folder is handed out through the FileProvider.
+            if (uri.scheme == "file") {
+                val path = uri.path
+                if (path != null) ApkInstaller.uriOf(context, File(path))?.let { return it }
+            }
+            return uri
+        }
+        if (item.fromManager) {
+            val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: return null
+            return uriOf(manager, item.id)
+        }
+        return null
+    }
 
     private fun fromManager(context: Context): List<DownloadItem> {
         val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: return emptyList()
@@ -83,17 +118,34 @@ object Downloads {
      */
     @JvmStatic
     fun delete(context: Context, item: DownloadItem): Boolean {
+        task(context, item)?.let { task ->
+            // One of the built-in manager's: the file goes, and the entry with it.
+            DownloadEngine.cancel(context, task.id)
+            task.filePath?.let { runCatching { File(it).delete() } }
+            task.fileUri?.let { uri ->
+                runCatching { context.contentResolver.delete(Uri.parse(uri), null, null) }
+            }
+            DownloadStore.remove(context, task.id)
+            DownloadNotifications.clear(context, task.id)
+            return true
+        }
         if (item.fromManager) {
             val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: return false
             return manager.remove(item.id) > 0
         }
+        // A file Explorer wrote before the built-in manager was there (`data:` and blob links).
+        val uri = item.uri
         var removed = true
-        if (item.uri != null) {
+        if (uri != null) {
             removed = try {
-                context.contentResolver.delete(item.uri, null, null)
-                true
+                if (uri.scheme == "file") {
+                    File(uri.path.orEmpty()).delete()
+                } else {
+                    context.contentResolver.delete(uri, null, null)
+                    true
+                }
             } catch (e: Exception) {
-                Log.w(TAG, "Cannot delete ${item.uri}: $e")
+                Log.w(TAG, "Cannot delete $uri: $e")
                 false
             }
         }

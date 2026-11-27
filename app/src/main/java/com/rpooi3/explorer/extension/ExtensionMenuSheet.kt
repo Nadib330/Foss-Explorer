@@ -64,6 +64,9 @@ class ExtensionMenuSheet(
         sheet.setOnDismissListener { if (dialog === sheet) dialog = null }
         dialog = sheet
         sheet.show()
+        // The extension action menu follows the browser's flat menu treatment.
+        sheet.window?.decorView?.elevation = 0f
+        sheet.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.elevation = 0f
     }
 
     fun dismiss() {

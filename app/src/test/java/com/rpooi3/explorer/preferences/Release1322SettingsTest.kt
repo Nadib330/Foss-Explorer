@@ -119,18 +119,26 @@ class Release1322SettingsTest {
     fun privacyAndSecurity_hasChromiumsTwoGroups_andNothingOfBefore() = section("section_privacy") {
         assertEquals("Privacy and security", title)
         val groups = groups()
-        assertEquals(listOf("Privacy", "Security"), groups.map { it.title.toString() })
+        // 18.0.0 beta 8 (item 3): "Advanced" stands between them, with what is cleared on exit.
+        assertEquals(listOf("Privacy", "Advanced", "Security"), groups.map { it.title.toString() })
         assertEquals(
             listOf("Delete browsing data", "Preload pages", "Lock private tabs when you leave Explorer"),
             groups[0].titles(),
         )
+        assertEquals(
+            listOf(
+                "Clear data on exit", "Cache", "Close all tabs", "History", "Web storage", "App cache",
+            ),
+            groups[1].titles(),
+        )
         // 16.1.0 (item 9): "JavaScript optimization & security" is gone.
-        assertEquals(listOf("Safe Browsing"), groups[1].titles())
+        assertEquals(listOf("Safe Browsing"), groups[2].titles())
         assertEquals("Delete history, cookies, site data, cache…", pref("settings_clear").summary.toString())
         // What stood here before 13.2.2 is not here any more.
         assertNull(fragment.findPreference<Preference>("settings_profile"))
         assertNull(fragment.findPreference<Preference>("edit_standard"))
-        assertEquals(4, all().size)
+        // 18.0.0 beta 8: the four of before and the six rows of the exit.
+        assertEquals(10, all().size)
 
         pref("settings_clear").performClick()
         assertEquals(Settings_Clear::class.java.name, shadowOf(activity).nextStartedActivity.component!!.className)
@@ -563,9 +571,9 @@ class Release1322SettingsTest {
         val groups = groups()
         // 16.1.0 (item 1) added the feedback row here; 17.3.2 moved it to Help and support, so
         // About is four cards again.
-        assertEquals("every tile is a card of its own", listOf(1, 1, 1, 1), groups.map { it.preferenceCount })
+        assertEquals("every tile is a card of its own", listOf(1, 1, 1, 1, 1), groups.map { it.preferenceCount })
         assertEquals(
-            listOf("Application version", "Operating system", "Legal information", "Developer"),
+            listOf("Application version", "Check for updates", "Operating system", "Legal information", "Developer"),
             all().map { it.title.toString() },
         )
         assertNull("the feedback row left About", fragment.findPreference<androidx.preference.Preference>("about_feedback"))
@@ -576,12 +584,14 @@ class Release1322SettingsTest {
         )
         assertTrue(pref("section_legal").summary.toString().startsWith("Copyright 2026 rpooi3"))
         assertEquals("rpooi3", pref("section_developer").summary.toString())
+        // 18.5.1: the application-version card is informational; manual checking has its own tile.
         assertFalse(pref("about_app").isSelectable)
+        assertTrue(pref("about_updates").isSelectable)
         assertFalse(pref("about_os").isSelectable)
     }
 
     @Test
-    fun legalInformation_holdsTheLicensesTheComponentsAndTheSources() = section("section_legal") {
+    fun legalInformation_holdsTheLicensesAndTheSources() = section("section_legal") {
         assertEquals("Legal information", title)
         assertEquals(
             listOf(
@@ -589,12 +599,17 @@ class Release1322SettingsTest {
                 "GNU Affero General Public License, version 3",
                 // 17.3.3: the two browsers Explorer follows, beside the GNU licences.
                 "Chromium: BSD 3-Clause License", "Mozilla Public License, version 2.0",
-                "Open source components",
+                // 17.4.3: the row "Open source components" is gone; the notices are in the
+                // repository's LICENSE.md.
                 // 15.2.1: Chromium and Firefox are named above FOSS Browser's source.
                 // 16.1.0: the card "Code from FOSS Browser" is gone (item 21), and the app calls
                 // itself Explorer (item 22).
                 "Source code of Explorer",
-                "Source code of Chromium", "Source code of Firefox", "Source code of FOSS Browser",
+                "Source code of Chromium",
+                // 17.4.0: Cromite, whose install prompt and ad blocker Explorer follows, sits
+                // directly under Chromium.
+                "Source code of Cromite",
+                "Source code of Firefox", "Source code of FOSS Browser",
             ),
             all().map { it.title.toString() },
         )
@@ -611,19 +626,20 @@ class Release1322SettingsTest {
         assertTrue(text("about_license_agpl").contains("GNU AFFERO GENERAL PUBLIC LICENSE"))
         assertTrue(text("about_license_chromium").contains("Copyright 2015 The Chromium Authors"))
         assertTrue(text("about_license_mpl").contains("Mozilla Public License Version 2.0"))
-        val components = text("about_third_party")
-        for (part in listOf(
-            "FOSS Browser", "Chromium: offline page and dinosaur game", "Chromium: settings, context menu, tabs and Incognito page",
-            "Readability", "Material Components for Android", "The Chromium Authors",
-            "Redistribution and use in source and binary forms", "Apache License",
-        )) {
-            assertTrue(part, components.contains(part))
-        }
+        // 17.4.3: the row "Open source components" is gone — the licences, the notices and what
+        // was taken from where live in LICENSE.md of the repository.
+        assertNull(
+            "no tile for the components",
+            activity.supportFragmentManager.findFragmentById(R.id.content_frame)
+                ?.let { (it as PreferenceFragmentCompat).findPreference<Preference>("about_third_party") },
+        )
 
         mapOf(
             // 16.1.0 (item 18): the source of Explorer is on GitHub.
             "about_source" to "https://github.com/nadib330/Foss-Explorer/",
             "about_source_upstream" to "https://codeberg.org/Gaukler_Faun/FOSS_Browser",
+            // 17.4.0: the fork whose install prompt and ad blocker Explorer follows.
+            "about_source_cromite" to "https://github.com/uazo/cromite",
         ).forEach { (key, url) ->
             pref(key).performClick()
             val intent = shadowOf(activity).nextStartedActivity
@@ -651,7 +667,15 @@ class Release1322SettingsTest {
         fun asset(name: String) = SettingsScreens.readAsset(context, name)
         assertEquals(File(root, "COPYING").readText(), asset("licenses/GPL-3.0.txt"))
         assertEquals(File(root, "COPYING.AGPL").readText(), asset("licenses/AGPL-3.0.txt"))
-        assertTrue(asset("licenses/components.txt")!!.contains(File(root, "third_party/chromium-settings/LICENSE").readText().trim()))
+        // 17.4.3: the list of components is not in the app any more; LICENSE.md is where it is,
+        // and it names Chromium's licence with the rest.
+        val notices = File(root, "LICENSE.md").readText()
+        assertTrue(notices, notices.contains("Chromium"))
+        assertTrue(notices, notices.contains("GNU General Public License, version 3"))
+        assertTrue(
+            "and it points at the licence text of each part",
+            notices.contains("third_party/chromium-settings/LICENSE"),
+        )
         assertEquals(
             "the article finder is Mozilla's, unchanged",
             File(root, "third_party/readability/Readability.js").readText(),

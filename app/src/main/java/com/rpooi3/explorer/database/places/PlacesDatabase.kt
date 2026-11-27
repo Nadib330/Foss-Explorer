@@ -26,8 +26,10 @@ import java.io.File
  * code; SQLite on Android does not have those, so [Places] sets these
  * columns itself when it writes.
  */
-class PlacesDatabase private constructor(private val appContext: Context) :
-    SQLiteOpenHelper(appContext, NAME, null, VERSION) {
+class PlacesDatabase private constructor(
+    private val appContext: Context,
+    name: String,
+) : SQLiteOpenHelper(appContext, name, null, VERSION) {
 
     override fun onConfigure(db: SQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(true)
@@ -92,19 +94,52 @@ class PlacesDatabase private constructor(private val appContext: Context) :
         @Volatile
         private var instance: PlacesDatabase? = null
 
-        /** The one database of the app, opened on first use. */
+        /** The profile whose database is open; null before the first use. */
+        @Volatile
+        private var instanceProfile: String? = null
+
+        /**
+         * The database of the profile in front, opened on first use.
+         *
+         * 18.0.0: every profile has a database of its own, `places-<id>.sqlite`, so that history,
+         * bookmarks and saved lists never mix. The first profile keeps `places.sqlite`, which is
+         * where the history of every version before 18.0.0 is.
+         */
         @JvmStatic
         fun get(context: Context): PlacesDatabase {
             val app = context.applicationContext
-            // (One application, one database. Tests start a new application for every test.)
-            instance?.takeIf { it.appContext === app }?.let { return it }
+            val profile = com.rpooi3.explorer.profile.Profiles.currentId(app)
+            // (One application, one database per profile. Tests start a new application for every test.)
+            instance?.takeIf { it.appContext === app && instanceProfile == profile }?.let { return it }
             synchronized(this) {
-                instance?.takeIf { it.appContext === app }?.let { return it }
+                instance?.takeIf { it.appContext === app && instanceProfile == profile }?.let { return it }
                 instance?.close()
-                val created = PlacesDatabase(app)
-                importLegacy(context.applicationContext, created.writableDatabase)
+                instance = null
+                val created = PlacesDatabase(app, nameOf(app, profile))
+                if (profile.isEmpty()) importLegacy(context.applicationContext, created.writableDatabase)
                 instance = created
+                instanceProfile = profile
                 return created
+            }
+        }
+
+        /** The file name of the database of [profile]: `places.sqlite` for the first one. */
+        @JvmStatic
+        fun nameOf(context: Context, profile: String): String {
+            if (profile.isEmpty()) return NAME
+            return NAME.removeSuffix(".sqlite") + "-" + profile + ".sqlite"
+        }
+
+        /**
+         * Closes the database of the profile that is being left, so that another profile's file
+         * can be opened in its place. Nothing is lost: SQLite has written everything already.
+         */
+        @JvmStatic
+        fun closeForSwitch() {
+            synchronized(this) {
+                instance?.close()
+                instance = null
+                instanceProfile = null
             }
         }
 
@@ -114,6 +149,26 @@ class PlacesDatabase private constructor(private val appContext: Context) :
             synchronized(this) {
                 instance?.close()
                 instance = null
+                instanceProfile = null
+            }
+        }
+
+        /**
+         * Deletes the database of [profile], for a profile that is being taken away. The file of a
+         * deleted profile never comes back: a new profile gets a new id.
+         */
+        @JvmStatic
+        fun deleteFor(context: Context, profile: String) {
+            if (profile.isEmpty()) return
+            release()
+            try {
+                val file = context.applicationContext.getDatabasePath(nameOf(context, profile))
+                if (file.isFile) file.delete()
+                java.io.File(file.path + "-journal").delete()
+                java.io.File(file.path + "-wal").delete()
+                java.io.File(file.path + "-shm").delete()
+            } catch (e: Exception) {
+                Log.w(TAG, "The database of " + profile + " could not be deleted: " + e)
             }
         }
 

@@ -18,14 +18,17 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.edit
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceViewHolder
+import androidx.preference.TwoStatePreference
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.home.HomeAppearance
+import com.rpooi3.explorer.home.HomePage
 import com.rpooi3.explorer.view.CatToast
 import java.util.concurrent.Executors
 
@@ -35,6 +38,10 @@ object HomeCustomizationScreen {
     const val KEY_PICK = "home_wallpaper_pick"
     const val KEY_REMOVE = "home_wallpaper_remove"
     const val KEY_COLOR = "home_color"
+
+    // 18.0.0 beta 7 (item 5): the user's own home page.
+    const val KEY_CODE_EDIT = "home_code_edit"
+    const val KEY_CODE_CLEAR = "home_code_clear"
 
     /**
      * Gives the rows of [fragment] their state and behaviour; does nothing on
@@ -58,6 +65,29 @@ object HomeCustomizationScreen {
             showColors(fragment)
             true
         }
+        // 18.0.0 beta 7 (item 5): write the page, or throw it away.
+        fragment.findPreference<Preference>(KEY_CODE_EDIT)?.setOnPreferenceClickListener {
+            HomeCodeEditor.show(context) { refresh(fragment) }
+            true
+        }
+        fragment.findPreference<Preference>(KEY_CODE_CLEAR)?.setOnPreferenceClickListener {
+            HomeAppearance.prefs(context).edit()
+                .remove(HomeAppearance.KEY_CODE)
+                .putBoolean(HomeAppearance.KEY_CODE_ON, false)
+                .apply()
+            CatToast.show(context, R.string.home_code_cleared, 1)
+            refresh(fragment)
+            true
+        }
+        fragment.findPreference<Preference>(HomeAppearance.KEY_CODE_ON)?.setOnPreferenceChangeListener { _, value ->
+            // The switch cannot be turned on while there is no code to show.
+            if (value == true && !HomeAppearance.hasCode(context)) {
+                HomeCodeEditor.show(context) { refresh(fragment) }
+                false
+            } else {
+                true
+            }
+        }
         refresh(fragment)
     }
 
@@ -65,11 +95,42 @@ object HomeCustomizationScreen {
     @JvmStatic
     fun refresh(fragment: PreferenceFragmentCompat) {
         val context = fragment.context ?: return
+        // 18.3.0 beta (item 4): every switch shows what is stored, not what it showed last time.
+        // A switch that was turned off used to come back on when the screen was opened again, and
+        // the first tap then wrote "off" a second time instead of turning it on.
+        for (key in SWITCHES) {
+            val row = fragment.findPreference<Preference>(key) as? TwoStatePreference ?: continue
+            row.isChecked = HomeAppearance.prefs(context).getBoolean(key, DEFAULT_ON.contains(key))
+        }
+        // The style row is a custom two-card selector, not a normal ListPreference. Rebind it
+        // whenever Settings returns from another screen so its selected outline is never stale.
+        (fragment.findPreference<Preference>(HomePage.KEY_STYLE) as? HomeStylePreference)
+            ?.refreshSelection()
         val has = HomeAppearance.hasWallpaper(context)
+        // 18.0.0 beta 6 (item 8): the new rows say what they are set to. The value rows of
+        // AndroidX carry a summary provider of their own, so it is cleared before the text is set.
+        fragment.findPreference<Preference>(HomeAppearance.KEY_COLUMNS)?.let { row ->
+            row.setSummaryProvider(null)
+            row.summary = context.getString(R.string.home_columns_set, HomeAppearance.shortcutColumns(context))
+        }
+        fragment.findPreference<Preference>(HomeAppearance.KEY_TITLE)?.let { row ->
+            row.setSummaryProvider(null)
+            val text = HomeAppearance.prefs(context).getString(HomeAppearance.KEY_TITLE, null)?.trim()
+            row.summary = if (text.isNullOrEmpty()) context.getString(R.string.app_name) else text
+        }
         fragment.findPreference<Preference>(KEY_PICK)?.setSummary(
             if (has) R.string.home_wallpaper_set else R.string.home_wallpaper_none,
         )
         fragment.findPreference<Preference>(KEY_REMOVE)?.isEnabled = has
+        // 18.0.0 beta 7 (item 5): what stands ready for the user's own page.
+        val hasCode = HomeAppearance.hasCode(context)
+        fragment.findPreference<Preference>(HomeAppearance.KEY_CODE_ON)?.isEnabled = true
+        fragment.findPreference<Preference>(KEY_CODE_EDIT)?.summary = if (hasCode) {
+            context.getString(R.string.home_code_edit_summary)
+        } else {
+            context.getString(R.string.home_code_summary)
+        }
+        fragment.findPreference<Preference>(KEY_CODE_CLEAR)?.isEnabled = hasCode
         fragment.findPreference<Preference>(HomeAppearance.KEY_DIM)?.isEnabled = has
         fragment.findPreference<Preference>(KEY_COLOR)?.let { row ->
             // A wallpaper covers the colour; the row says so instead of looking as if it had no effect.
@@ -185,6 +246,22 @@ object HomeCustomizationScreen {
         dialog.show()
         return dialog
     }
+
+    /** The switches of the screen, and the ones that start switched off. */
+    private val SWITCHES = listOf(
+        HomeAppearance.KEY_SHOW_LOGO,
+        HomeAppearance.KEY_SHOW_SEARCH,
+        HomeAppearance.KEY_SHOW_SHORTCUTS,
+        HomeAppearance.KEY_DIM,
+        HomeAppearance.KEY_CODE_ON,
+    )
+
+    private val DEFAULT_ON = setOf(
+        HomeAppearance.KEY_SHOW_LOGO,
+        HomeAppearance.KEY_SHOW_SEARCH,
+        HomeAppearance.KEY_SHOW_SHORTCUTS,
+        HomeAppearance.KEY_DIM,
+    )
 
     private const val COLUMNS = 4
     private val executor = Executors.newSingleThreadExecutor()

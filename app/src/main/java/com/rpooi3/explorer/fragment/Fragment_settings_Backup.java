@@ -122,6 +122,10 @@ public class Fragment_settings_Backup extends BasePreferenceFragment {
                                 mainHandler.post(() -> {
                                     stopRunningState();
                                     CatToast.show(getContext(), success ? R.string.menu_restart : R.string.app_error, success ? 1 : 2);
+                                    if (success) {
+                                        // The database was replaced under a running browser.
+                                        mainHandler.postDelayed(() -> BackupUtils.triggerAppRestart(requireActivity()), 1000);
+                                    }
                                 });
                             });
                         });
@@ -194,7 +198,8 @@ public class Fragment_settings_Backup extends BasePreferenceFragment {
                 Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("application/zip");
-                intent.putExtra(Intent.EXTRA_TITLE, "Foss_Explorer_backup_full.zip");
+                // 18.0.0 beta 3: the file says which profile it belongs to (issue 8).
+                intent.putExtra(Intent.EXTRA_TITLE, backupFileName("full"));
                 createFileLauncher.launch(intent);
                 return true;
             });
@@ -215,7 +220,7 @@ public class Fragment_settings_Backup extends BasePreferenceFragment {
                 Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
                         .addCategory(Intent.CATEGORY_OPENABLE)
                         .setType("application/zip")
-                        .putExtra(Intent.EXTRA_TITLE, "Foss_Explorer_backup_databases.zip");
+                        .putExtra(Intent.EXTRA_TITLE, backupFileName("databases"));
                 createDbBackupLauncher.launch(intent);
                 return true;
             });
@@ -251,6 +256,16 @@ public class Fragment_settings_Backup extends BasePreferenceFragment {
                 return true;
             });
         }
+    }
+
+    /**
+     * The name the picker suggests: `Foss_Explorer_<profile>_backup_<what>.zip`. A profile name
+     * holds nothing that a file name cannot, so every character but letters, digits and dashes goes.
+     */
+    private String backupFileName(final String what) {
+        final String name = com.rpooi3.explorer.profile.Profiles.current(requireContext()).getName();
+        final String safe = name.replaceAll("[^\\p{L}\\p{N} _-]", "").trim().replace(' ', '_');
+        return "Foss_Explorer_" + (safe.isEmpty() ? "profile" : safe) + "_backup_" + what + ".zip";
     }
 
     private void startRunningState() {

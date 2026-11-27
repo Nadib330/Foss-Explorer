@@ -30,6 +30,16 @@
             android:key="section_home_custom"
             android:title="@string/setting_section_home_custom" />
 
+        <!-- 18.0.0: the profiles are managed from here as well as from the sheet. The row is
+             opened in code (SettingsScreens.bindProfiles): an intent element that carries only a
+             target class has no package, so androidx.preference found no activity to start and
+             tapping the row crashed the app with ActivityNotFoundException (beta 1, fixed in
+             beta 2). -->
+        <Preference
+            android:icon="@drawable/icon_profile_standard"
+            android:key="section_profiles"
+            android:title="@string/profiles_title" />
+
         <Preference
             android:icon="@drawable/icon_tab"
             android:key="section_tabs"
@@ -43,6 +53,11 @@
             android:icon="@drawable/icon_theme"
             android:key="section_appearance"
             android:title="@string/setting_section_appearance" />
+
+        <Preference
+            android:icon="@drawable/icon_layout"
+            android:key="section_layout"
+            android:title="@string/setting_section_layout" />
 
         <Preference
             android:icon="@drawable/icon_accessibility"
@@ -61,6 +76,12 @@
             android:icon="@drawable/icon_tune"
             android:key="section_site"
             android:title="@string/setting_section_site" />
+
+        <!-- 18.3.0 beta (item 12): the downloads, with the folder they go to. -->
+        <Preference
+            android:icon="@drawable/icon_download"
+            android:key="section_downloads"
+            android:title="@string/setting_section_downloads" />
 
         <Preference
             android:icon="@drawable/icon_database"

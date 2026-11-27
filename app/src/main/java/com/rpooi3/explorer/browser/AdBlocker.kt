@@ -14,6 +14,7 @@
  */
 package com.rpooi3.explorer.browser
 
+import com.rpooi3.explorer.profile.ProfilePrefs
 import android.content.Context
 import android.os.Build
 import android.util.Log
@@ -81,7 +82,7 @@ object AdBlocker {
     /** The lists in force: what the user picked, or the two that are on out of the box. */
     @JvmStatic
     fun lists(context: Context): Set<String> {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        val prefs = ProfilePrefs.settings(context.applicationContext)
         val stored = prefs.getStringSet(KEY_LISTS, null) ?: return DEFAULT_LISTS
         val known = SOURCES.map { it.id }.toSet()
         val picked = stored.filter { it in known }.toSet()
@@ -98,7 +99,7 @@ object AdBlocker {
         val app = context.applicationContext
         val next = lists(app).toMutableSet()
         if (on) next.add(id) else next.remove(id)
-        PreferenceManager.getDefaultSharedPreferences(app).edit()
+        ProfilePrefs.settings(app).edit()
             .putStringSet(KEY_LISTS, next).apply()
         ensure(app, force = true)
     }
@@ -106,7 +107,7 @@ object AdBlocker {
     /** When the lists in force were last written, as "12 Nov 2026"; empty if never. */
     @JvmStatic
     fun listDate(context: Context): String {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        val prefs = ProfilePrefs.settings(context.applicationContext)
         var newest = 0L
         for (id in lists(context)) {
             val stamp = prefs.getLong(KEY_STAMP_PREFIX + id, 0L)
@@ -131,7 +132,7 @@ object AdBlocker {
     fun ensure(context: Context, force: Boolean = false) {
         val app = context.applicationContext
         val wanted = lists(app).sorted().joinToString(",")
-        val daily = !PreferenceManager.getDefaultSharedPreferences(app)
+        val daily = !ProfilePrefs.settings(app)
             .getBoolean("sp_savedata", false)
         val stale = isStale(app, daily)
         if (!force && filter != null && wanted == loadedFor && !stale) return
@@ -186,7 +187,7 @@ object AdBlocker {
     }
 
     private fun download(context: Context) {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val prefs = ProfilePrefs.settings(context)
         var wrote = false
         for (source in SOURCES) {
             if (source.id !in lists(context)) continue

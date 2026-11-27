@@ -4,6 +4,7 @@
  */
 package com.rpooi3.explorer.home
 
+import com.rpooi3.explorer.profile.ProfilePrefs
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
@@ -41,10 +42,81 @@ object HomeAppearance {
     /** Whether the wallpaper is darkened a little so that what stands on it can be read. */
     const val KEY_DIM = "home_wallpaper_dim"
 
+    /**
+     * The built-in home-page choice is owned by [HomePage]. These aliases keep
+     * the appearance API source-compatible while ensuring every caller uses the
+     * same key and the same normalization rules.
+     */
+    const val KEY_STYLE = HomePage.KEY_STYLE
+
+    /** The compact built-in page. */
+    const val STYLE_NEW = HomePage.STYLE_NEW
+
+    /** The classic built-in page with the app name, search box and tiles. */
+    const val STYLE_CLASSIC = HomePage.STYLE_CLASSIC
+
     /** The background colour; absent for the colour of the theme. */
     const val KEY_COLOR = "home_color"
     const val KEY_SHOW_LOGO = "home_show_logo"
     const val KEY_SHOW_SHORTCUTS = "home_show_shortcuts"
+
+    // 18.0.0 beta 6 (item 8): more of the home page can be the user's own.
+    /** Whether the search box is shown. */
+    const val KEY_SHOW_SEARCH = "home_show_search"
+
+    /** The name that stands at the top; absent means the name of the app. */
+    const val KEY_TITLE = "home_title_text"
+
+    /** How many site tiles stand in a row: 3, 4 or 5. */
+    const val KEY_COLUMNS = "home_shortcuts_columns"
+
+    // 18.0.0 beta 7 (item 5): a home page written by the user.
+    /** Whether the user's own page is shown in place of the built-in one. */
+    const val KEY_CODE_ON = "home_code_on"
+
+    /** The code itself: HTML, with `<style>` and `<script>` in it as the user likes. */
+    const val KEY_CODE = "home_code"
+
+    /** Whether a page of code is there to be shown. */
+    @JvmStatic
+    fun hasCode(context: Context): Boolean = !code(context).isNullOrBlank()
+
+    /** The code the user wrote, or null. */
+    @JvmStatic
+    fun code(context: Context): String? =
+        prefs(context).getString(KEY_CODE, null)?.takeIf { it.isNotBlank() }
+
+    /** Whether the code is to be shown instead of the built-in page. */
+    @JvmStatic
+    fun codeOn(context: Context): Boolean = prefs(context).getBoolean(KEY_CODE_ON, false) && hasCode(context)
+
+    /** What a page of code gets when the user saved nothing yet: a page that says so. */
+    @JvmStatic
+    fun codeTemplate(context: Context): String = """
+        <!doctype html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            html, body { height: 100%; margin: 0; }
+            body {
+              display: flex; align-items: center; justify-content: center;
+              font-family: system-ui, sans-serif; background: transparent; color: #1b1b1f;
+            }
+            @media (prefers-color-scheme: dark) { body { color: #e6e1e5; } }
+            .page { text-align: center; padding: 24px; }
+            h1 { font-size: 24px; font-weight: 600; margin: 0 0 8px; }
+            p { margin: 0; opacity: .7; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <h1>Your own home page</h1>
+            <p>Write HTML, CSS and JavaScript in Settings &rsaquo; Home page customization.</p>
+          </div>
+        </body>
+        </html>
+    """.trimIndent()
 
     private const val FILE = "home_wallpaper.jpg"
     private const val TAG = "HomeAppearance"
@@ -73,7 +145,28 @@ object HomeAppearance {
     )
 
     @JvmStatic
-    fun prefs(context: Context): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    fun prefs(context: Context): SharedPreferences = ProfilePrefs.settings(context)
+
+    /** The selected built-in page; kept here as a compatibility facade for appearance callers. */
+    @JvmStatic
+    fun style(context: Context): String = HomePage.style(context)
+
+    @JvmStatic
+    fun setStyle(context: Context, style: String) = HomePage.setStyle(context, style)
+
+    /** Whether the new home page is the one shown. */
+    @JvmStatic
+    fun isNewStyle(context: Context): Boolean = HomePage.isNewStyle(context)
+
+    @JvmStatic
+    fun shortcutColumns(context: Context): Int {
+        val stored = prefs(context).getString(KEY_COLUMNS, null)?.toIntOrNull() ?: return COLUMNS_DEFAULT
+        return stored.coerceIn(COLUMNS_MIN, COLUMNS_MAX)
+    }
+
+    const val COLUMNS_DEFAULT = 4
+    const val COLUMNS_MIN = 3
+    const val COLUMNS_MAX = 5
 
     @JvmStatic
     fun wallpaperFile(context: Context): File = File(context.filesDir, FILE)
@@ -146,6 +239,16 @@ object HomeAppearance {
         prefs(context).edit { remove(KEY_WALLPAPER).remove(KEY_WALLPAPER_TIME) }
     }
 
+    /** 18.3.0 beta (item 2): white in the light theme, black in the dark one. */
+    @JvmStatic
+    fun defaultGround(context: Context): Int =
+        if (isNight(context)) Color.BLACK else Color.WHITE
+
+    @JvmStatic
+    fun isNight(context: Context): Boolean =
+        (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+
     /** Whether text on [background] should be light. */
     @JvmStatic
     fun needsLightText(@ColorInt background: Int): Boolean = ColorUtils.calculateLuminance(background) < 0.4
@@ -169,9 +272,17 @@ object HomeAppearance {
         val onSurfaceVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant, Color.DKGRAY)
 
         root.findViewById<View>(R.id.home_logo).isVisible = prefs.getBoolean(KEY_SHOW_LOGO, true)
+        // 18.0.0 beta 6 (item 8): the search box, and the name the user gave the page.
+        root.findViewById<View>(R.id.home_search)?.isVisible = prefs.getBoolean(KEY_SHOW_SEARCH, true)
+        val titleText = prefs.getString(KEY_TITLE, null)?.trim()
+        if (title != null) {
+            title.text = if (titleText.isNullOrEmpty()) context.getString(R.string.app_name) else titleText
+        }
 
         val hasWallpaper = hasWallpaper(context)
-        val background = if (hasWallpaper) Color.BLACK else color(prefs) ?: surface
+        // 18.3.0 beta (item 2): the ground of the home page is white in the light theme and black in
+        // the dark one, unless the user picked a colour or a picture for it.
+        val background = if (hasWallpaper) Color.BLACK else color(prefs) ?: defaultGround(context)
         root.setBackgroundColor(background)
         wallpaper.isVisible = hasWallpaper
         scrim.isVisible = hasWallpaper && prefs.getBoolean(KEY_DIM, true)

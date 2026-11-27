@@ -56,8 +56,9 @@ object DownloadLog {
         write(context, read(context).filter { it.id != id })
     }
 
+    /** 18.0.0: every profile has the log of the downloads it made (`downloads_log@<id>`). */
     private fun prefs(context: Context) =
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        com.rpooi3.explorer.profile.ProfilePrefs.get(context, PREFS)
 
     private fun read(context: Context): List<DownloadItem> {
         val json = prefs(context).getString(KEY_ITEMS, null) ?: return emptyList()

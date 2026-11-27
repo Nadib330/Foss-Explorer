@@ -93,7 +93,7 @@ public class HelperUtils {
     // Hilfsmethode, um SharedPreferences sicher ohne Memory-Leaks zu holen
     private static SharedPreferences getSp(Context context) {
         if (sp == null && context != null) {
-            sp = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+            sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context.getApplicationContext());
         }
         return sp;
     }
@@ -393,7 +393,7 @@ public class HelperUtils {
             });
 
             buttonProfile.setOnLongClickListener(v -> {
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+                SharedPreferences preferences = com.rpooi3.explorer.profile.ProfilePrefs.settings(activity);
                 preferences.edit().putString("profile", "profileStandard").apply();
                 NinjaWebView.getBrowserController().setProfileIcon(buttonProfile, url);
                 boolean isWhite = new List_standard(activity).isWhite(url);

@@ -42,6 +42,9 @@
     <string name="main_omnibox_input_hint">Search or type URL</string>
     <string name="menu_closeTab">Close tab</string>
     <string name="menu_dayView">Day view</string>
+    <!-- 18.0.0 beta 9 (item 2): the theme of Settings &gt; Appearance, in the words Chrome uses. -->
+    <string name="setting_theme_light">Light theme</string>
+    <string name="setting_theme_dark">Dark theme</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_delete_entry">Delete entry</string>
     <string name="menu_desktopView">Desktop view</string>
@@ -232,7 +235,12 @@
     <string name="setting_section_home_custom">Home page customization</string>
     <string name="setting_section_tabs">Tabs and groups</string>
     <string name="setting_section_appearance">Appearance</string>
+    <string name="setting_section_layout">Layout</string>
     <string name="setting_section_site">Site settings</string>
+    <string name="layout_address_bar_bottom_title">Show address bar at bottom</string>
+    <string name="layout_address_bar_bottom_summary">Move the browsing address bar to the bottom without changing the home screen.</string>
+    <string name="layout_show_tab_bar_title">Show tab bar</string>
+    <string name="layout_show_tab_bar_summary">Show the landscape-style tab bar in portrait while keeping the portrait bottom toolbar.</string>
     <string name="setting_section_help">Help and support</string>
     <string name="setting_section_about">About Explorer</string>
     <string name="site_group_permissions">Permissions</string>
@@ -292,6 +300,38 @@
     <string name="offline_suggestion_data">Turning on mobile data or Wi-Fi</string>
     <string name="offline_suggestion_signal">Checking the signal in your area</string>
     <string name="dino_heading">Press space to play</string>
+
+    <!-- 18.0.0 beta 4: Explorer\'s own page for a website that could not be loaded, in place of
+         the error page of Android System WebView. -->
+    <string name="error_page_heading">This site can\'t be reached</string>
+    <string name="error_page_picture">A browser window that cannot reach a website</string>
+    <string name="error_page_summary">The webpage at %1$s might be temporarily down or it may have moved permanently to a new web address.</string>
+    <string name="error_page_check_typo">Check if there is a typo in %1$s.</string>
+    <string name="error_page_refused">%1$s refused to connect.</string>
+    <string name="error_page_timeout">%1$s took too long to respond.</string>
+    <string name="error_page_reset">The connection to %1$s was reset.</string>
+    <string name="error_page_empty">%1$s did not send any data.</string>
+    <string name="error_page_unreachable">%1$s is unreachable. Check the connection of this device.</string>
+    <string name="error_page_certificate">The certificate of %1$s could not be checked.</string>
+    <string name="error_page_redirects">%1$s redirected too many times. Clear the cookies of the site and try again.</string>
+    <string name="error_page_file_missing">The file could not be found on this device.</string>
+    <string name="error_page_search">Search for %1$s</string>
+    <string name="error_page_detail">Try again, or search for the site to find where it went.</string>
+
+    <!-- 18.0.0 beta 4: the warning of an untrusted certificate, in the shape and the words of
+         Firefox for Android. -->
+    <string name="ssl_badge">Untrusted connection</string>
+    <string name="ssl_heading">Warning: Potential Security Risk Ahead</string>
+    <string name="ssl_body">Explorer detected a potential security threat and did not continue to %1$s. If you visit this site, attackers could try to steal information like your passwords, emails, or credit card details.</string>
+    <string name="ssl_go_back">Go Back</string>
+    <string name="ssl_advanced">Advanced</string>
+    <string name="ssl_accept">Accept the Risk and Continue</string>
+    <string name="ssl_error_code">Error code</string>
+    <string name="ssl_reason_expired">Websites prove their identity via certificates. Explorer does not trust this site because its certificate has expired. An expired certificate does not say who runs the site, so its identity cannot be proven.</string>
+    <string name="ssl_reason_mismatch">Websites prove their identity via certificates. Explorer does not trust this site because its certificate belongs to another address. An attacker on the network could be showing this page in place of the site you asked for.</string>
+    <string name="ssl_reason_date">Websites prove their identity via certificates. Explorer does not trust this site because the dates of its certificate are not valid. A certificate that is not valid now cannot prove who runs the site.</string>
+    <string name="ssl_reason_untrusted">Websites prove their identity via certificates. Explorer does not trust this site because it uses a certificate that is not signed by an authority this device knows.</string>
+    <string name="ssl_note">Nobody else has seen this warning: the page was never loaded.</string>
     <string name="menu_state_on">On</string>
     <string name="menu_state_off">Off</string>
     <string name="menu_desktop_site">Desktop site</string>
@@ -325,6 +365,8 @@
     <!-- 15.2.1: the engines and browsers this app is built on, above FOSS Browser's link -->
     <string name="about_source_chromium_title">Source code of Chromium</string>
     <string name="about_source_chromium_url" translatable="false">https://chromium.googlesource.com/chromium/src/</string>
+    <string name="about_source_cromite_title">Source code of Cromite</string>
+    <string name="about_source_cromite_url" translatable="false">https://github.com/uazo/cromite</string>
     <string name="about_source_firefox_title">Source code of Firefox</string>
     <string name="about_source_firefox_url" translatable="false">https://github.com/mozilla-firefox/firefox</string>
     <string name="about_source_upstream_title">Source code of FOSS Browser</string>
@@ -388,11 +430,11 @@
     <string name="engine_custom_message">Enter the address of the search page. What you search for is added at its end.</string>
     <string name="engine_custom_invalid">That is not a web address.</string>
     <string name="about_application_version" translatable="false">Explorer %1$s</string>
+    <string name="about_check_updates_title">Check for updates</string>
+    <string name="about_check_updates_summary">Look for a newer Explorer release</string>
     <string name="about_legal_summary">Copyright %1$s rpooi3. Free software under GPL-3.0.</string>
     <string name="about_license_gpl">GNU General Public License, version 3</string>
     <string name="about_license_agpl">GNU Affero General Public License, version 3</string>
-    <string name="about_components_title">Open source components</string>
-    <string name="about_components_summary">The parts by others that Explorer contains, and their licenses</string>
 
     <!-- 14.2.3 -->
     <!-- The question before a download. Texts of Firefox for Android (android-components,
@@ -553,8 +595,9 @@
     <string name="about_feedback_summary">Submit feedback by creating a new issue on GitHub</string>
     <string name="about_source_summary">The complete source of Explorer, on GitHub.</string>
     <string name="about_source_chromium_summary">The Chromium project, whose engine renders the pages, as Android System WebView brings it.</string>
+    <string name="about_source_cromite_summary">Cromite, the Chromium fork whose install prompt and ad-blocking method Explorer follows. GPL-3.0.</string>
     <string name="about_source_firefox_summary">Mozilla Firefox for Android, whose protection panel and settings Explorer follows.</string>
-    <string name="about_source_upstream_summary">FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components.</string>
+    <string name="about_source_upstream_summary">FOSS Browser by Gaukler Faun, the browser Explorer started from. Its licence and what Explorer still takes from it are in LICENSE.md of the source.</string>
     <string name="about_license_gpl_summary">The licence of Explorer\'s own code.</string>
     <string name="about_license_agpl_summary">The licence of the parts taken from FOSS Browser.</string>
     <string name="about_license_chromium">Chromium: BSD 3-Clause License</string>
@@ -568,6 +611,8 @@
     <string name="welcome_next">Next</string>
     <string name="welcome_start">Start browsing</string>
     <string name="welcome_default_browser">Make Explorer your default browser</string>
+    <string name="welcome_notifications">Allow notification</string>
+    <string name="welcome_notifications_note">Allow notifications to see download progress and update alerts.</string>
     <string name="welcome_page_1_title">Welcome to Explorer</string>
     <string name="welcome_page_1_text">A fast, private browser with Material You styling, built on open source code. One page at a time, without the tracking that other browsers bring along.</string>
     <string name="welcome_page_2_title">Browse privately</string>
@@ -575,7 +620,12 @@
     <string name="welcome_page_3_title">Block trackers with xGuard</string>
     <string name="welcome_page_3_text">xGuard keeps ads and known trackers off the pages you open, and shows you what it stopped. Tap the shield in the top bar to see the report for a site.</string>
     <string name="welcome_page_4_title">Make it yours</string>
-    <string name="welcome_page_4_text">The colours follow your wallpaper. Google searches by default; the search engine, the home page and the bars can be changed in the settings at any time.</string>
+    <string name="welcome_page_4_text">The colours follow your wallpaper. Choose a new or classic home page, then change the search engine, the home page and the bars in Settings at any time.</string>
+    <string name="welcome_home_style_title">Choose your home page</string>
+    <string name="welcome_home_style_message">Pick the home page that opens in a new tab. You can change it later in Home page customization.</string>
+    <string name="welcome_home_style_new">New home page</string>
+    <string name="welcome_home_style_classic">Classic home page</string>
+    <string name="welcome_home_style_keep">Keep the current choice</string>
 
     <!-- 16.1.0: marked ads, hidden by hand from the menu of a long press -->
     <string name="cr_contextmenu_mark_as_ad">Mark as ad and hide</string>
@@ -622,14 +672,274 @@
     <string name="extensions_row_summary">%1$s · %2$s</string>
     <string name="extensions_row_summary_on_site">%1$s · %2$s · works on this site</string>
     <string name="extensions_options">Options</string>
+    <!-- 17.4.0: what an extension asks for, before it is added. The words follow Chromium's
+         extension install prompt, as Cromite carries them (GPL-3.0). -->
+    <string name="extensions_prompt_title">Add \"%1$s\"?</string>
+    <string name="extensions_prompt_can">It can:</string>
+    <string name="extensions_prompt_nothing">Read and change nothing on its own.</string>
+    <string name="extensions_prompt_add">Add extension</string>
+    <string name="extensions_unreadable">Its manifest could not be read</string>
+    <string name="extensions_no_window">The extension can only be added from a window</string>
+    <string name="ext_warn_all_sites">Read and change all your data on all websites</string>
+    <string name="ext_warn_sites">Read and change your data on %1$s</string>
+    <string name="ext_warn_newtab">Replace the page you see when opening a new tab</string>
+    <string name="ext_warn_history">Read your browsing history</string>
+    <string name="ext_warn_history_devices">Read and change your browsing history on all your signed-in devices</string>
+    <string name="ext_warn_bookmarks">Read and change your bookmarks</string>
+    <string name="ext_warn_downloads">Manage your downloads</string>
+    <string name="ext_warn_notifications">Display notifications</string>
+    <string name="ext_warn_cookies">Read and change your cookies and site data</string>
+    <string name="ext_warn_clipboard_read">Read data you copy and paste</string>
+    <string name="ext_warn_clipboard_write">Modify data you copy and paste</string>
+    <string name="ext_warn_management">Manage your apps, extensions and themes</string>
+    <string name="ext_warn_capture">Capture content of your screen</string>
+    <string name="ext_warn_identity">Know your email address</string>
+    <string name="ext_warn_location">Detect your physical location</string>
+    <string name="ext_warn_proxy">Control your proxy settings</string>
+    <string name="ext_warn_browsing_data">Clear your browsing data</string>
+    <string name="ext_warn_network">Observe the network requests of the sites you visit</string>
+    <string name="ext_warn_blocking">Block content on any page you open</string>
+    <string name="ext_warn_camera">Use your camera and microphone</string>
     <string name="extensions_no_popup">This extension has nothing to show. Its content scripts work on the pages it asks for.</string>
     <string name="extensions_note_title">What extensions can do here</string>
-    <string name="extensions_note_text">Explorer unpacks the extension from the Chrome Web Store and runs it itself, because the Android System WebView knows no chrome.* interfaces. Content scripts and their stylesheets run on the pages they ask for, a popup opens in a sheet, and chrome.storage is kept by Explorer. What needs a background service worker, declarativeNetRequest or the tabs of other websites is not offered, and the extension list says so where it matters. Extensions are taken from Google’s servers unchanged; Explorer does not check their signature, so add only extensions you trust.</string>
+    <string name="extensions_note_text">Explorer unpacks the extension from the Chrome Web Store and runs it itself, because the Android System WebView knows no chrome.* interfaces. Before it is added you are shown what it asks for, as Chrome shows it. Its content scripts and stylesheets run on the pages they ask for, a tap on it opens its own popup or options page in a bubble, its background page runs on its own, and its parts talk through chrome.runtime and chrome.tabs; chrome.storage is kept by Explorer. What is left out is declarativeNetRequest blocking, a background that has to outlive the browser, and the tabs of other windows. Extensions are taken from Google’s servers unchanged; Explorer does not check their signature, so add only extensions you trust.</string>
     <string name="extensions_store_url" translatable="false">https://chromewebstore.google.com/</string>
     <string name="extensions_menu_add_page">Add this extension to Explorer</string>
     <string name="extensions_badge_site">This site</string>
     <string name="extensions_site_hook">Add to Explorer</string>
     <string name="extensions_site_hook_note">Explorer can run this extension itself.</string>
     <string name="extensions_site_hook_done">Already added</string>
+
+
+    <!-- 18.0.0: profiles. Wording follows Chrome's profile panel; nothing mentions an account,
+         because Explorer has no sign-in. -->
+    <string name="menu_profiles">Profiles</string>
+    <string name="profiles_title">Profiles</string>
+    <string name="profiles_settings_summary">Name, picture and colour of every profile; whether the switcher opens on startup</string>
+    <string name="profiles_add">Add profile</string>
+    <string name="profiles_picture">Profile picture</string>
+    <string name="profiles_picture_choose">Choose a picture</string>
+    <string name="profiles_picture_change">Change the picture</string>
+    <string name="profiles_picture_remove">Remove the picture</string>
+    <string name="profiles_picture_failed">That picture could not be read.</string>
+    <string name="profiles_picture_hint">Tap the picture to choose one from your files</string>
+    <string name="profiles_now_browsing">Now browsing as %1$s</string>
+    <string name="profiles_settings">Profile settings</string>
+    <string name="profiles_current">Current profile</string>
+    <string name="profiles_current_with_tabs">Current profile &#183; %1$d tab(s) &#8212; tap for its settings</string>
+    <string name="profiles_manage">Manage profiles</string>
+    <string name="profiles_new_title">New profile</string>
+    <string name="profiles_edit_title">Edit profile</string>
+    <string name="profiles_create">Create</string>
+    <string name="profiles_save">Save</string>
+    <string name="profiles_name_hint">Name</string>
+    <string name="profiles_colour">Colour</string>
+    <string name="profiles_colour_of">Colour: %1$s</string>
+    <string name="profiles_active_note">In use &#183; %1$d tab(s)</string>
+    <string name="profiles_in_use">In use</string>
+    <string name="profiles_switch">Tap to switch to this profile</string>
+    <string name="profiles_only_note">You have one profile. Add another to keep two sets of cookies, history and bookmarks apart.</string>
+    <string name="profiles_always_ask">Always show on startup</string>
+    <string name="profiles_guest">Guest</string>
+    <string name="profiles_guest_note">Browse without leaving anything behind. Closing the guest deletes everything it stored.</string>
+    <string name="profiles_guest_leave_note">Leave the guest session and delete its cookies and history.</string>
+    <string name="profiles_guest_active">Guest session &#183; nothing is saved</string>
+    <string name="profiles_guest_running">A guest session is running. Leaving it deletes everything it stored.</string>
+    <string name="profiles_switched">Profile: %1$s</string>
+    <string name="profiles_too_many">No more profiles can be added.</string>
+    <string name="profiles_delete">Delete</string>
+    <string name="profiles_delete_title">Delete &quot;%1$s&quot;?</string>
+    <string name="profiles_delete_message">The history, bookmarks, saved lists, cookies, passwords of websites, site permissions and downloads of this profile are deleted. This cannot be undone. The profile in use and the last profile cannot be deleted.</string>
+    <string name="profiles_isolation_on">This device keeps the cookies, the web storage and the cache of every profile apart, as WebView profiles.</string>
+    <string name="profiles_isolation_off">This device cannot keep the cookies apart: its System WebView has no profiles (AndroidX WebKit MULTI_PROFILE). History, bookmarks and site permissions are still separate for every profile.</string>
+    <!-- 18.0.0 beta 6 -->
+    <!-- 1. Firefox's navigation in the three-dot menu -->
+    <string name="menu_nav_back">Back</string>
+    <string name="menu_nav_forward">Forward</string>
+    <string name="menu_nav_reload">Reload</string>
+    <!-- 3. Opera's power button -->
+    <string name="menu_exit">Exit</string>
+    <!-- 4. the notice of a closed tab, as Chrome shows it -->
+    <string name="tab_closed">Tab closed</string>
+    <string name="tab_closed_private">Private tab closed</string>
+    <string name="tab_closed_undo">Undo</string>
+    <!-- 5. and 6. the notice of a download, and the way to the file -->
+    <string name="download_chip_open">Open</string>
+    <string name="download_chip_close">Close</string>
+    <string name="download_chip_started">Downloading…</string>
+    <string name="download_chip_percent">%1$d%%</string>
+    <string name="download_chip_done">Downloaded</string>
+    <string name="download_chip_failed">The download failed</string>
+    <string name="download_chip_cannot_open">No app on this device can open this file.</string>
+    <!-- 7. Chrome's pencil on the new tab page -->
+    <string name="home_customize">Customize the home page</string>
+    <!-- 8. more of the home page is the user's own -->
+    <string name="home_show_search">Search box</string>
+    <string name="home_show_search_summary">Show the search box on the home page</string>
+    <string name="home_title_text">Name of the page</string>
+    <string name="home_title_text_summary">What stands at the top of the home page; empty for the name of the app</string>
+    <string name="home_columns">Sites in a row</string>
+    <string name="home_columns_summary">How many site tiles stand side by side</string>
+    <string name="home_columns_set">%1$d tiles in a row</string>
+    <string name="home_columns_3">Three</string>
+    <string name="home_columns_4">Four</string>
+    <string name="home_columns_5">Five</string>
+
+    <!-- 18.0.0 beta 7 -->
+    <!-- 4. the print button of the three-dot menu -->
+    <string name="menu_nav_print">Print</string>
+    <string name="print_job">%1$s</string>
+    <string name="print_nothing">There is nothing on this page to print.</string>
+    <!-- 5. the home page that is code -->
+    <string name="home_code">Your own page (HTML, CSS, JavaScript)</string>
+    <string name="home_code_summary">Write the home page yourself. The bars, the profile and the menu stay where they are.</string>
+    <string name="home_code_edit">Edit the code</string>
+    <string name="home_code_edit_summary">HTML with &lt;style&gt; and &lt;script&gt; as you like</string>
+    <string name="home_code_use">Show my own page</string>
+    <string name="home_code_use_summary">In place of the built-in home page</string>
+    <string name="home_code_clear">Remove the code</string>
+    <string name="home_code_cleared">The code is gone; the built-in page is back.</string>
+    <string name="home_code_title">Your own home page</string>
+    <string name="home_code_hint">HTML, CSS and JavaScript, as in a page of your own. The page is drawn under the bars of the browser: the bottom bar, the profile and the menu are not touched by your code.</string>
+    <string name="home_code_save">Save</string>
+    <string name="home_code_cancel">Cancel</string>
+    <string name="home_code_saved">The page was saved.</string>
+    <!-- 18.0.0 beta 8 -->
+
+    <!-- item 2: the question before the browser closes -->
+    <string name="exit_confirm_title">Close Explorer?</string>
+    <string name="exit_confirm_message">The tabs that are open will be closed. They come back the next time Explorer starts.</string>
+    <string name="exit_confirm_never">Do not ask again</string>
+
+    <!-- item 3: Settings &gt; Privacy and security &gt; Advanced -->
+    <string name="cr_advanced_section_title">Advanced</string>
+    <string name="clear_on_exit_title">Clear data on exit</string>
+    <string name="clear_on_exit_summary">What is deleted when Explorer is closed.</string>
+    <string name="clear_on_exit_cache">Cache</string>
+    <string name="clear_on_exit_cache_summary">The pages and pictures that were kept for a faster load.</string>
+    <string name="clear_on_exit_tabs">Close all tabs</string>
+    <string name="clear_on_exit_tabs_summary">Every tab is closed, so the next start begins with one new tab.</string>
+    <string name="clear_on_exit_history">History</string>
+    <string name="clear_on_exit_history_summary">The list of the pages that were visited.</string>
+    <string name="clear_on_exit_webstorage">Web storage</string>
+    <string name="clear_on_exit_webstorage_summary">Cookies, local storage and the databases of websites.</string>
+    <string name="clear_on_exit_appcache">App cache</string>
+    <string name="clear_on_exit_appcache_summary">The files Explorer itself kept in its cache folder.</string>
+
+    <!-- item 6: the notice after the theme was changed -->
+    <string name="restart_notice_title">Restart Explorer</string>
+    <string name="restart_notice_message">The theme was changed. Explorer restarts to paint every screen with it.</string>
+    <string name="restart_notice_ok">Restart</string>
+
+    <!-- item 7: the wait while an extension is fetched -->
+    <string name="extensions_wait_title">Please wait</string>
+    <string name="extensions_wait_note">The extension is being fetched.</string>
+
+    <!-- item 4: a popup that could not be shown -->
+    <string name="extensions_popup_failed">The popup of %1$s did not open. The extension brings no page of its own, or it failed to draw one.</string>
+    <string name="extensions_popup_reload">Try again</string>
+    <!-- 18.0.0 beta 9 -->
+    <string name="media_playback_channel">Sound in the background</string>
+    <string name="media_playback_channel_description">Keeps a page that is playing audible while Explorer is not in front.</string>
+    <string name="media_playing_where">Playing in %1$s</string>
+    <string name="media_paused_where">Paused in %1$s</string>
+    <string name="media_play">Play</string>
+    <string name="media_pause">Pause</string>
+    <string name="media_background_title">Keep playing in the background</string>
+    <string name="media_background_summary">A page that is playing stays audible when another app comes to the front, with its controls in the notification.</string>
+    <string name="appearance_colors_group">Colors</string>
+    <string name="theme_colors">Color preset</string>
+    <string name="theme_colors_summary">Color preset</string>
+    <string name="appearance_sound_group">Sound</string>
+    <string name="theme_colors_title">Color preset</string>
+    <string name="theme_colors_default">Default</string>
+    <string name="theme_colors_default_summary">The colors of the system, or of the wallpaper</string>
+    <string name="theme_colors_applied">%1$s is the color of Explorer now.</string>
+    <!-- 18.0.0 beta 9 (item 7): Chromium's thirteen preset color schemes, by the names it gives
+         them (IDS_NTP_COLORS_* of chrome/app/generated_resources.grd). -->
+    <string name="color_scheme_blue">Blue</string>
+    <string name="color_scheme_cool_grey">Cool grey</string>
+    <string name="color_scheme_grey">Grey</string>
+    <string name="color_scheme_aqua">Aqua</string>
+    <string name="color_scheme_green">Green</string>
+    <string name="color_scheme_viridian">Viridian</string>
+    <string name="color_scheme_citron">Citron</string>
+    <string name="color_scheme_orange">Orange</string>
+    <string name="color_scheme_apricot">Apricot</string>
+    <string name="color_scheme_rose">Rose</string>
+    <string name="color_scheme_pink">Pink</string>
+    <string name="color_scheme_fuchsia">Fuchsia</string>
+    <string name="color_scheme_violet">Violet</string>
+    <string name="theme_colors_chosen">%1$s</string>
+    <!-- 18.1.0 beta -->
+    <string name="color_scheme_greyscale">Greyscale</string>
+    <string name="theme_colors_custom">Custom</string>
+    <string name="theme_colors_custom_title">Custom color</string>
+    <string name="theme_colors_hue">Hue: %1$d</string>
+    <string name="theme_colors_saturation">Strength: %1$d</string>
+    <string name="theme_colors_use">Use this color</string>
+    <string name="theme_colors_picker_note">Preset colors from Chrome. The one in use has a tick; the pencil is a color of your own.</string>
+
+    <!-- 18.3.0 beta (item 1): the new home page, and the choice between it and the classic one. -->
+    <string name="home_style_group">Home page style</string>
+    <string name="home_style_new">New</string>
+    <string name="home_style_classic">Classic</string>
+    <string name="home_style_new_summary">The clock, your shortcuts as cards, and a focus session</string>
+    <string name="home_style_classic_summary">The name of the browser, the search box and the tiles</string>
+    <string name="home_greeting_morning">Good morning</string>
+    <string name="home_greeting_afternoon">Good afternoon</string>
+    <string name="home_greeting_evening">Good evening</string>
+    <string name="home_greeting_night">Good night</string>
+
+
+    <!-- 18.3.0 beta: the built-in downloads manager and its Chromium-shaped settings. -->
+    <string name="setting_section_downloads">Downloads</string>
+    <string name="download_location_group">Download location</string>
+    <string name="download_location">Download location</string>
+    <string name="download_location_summary">Where downloaded files are saved</string>
+    <string name="download_location_choose">Choose this folder</string>
+    <string name="download_location_reset">Use Explorer\'s default folder</string>
+    <string name="download_location_default_done">Explorer\'s default download folder is in use.</string>
+    <string name="download_group_behaviour">Downloads</string>
+    <string name="download_show_all">All downloads</string>
+    <string name="download_notification_title">Download notifications</string>
+    <string name="download_notification_summary">Show progress and completion notifications</string>
+    <string name="download_action_pause">Pause</string>
+    <string name="download_action_resume">Resume</string>
+    <string name="download_action_cancel">Cancel download</string>
+    <string name="download_notification_done">Download complete</string>
+    <string name="download_notification_failed">Download failed</string>
+    <string name="download_notification_waiting">Waiting to start</string>
+    <string name="download_notification_paused_percent">Paused · %1$d%% · %2$s</string>
+    <string name="download_notification_percent">%1$d%% · %2$s of %3$s</string>
+    <string name="downloads_running_detail">%1$d%% · %2$s of %3$s</string>
+    <string name="downloads_paused_percent">Paused · %1$d%%</string>
+    <string name="downloads_paused">Paused</string>
+    <string name="download_install">Install</string>
+    <string name="download_install_permission">Allow Explorer to install apps from this source in Android settings.</string>
+    <string name="download_channel_name">Downloads</string>
+    <string name="download_channel_description">Progress of files downloaded by Explorer</string>
+
+    <!-- 18.3.0 beta: the manual and automatic update page. -->
+    <string name="update_version">Version %1$s</string>
+    <string name="update_latest">The latest version is installed.</string>
+    <string name="update_available">Version %1$s is available.</string>
+    <string name="update_not_checked">Check for updates to see whether a newer version is available.</string>
+    <string name="update_failed">Update check could not be completed.</string>
+    <string name="update_checking">Please wait</string>
+    <string name="update_failed_title">Update check failed</string>
+    <string name="update_failed_message">Explorer could not check for an update: %1$s</string>
+    <string name="update_download">Download version %1$s</string>
+    <string name="update_download_short">Check for updates</string>
+    <string name="update_download_started">The update is downloading.</string>
+    <string name="update_downloading">The update is already downloading.</string>
+    <string name="update_install">Install update</string>
+    <string name="update_github">GitHub</string>
+    <string name="update_licenses">Open source licenses</string>
+    <string name="update_info_title">About updates</string>
+    <string name="update_info_message">Explorer checks the releases of %1$s and downloads updates into %2$s.</string>
+    <string name="main_nav_update">Update Explorer</string>
+    <string name="update_notification_title">Update Explorer</string>
+    <string name="update_notification_text">Version %1$s is available.</string>
 
 </resources>

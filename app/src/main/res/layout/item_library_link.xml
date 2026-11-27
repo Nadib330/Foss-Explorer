@@ -4,7 +4,7 @@
     android:id="@+id/library_link"
     android:layout_width="match_parent"
     android:layout_height="@dimen/bar_button_size"
-    android:background="?attr/selectableItemBackground"
+    android:background="@drawable/bg_ripple_small"
     android:gravity="center_vertical|start"
     android:paddingHorizontal="@dimen/spacing_large"
     android:textAppearance="?attr/textAppearanceLabelLarge"

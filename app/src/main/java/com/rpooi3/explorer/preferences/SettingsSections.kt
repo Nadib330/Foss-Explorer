@@ -41,9 +41,12 @@ object SettingsSections {
         Section("section_home_custom", R.string.setting_section_home_custom, R.xml.preference_section_home_custom),
         Section("section_tabs", R.string.setting_section_tabs, R.xml.preference_section_tabs),
         Section("section_appearance", R.string.setting_section_appearance, R.xml.preference_section_appearance),
+        Section("section_layout", R.string.setting_section_layout, R.xml.preference_section_layout),
         // 17.3.1: the Chrome Web Store extensions.
         Section("section_extensions", R.string.extensions_title, R.xml.preference_section_extensions),
         Section("section_site", R.string.setting_section_site, R.xml.preference_section_site),
+        // 18.3.0 beta (item 12): the downloads, below the site settings.
+        Section("section_downloads", R.string.setting_section_downloads, R.xml.preference_section_downloads),
         Section("section_help", R.string.setting_section_help, R.xml.preference_section_help),
         Section("section_about", R.string.setting_section_about, R.xml.preference_section_about),
         Section("section_accessibility", R.string.setting_section_accessibility, R.xml.preference_section_accessibility),
@@ -93,6 +96,8 @@ object SettingsSections {
     const val URL_SOURCE_UPSTREAM = "https://codeberg.org/Gaukler_Faun/FOSS_Browser"
     /** The browsers this app is made of: Chromium's engine as Android System WebView brings it, and Firefox. */
     const val URL_SOURCE_CHROMIUM = "https://chromium.googlesource.com/chromium/src/"
+    /** 17.4.0: Cromite, the fork whose install prompt and ad blocker Explorer follows. */
+    const val URL_SOURCE_CROMITE = "https://github.com/uazo/cromite"
     const val URL_SOURCE_FIREFOX = "https://github.com/mozilla-firefox/firefox"
     /** Both licences of the app are published here: GPL-3.0 and AGPL-3.0. See LICENSING.md. */
     const val CHROMIUM_LICENSE_ASSET = "offline/LICENSE.chromium.txt"
@@ -165,6 +170,7 @@ object SettingsSections {
             // 17.3.2: the row moved to Help and support; the old key is still answered for.
             "about_feedback" to URL_FEEDBACK,
             "about_source_chromium" to URL_SOURCE_CHROMIUM,
+            "about_source_cromite" to URL_SOURCE_CROMITE,
             "about_source_firefox" to URL_SOURCE_FIREFOX,
             "about_source_upstream" to URL_SOURCE_UPSTREAM,
             "about_license" to URL_LICENSE,

@@ -1,7 +1,9 @@
 package com.rpooi3.explorer.home
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.rpooi3.explorer.profile.ProfilePrefs
 
 /**
  * The built-in home page ("new tab page").
@@ -17,8 +19,15 @@ object HomePage {
     /** The address a tab is on while it shows the home page. */
     const val URL = "about:blank"
 
-    /** Preference holding the user's start page. Empty means the home page. */
+    /** Preference holding the user's start page. Empty means the selected built-in home page. */
     const val KEY_START_PAGE = "favoriteURL"
+
+    /** The one preference that selects which of the two built-in home pages is drawn. */
+    const val KEY_STYLE = "home_style"
+
+    /** The two built-in home pages. Keep these values stable: they are stored per profile. */
+    const val STYLE_NEW = "new"
+    const val STYLE_CLASSIC = "classic"
 
     /** Start page that versions before 0.1.0 used (and stored) by default: the upstream wiki. */
     private const val LEGACY_START_PAGE = "https://codeberg.org/Gaukler_Faun/FOSS_Browser/wiki"
@@ -62,10 +71,32 @@ object HomePage {
     fun isShowing(pendingUrl: String?, committedUrl: String?): Boolean =
         if (pendingUrl != null) isHomeUrl(pendingUrl) else committedUrl == null || isHomeUrl(committedUrl)
 
+    /** The selected built-in page, read from the active profile. */
+    @JvmStatic
+    fun style(context: Context): String = normalizeStyle(ProfilePrefs.settings(context).getString(KEY_STYLE, null))
+
+    /** Stores the selected built-in page in the active profile. */
+    @JvmStatic
+    fun setStyle(context: Context, style: String) {
+        ProfilePrefs.settings(context).edit { putString(KEY_STYLE, normalizeStyle(style)) }
+    }
+
+    /** Whether the New built-in page is selected for the active profile. */
+    @JvmStatic
+    fun isNewStyle(context: Context): Boolean = style(context) == STYLE_NEW
+
+    /** Normalizes old, missing, or otherwise invalid values to the New page. */
+    @JvmStatic
+    fun normalizeStyle(style: String?): String = if (style == STYLE_CLASSIC) STYLE_CLASSIC else STYLE_NEW
+
     /**
      * The page to open for a new tab and at start-up: the address the user
-     * chose as start page, or the home page if none is set.
+     * chose as start page, or the selected built-in home page if none is set.
      */
+    @JvmStatic
+    fun startUrl(context: Context): String = startUrl(ProfilePrefs.settings(context))
+
+    /** The same lookup for callers that already hold the active profile preferences. */
     @JvmStatic
     fun startUrl(prefs: SharedPreferences): String {
         val custom = prefs.getString(KEY_START_PAGE, "")?.trim().orEmpty()

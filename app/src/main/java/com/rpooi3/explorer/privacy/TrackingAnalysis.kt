@@ -10,6 +10,7 @@
  */
 package com.rpooi3.explorer.privacy
 
+import com.rpooi3.explorer.profile.ProfilePrefs
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
@@ -318,5 +319,5 @@ object TrackingAnalysis {
         null
     }
 
-    private fun prefs(context: Context): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private fun prefs(context: Context): SharedPreferences = ProfilePrefs.settings(context)
 }

@@ -20,11 +20,17 @@ data class DownloadItem(
     val sourceUrl: String?,
     /** Where the file can be opened from, once it is complete. */
     val uri: Uri?,
+    /** 18.3.0 beta (item 9): true for a download of the built-in manager ([DownloadStore]). */
+    val engine: Boolean = false,
 ) {
-    enum class State { RUNNING, WAITING, FAILED, DONE }
+    enum class State { RUNNING, WAITING, PAUSED, FAILED, DONE }
 
     val kind: Kind
         get() = Kind.of(mimeType, name)
+
+    /** 18.3.0 beta (item 8): an app package, which tapping installs. */
+    val isPackage: Boolean
+        get() = ApkInstaller.isPackage(name) || mimeType == ApkInstaller.MIME_APK
 
     /** Progress in percent, or null while the size is unknown. */
     val percent: Int?

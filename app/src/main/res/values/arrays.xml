@@ -65,10 +65,12 @@
 
     <!-- Start tab -->
     <!-- Themes -->
+    <!-- 18.0.0 beta 9 (item 2): the two halves of the theme are named as the whole world names
+         them — Light theme and Dark theme — and not as the day and the night. -->
     <string-array name="setting_entries_theme">
         <item>@string/setting_theme_system</item>
-        <item>@string/menu_dayView</item>
-        <item>@string/menu_nightView</item>
+        <item>@string/setting_theme_light</item>
+        <item>@string/setting_theme_dark</item>
     </string-array>
 
     <string-array name="setting_values_theme">
@@ -77,5 +79,18 @@
         <item>3</item>
     </string-array>
 
+
+    <!-- 18.0.0 beta 6: how many site tiles stand in a row on the home page. -->
+    <string-array name="home_columns_entries">
+        <item>@string/home_columns_3</item>
+        <item>@string/home_columns_4</item>
+        <item>@string/home_columns_5</item>
+    </string-array>
+
+    <string-array name="home_columns_values">
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
 
 </resources>

@@ -259,12 +259,18 @@ public class NinjaDownloadListener implements DownloadListener {
         return ext.isEmpty() ? chosen : chosen + "." + ext;
     }
 
-    /** Saves [url] to Downloads as [finalFileName]: pages' own data by script, everything else by the system's download manager. */
+    /**
+     * Saves [url] to Downloads as [finalFileName].
+     *
+     * 18.3.0 beta (item 9): everything that has a web address goes to the **built-in download
+     * manager** of Explorer now — the one that keeps the name of the file (item 5), can be paused
+     * (item 6), shows its percentage (item 7) and puts Chromium's notification in the shade
+     * (item 10). Only the data a page hands over directly (`data:` and `blob:` links) is still
+     * written by the browser itself, because there is no address for a manager to fetch.
+     */
     static void startDownload(final Activity activity, final WebView webView, final String url, final String finalFileName, final String mimeType) {
         final int lastDot = finalFileName.lastIndexOf('.');
         final String extInput = lastDot > 0 ? finalFileName.substring(lastDot) : "";
-        // Android 8/9 need the storage permission before anything can be written to Downloads.
-        if (!StorageCompat.ensureDownloadsWritable(activity)) return;
         // VERARBEITUNG NACH DEM OK-KLICK
         if (url.startsWith("blob:")) {
             if (webView == null) return;
@@ -285,6 +291,8 @@ public class NinjaDownloadListener implements DownloadListener {
                     "})();";
 
             activity.runOnUiThread(() -> webView.evaluateJavascript(jsCode, null));
+            // 18.0.0 beta 6 (item 5): the notice of the download at the foot of the page.
+            com.rpooi3.explorer.downloads.DownloadChip.startedLocal(activity, finalFileName);
             // 3. DER ERSEHNTE CATCH-BLOCK (Verschlankter Timer-Check)
             webView.postDelayed(() -> {
                 // Wenn das Skript nicht angesprungen ist (z.B. weil das Interface fehlte oder abgestürzt ist)
@@ -299,22 +307,28 @@ public class NinjaDownloadListener implements DownloadListener {
                 }
             }, 150);
         } else if (url.startsWith("data:")) {
+            // Android 8/9 need the storage permission before a file can be written to Downloads.
+            if (!StorageCompat.ensureDownloadsWritable(activity)) return;
+            // 18.0.0 beta 6 (item 5): the card is up while the bytes are written.
+            com.rpooi3.explorer.downloads.DownloadChip.startedLocal(activity, finalFileName);
             saveBytesToMediaStore(activity, webView, url, finalFileName, mimeType);
         } else {
             try {
-                DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url));
-                r.addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url));
-                r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                r.setTitle(finalFileName);
+                // The type the file will have: from its extension, or from the server.
                 String cleanExt = extInput.length() > 1 ? extInput.substring(1).toLowerCase(Locale.ROOT) : "";
                 String type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(cleanExt);
-                // Without an extension the type the server announced keeps the file openable.
-                r.setMimeType(type != null ? type : mimeType);
-                r.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, finalFileName);
-                DownloadManager m = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-                if (m != null) m.enqueue(r);
+                final String name = finalFileName;
+                final String mime = type != null ? type : mimeType;
+                final String agent = webView != null ? webView.getSettings().getUserAgentString() : null;
+                final String cookie = com.rpooi3.explorer.profile.ProfileWebView
+                        .cookieManager(activity).getCookie(url);
+                // 18.3.0 beta (item 9): the built-in manager fetches it, in a service of its own.
+                long id = com.rpooi3.explorer.downloads.DownloadEngine
+                        .enqueue(activity, url, name, mime, agent, cookie);
+                // 18.0.0 beta 6 (item 5, item 6): the card follows it, and can pause it.
+                com.rpooi3.explorer.downloads.DownloadChip.started(activity, name, id);
             } catch (Exception e) {
-                Log.e("Foss Explorer", "DownloadManager Error: " + e);
+                Log.e("Foss Explorer", "Download Error: " + e);
             }
         }
     }
@@ -327,12 +341,14 @@ public class NinjaDownloadListener implements DownloadListener {
                 byte[] decodedBytes = parser.getImagedata();
                 if (decodedBytes == null || decodedBytes.length == 0) return;
 
-                StorageCompat.writeToDownloads(context, savedFileName, mimeType, decodedBytes);
+                final android.net.Uri saved = StorageCompat.writeToDownloads(context, savedFileName, mimeType, decodedBytes);
 
                 if (webView != null) {
                     webView.post(() -> {
-                        String text = context.getString(R.string.app_done) + ". " + context.getString(R.string.menu_download) + "?";
-                        CatToast.show(context, text, 1);
+                        // 18.0.0 beta 6 (item 6): the file is there; the card offers to open it.
+                        if (context instanceof Activity activity) {
+                            com.rpooi3.explorer.downloads.DownloadChip.finished(activity, savedFileName, saved);
+                        }
                     });
                 }
             } catch (Exception e) {

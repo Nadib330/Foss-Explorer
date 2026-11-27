@@ -11,7 +11,7 @@
         android:id="@+id/page_zoom_decrease_zoom_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:background="@drawable/bg_ripple_small"
         android:contentDescription="@string/cr_page_zoom_decrease"
         android:src="@drawable/icon_minus"
         app:tint="?attr/colorOnSurfaceVariant" />
@@ -31,7 +31,7 @@
         android:id="@+id/page_zoom_increase_zoom_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:background="@drawable/bg_ripple_small"
         android:contentDescription="@string/cr_page_zoom_increase"
         android:src="@drawable/icon_plus"
         app:tint="?attr/colorOnSurfaceVariant" />
