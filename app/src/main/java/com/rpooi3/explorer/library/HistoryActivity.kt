@@ -2,7 +2,7 @@ package com.rpooi3.explorer.library
 
 import android.content.Intent
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
+import com.rpooi3.explorer.view.MainMenuPopup
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.activity.Settings_Clear
 import com.rpooi3.explorer.database.Record
@@ -76,23 +76,21 @@ class HistoryActivity : LibraryActivity() {
 
     override fun onItemLongClick(item: Row.Item, anchor: View) {
         val record = item.payload as Record
-        PopupMenu(this, anchor).apply {
-            menu.add(0, MENU_NEW_TAB, 0, R.string.library_open_new_tab)
-            menu.add(0, MENU_PRIVATE_TAB, 1, R.string.library_open_private_tab)
-            menu.add(0, MENU_COPY, 2, R.string.library_copy_link)
-            menu.add(0, MENU_SHARE, 3, R.string.menu_share_link)
-            menu.add(0, MENU_REMOVE, 4, R.string.history_remove)
-            setOnMenuItemClickListener { choice ->
-                when (choice.itemId) {
-                    MENU_NEW_TAB -> openInBrowser(record.url, TARGET_NEW_TAB)
-                    MENU_PRIVATE_TAB -> openInBrowser(record.url, TARGET_PRIVATE_TAB)
-                    MENU_COPY -> copyToClipboard(record.url)
-                    MENU_SHARE -> shareLink(item.title, record.url)
-                    MENU_REMOVE -> remove(record)
-                }
-                true
+        val popup = MainMenuPopup(anchor) { itemId ->
+            when (itemId) {
+                MENU_NEW_TAB -> openInBrowser(record.url, TARGET_NEW_TAB)
+                MENU_PRIVATE_TAB -> openInBrowser(record.url, TARGET_PRIVATE_TAB)
+                MENU_COPY -> copyToClipboard(record.url)
+                MENU_SHARE -> shareLink(item.title, record.url)
+                MENU_REMOVE -> remove(record)
             }
-        }.show()
+        }
+        popup.menu.add(0, MENU_NEW_TAB, 0, R.string.library_open_new_tab)
+        popup.menu.add(0, MENU_PRIVATE_TAB, 1, R.string.library_open_private_tab)
+        popup.menu.add(0, MENU_COPY, 2, R.string.library_copy_link)
+        popup.menu.add(0, MENU_SHARE, 3, R.string.menu_share_link)
+        popup.menu.add(0, MENU_REMOVE, 4, R.string.history_remove)
+        popup.show()
     }
 
     override fun onLinkClick(link: Row.Link) {

@@ -13,8 +13,9 @@ import java.io.File
  * version, the popup (Manifest V3 `action` or V2 `browser_action`), the options page, the icon,
  * the permissions, and the rules of the content scripts.
  *
- * What Explorer does not run is noted and left out: background pages and service workers, the
- * declarativeNetRequest rules, and web-accessible resources.
+ * What Explorer does not run is noted and left out: the declarativeNetRequest rules and
+ * web-accessible resources. The background — a service worker in Manifest V3, scripts or a page
+ * before it — is read and run in a WebView of its own since 17.3.4.
  */
 object ManifestParser {
 
@@ -38,20 +39,50 @@ object ManifestParser {
         val popup = action?.optString("default_popup")?.takeUnless { it.isNullOrBlank() }
         val options = root.optJSONObject("options_ui")?.optString("page")?.takeUnless { it.isNullOrBlank() }
             ?: root.optString("options_page").takeUnless { it.isNullOrBlank() }
+        // 17.3.4: the background, which Explorer runs in a hidden WebView of its own.
+        val background = root.optJSONObject("background")
+        val backgroundPath = cleanPath(
+            background?.optString("service_worker")?.takeUnless { it.isNullOrBlank() }
+                ?: background?.optJSONArray("scripts")?.optString(0)?.takeUnless { it.isNullOrBlank() }
+                ?: background?.optString("page")?.takeUnless { it.isNullOrBlank() },
+        )
+
+        val newTab = root.optJSONObject("chrome_url_overrides")?.optString("newtab")
+            ?.takeUnless { it.isNullOrBlank() }
+
+        // 17.4.1: a published extension keeps its name and its description in `_locales` and puts
+        // `__MSG_key__` in the manifest. The placeholder is resolved here, once, so no screen and
+        // no sheet ever shows it; without a message for it the id stands in for the name.
+        val name = Locales.resolveIn(dir, root, root.optString("name", ""), id).ifBlank { id }
+        val description = Locales.resolveIn(dir, root, root.optString("description", ""))
+
+        // 18.0.0 beta 8 (item 5): before Manifest V3 the sites an extension asked for stood in
+        // `permissions` beside the interfaces (`"permissions": ["*://*/*", "storage"]`), not in a
+        // `host_permissions` list of their own. They are told apart here, so that an extension of
+        // that kind counts for the sites it names — in the menu's badge, in the question of the
+        // install, and in what runs on a page.
+        val declared = strings(root.optJSONArray("permissions"))
+        val apiPermissions = declared.filterNot { isHostPattern(it) }
+        val hostPatterns = (
+            strings(root.optJSONArray("host_permissions")) +
+                declared.filter { isHostPattern(it) }
+            ).distinct()
 
         return WebExtension(
             id = id,
-            name = root.optString("name", id).ifBlank { id },
+            name = name,
             version = root.optString("version", ""),
-            description = root.optString("description", ""),
+            description = description,
             rootDir = dir.absolutePath,
             popupPath = cleanPath(popup),
             optionsPath = cleanPath(options),
             iconPath = cleanPath(icon(root, action)),
-            permissions = strings(root.optJSONArray("permissions")),
-            hostPermissions = strings(root.optJSONArray("host_permissions")),
+            permissions = apiPermissions,
+            hostPermissions = hostPatterns,
             contentScripts = contentScripts(root.optJSONArray("content_scripts")),
             manifestVersion = root.optInt("manifest_version", 2),
+            backgroundPath = backgroundPath,
+            newTabPath = cleanPath(newTab),
         )
     }
 
@@ -99,6 +130,10 @@ object ManifestParser {
         if (array == null) return emptyList()
         return (0 until array.length()).mapNotNull { array.optString(it)?.takeIf { text -> text.isNotBlank() } }
     }
+
+    /** Whether a permission of a manifest names sites rather than an interface. */
+    private fun isHostPattern(permission: String): Boolean =
+        permission == "<all_urls>" || permission.contains("://") || permission.startsWith("file:")
 
     /** A path inside the extension; null for an address that would leave it. */
     private fun cleanPath(path: String?): String? {

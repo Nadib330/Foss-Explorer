@@ -175,6 +175,9 @@ class MainMenuSheet(
         dialog = sheet
         contentView = view
         sheet.show()
+        // The menu is a flat surface, not a floating sheet with a cast shadow.
+        sheet.window?.decorView?.elevation = 0f
+        sheet.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.elevation = 0f
     }
 
     fun dismiss() {
@@ -190,12 +193,17 @@ class MainMenuSheet(
         /** The groups of the main menu, in Firefox's order: tabs, tools, library, settings. */
         @JvmField
         val GROUPS: List<Group> = listOf(
+            // 18.0.0 beta 6: the navigation of the page, as in Firefox: back, forward, reload.
+            Group(intArrayOf(R.id.main_nav_back, R.id.main_nav_forward, R.id.main_nav_print), tiles = true),
+            // 18.3.0 beta (item 14): it is below, not beside, the browsing navigation.
+            Group(intArrayOf(R.id.main_nav_update), tiles = true),
             Group(intArrayOf(R.id.main_new_tab, R.id.main_new_private_tab)),
             Group(intArrayOf(R.id.main_share, R.id.main_desktop_site)),
             // 17.3.1: "Zoom" and "Extensions" side by side, each half the width of the sheet.
             Group(intArrayOf(R.id.main_zoom, R.id.main_extension), tiles = true),
             Group(intArrayOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), tiles = true),
-            Group(intArrayOf(R.id.main_settings)),
+            // 18.0.0 beta 6: the power button of Opera, beside Settings at the foot of the menu.
+            Group(intArrayOf(R.id.main_settings, R.id.main_exit)),
         )
     }
 }

@@ -49,7 +49,7 @@ public class EditTextSwitchPreference extends EditTextPreference {
         Context ctx = getContext();
 
         if (box != null && switchKey != null) {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(ctx);
             boolean isChecked = sp.getBoolean(switchKey, defaultValue);
 
             box.setOnCheckedChangeListener(null);

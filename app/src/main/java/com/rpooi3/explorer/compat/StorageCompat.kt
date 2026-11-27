@@ -54,20 +54,25 @@ object StorageCompat {
         return false
     }
 
-    /** Writes [bytes] as [fileName] into the shared Downloads folder. */
+    /**
+     * Writes [bytes] as [fileName] into the shared Downloads folder.
+     *
+     * 18.0.0 beta 6: it answers with where the file went, so that the notice of the download can
+     * offer to open it once it is written (item 6). On Android 9 and older that is the file itself.
+     */
     @JvmStatic
     @Throws(IOException::class)
-    fun writeToDownloads(context: Context, fileName: String, mimeType: String?, bytes: ByteArray) {
+    fun writeToDownloads(context: Context, fileName: String, mimeType: String?, bytes: ByteArray): Uri? {
         val type = mimeType ?: "application/octet-stream"
         val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             writeWithMediaStore(context, fileName, type, bytes)
         } else {
             writeToPublicDirectory(context, fileName, type, bytes)
-            null
         }
         // The system's download manager does not know about files written here, so the
         // downloads screen gets them from this list.
         DownloadLog.add(context, fileName, type, bytes.size.toLong(), uri)
+        return uri
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -90,7 +95,7 @@ object StorageCompat {
     }
 
     @Suppress("DEPRECATION") // The public directory API is the only option before Android 10.
-    private fun writeToPublicDirectory(context: Context, fileName: String, mimeType: String, bytes: ByteArray) {
+    private fun writeToPublicDirectory(context: Context, fileName: String, mimeType: String, bytes: ByteArray): Uri {
         val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (!directory.isDirectory && !directory.mkdirs()) {
             throw IOException("Cannot create $directory")
@@ -102,5 +107,6 @@ object StorageCompat {
         }
         // Make the file show up in the system Downloads app.
         MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mimeType), null)
+        return Uri.fromFile(file)
     }
 }

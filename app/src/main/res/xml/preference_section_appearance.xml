@@ -18,4 +18,15 @@
 
     </PreferenceCategory>
 
+    <!-- 18.0.0 beta 9 (item 7): the colors of Chromium's own color picker. -->
+    <PreferenceCategory android:key="appearance_colors_group" android:title="@string/appearance_colors_group">
+
+        <Preference
+            android:key="theme_colors"
+            android:icon="@drawable/icon_palette"
+            android:summary="@string/theme_colors_summary"
+            android:title="@string/theme_colors" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

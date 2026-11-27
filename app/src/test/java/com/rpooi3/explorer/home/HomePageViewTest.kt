@@ -29,12 +29,14 @@ class HomePageViewTest {
     @Before
     fun setUp() {
         val context = ContextThemeWrapper(ApplicationProvider.getApplicationContext(), R.style.AppTheme)
+        HomePage.setStyle(context, HomePage.STYLE_NEW)
         val parent = FrameLayout(context)
         root = LayoutInflater.from(context).inflate(R.layout.include_home, parent, false)
         parent.addView(root)
         home = HomePageView(root, object : HomePageView.Listener {
             override fun onHomeSearch() { events += "search" }
             override fun onHomeMenu(anchor: View) { events += "menu" }
+            override fun onHomeCustomize() { events += "customize" }
             override fun onHomeOpen(url: String) { events += "open $url" }
             override fun onHomeOpenInNewTab(url: String, foreground: Boolean) { events += "tab $url $foreground" }
         })
@@ -63,11 +65,10 @@ class HomePageViewTest {
         home.render(sites(6))
 
         assertEquals(View.VISIBLE, card.visibility)
-        assertEquals(2, grid.childCount)
-        // Every row has four cells so that the columns line up; the last row is padded.
+        assertEquals(1, grid.childCount)
+        // The 18.4 page shows four shortcuts in one row at the default four-column setting.
         assertEquals(4, (grid.getChildAt(0) as ViewGroup).childCount)
-        assertEquals(4, (grid.getChildAt(1) as ViewGroup).childCount)
-        assertEquals(6, tiles().size)
+        assertEquals(4, tiles().size)
     }
 
     @Test
@@ -103,6 +104,19 @@ class HomePageViewTest {
         assertTrue(home.isVisible)
         home.setVisible(false)
         assertEquals(View.GONE, root.visibility)
+    }
+
+    @Test
+    fun selectedStyle_showsOneCompleteBuiltInPage_andRefreshesToTheOther() {
+        HomePage.setStyle(root.context, HomePage.STYLE_CLASSIC)
+        home.refresh()
+        assertEquals(View.VISIBLE, root.findViewById<View>(R.id.home_scroll).visibility)
+        assertEquals(View.GONE, root.findViewById<View>(R.id.home_new_scroll).visibility)
+
+        HomePage.setStyle(root.context, HomePage.STYLE_NEW)
+        home.refresh()
+        assertEquals(View.GONE, root.findViewById<View>(R.id.home_scroll).visibility)
+        assertEquals(View.VISIBLE, root.findViewById<View>(R.id.home_new_scroll).visibility)
     }
 
     @Test

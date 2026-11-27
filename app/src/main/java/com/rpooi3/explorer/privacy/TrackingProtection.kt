@@ -81,14 +81,14 @@ object TrackingProtection {
      * storage is deleted.
      */
     @JvmStatic
-    fun clearSiteData(url: String?) {
+    fun clearSiteData(context: android.content.Context, url: String?) {
         val uri = try {
             url.orEmpty().toUri()
         } catch (e: Exception) {
             return
         }
         val host = uri.host ?: return
-        val manager = CookieManager.getInstance()
+        val manager = com.rpooi3.explorer.profile.ProfileWebView.cookieManager(context)
         val names = manager.getCookie(url).orEmpty().split(';').map { it.substringBefore('=').trim() }.filter { it.isNotEmpty() }
         val labels = host.split('.')
         val domains = (0..maxOf(0, labels.size - 2)).map { labels.drop(it).joinToString(".") }

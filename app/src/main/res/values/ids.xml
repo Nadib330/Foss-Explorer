@@ -14,4 +14,26 @@
     <item name="extension_popup_settings" type="id" />
     <item name="extension_menu_sheet" type="id" />
     <item name="extension_menu_groups" type="id" />
+    <!-- 18.0.0: the profile sheet and the dialog that names a profile, which are built in code
+         so that they can carry the disc and the colour of every profile. -->
+    <item name="profile_switcher_sheet" type="id" />
+    <item name="profile_always_ask" type="id" />
+    <item name="profile_name_field" type="id" />
+    <item name="profile_colour_swatch" type="id" />
+    <item name="profile_picture_preview" type="id" />
+    <item name="profile_picture_remove" type="id" />
+    <!-- 18.0.0 beta 8 -->
+    <item name="install_wait" type="id" />
+    <item name="install_wait_text" type="id" />
+    <item name="extension_popup_failed" type="id" />
+    <!-- 18.0.0 beta 9 -->
+    <item name="theme_colors_grid" type="id" />
+    <item name="theme_colors_tick" type="id" />
+    <!-- 18.1.0 beta -->
+    <item name="theme_colors_custom_card" type="id" />
+    <item name="theme_colors_preview" type="id" />
+    <item name="theme_colors_hue" type="id" />
+    <item name="theme_colors_saturation" type="id" />
+    <!-- 18.8.1: shared spring-morphing selection thumb for the tab and home-style pills. -->
+    <item name="spring_pill_thumb" type="id" />
 </resources>

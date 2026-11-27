@@ -28,6 +28,7 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -80,13 +81,13 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
 import com.rpooi3.explorer.downloads.DownloadsActivity;
 import com.rpooi3.explorer.library.BookmarksActivity;
 import com.rpooi3.explorer.library.HistoryActivity;
 import com.rpooi3.explorer.library.LibraryActivity;
 import com.rpooi3.explorer.view.LinkContextMenu;
 import com.rpooi3.explorer.view.MainMenuSheet;
+import com.rpooi3.explorer.view.MainMenuPopup;
 import com.rpooi3.explorer.view.ProtectionPanel;
 import com.rpooi3.explorer.privacy.MarkedAds;
 import com.rpooi3.explorer.privacy.TrackingProtection;
@@ -163,6 +164,7 @@ import com.rpooi3.explorer.view.NinjaWebView;
 import com.rpooi3.explorer.view.AdapterRecord;
 import com.rpooi3.explorer.privacy.PrivateTabs;
 import com.rpooi3.explorer.view.TopBarController;
+import com.rpooi3.explorer.view.TabBarController;
 import com.rpooi3.explorer.accessibility.PageHooks;
 import com.rpooi3.explorer.accessibility.PageZoom;
 import com.rpooi3.explorer.accessibility.ReaderMode;
@@ -179,11 +181,14 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     private View contentView;
     private View customView;
     private FrameLayout contentFrame;
+    /** The warning of an untrusted certificate, drawn over the page (18.0.0 beta 5). */
+    private View securityWarning;
     private FrameLayout fullscreenHolder;
     private LinearLayout tab_container;
     private BottomNavigationView bottom_navigation;
     private CircularProgressIndicator progressBar;
     private TopBarController topBar;
+    private TabBarController tabBar;
     private HomePageView homePage;
 
     // Listen & Adapter
@@ -200,14 +205,28 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     // Tasten (Buttons) & Zubehör
     private ImageButton buttonBack;
     private View buttonMenu;
+    /** 18.0.0 beta 2: the profile in front, left of the three-dot menu. */
+    private View buttonProfile;
+
+    /** The same profile, on the home page, where the top bar is hidden (18.0.0 beta 3). */
+    private View buttonProfileHome;
+
+    /** The picture chosen while a new profile is being named, kept once the profile exists. */
+    private Bitmap pendingProfilePicture;
     private android.widget.ImageView buttonShield;
 
     /** Shows the shield on websites, plain or crossed out as the site is protected or not. */
     void updateShield() {
         if (null == buttonShield || null == ninjaWebView) return;
+        if (Configuration.ORIENTATION_LANDSCAPE == getResources().getConfiguration().orientation) {
+            buttonShield.setVisibility(GONE);
+            return;
+        }
         final boolean applies = TrackingProtection.appliesTo(ninjaWebView.getUrl())
                 && !ninjaWebView.isShowingOwnPage() && !ninjaWebView.isShowingHomePage();
-        buttonShield.setVisibility(applies ? VISIBLE : GONE);
+        // 18.0.0 beta 4: the place of the shield is kept even when there is nothing to show, so
+        // that the profile and the menu beside it never jump sideways (issue 5).
+        buttonShield.setVisibility(applies ? VISIBLE : INVISIBLE);
         if (applies) buttonShield.setImageResource(ProtectionPanel.shieldIcon(ninjaWebView));
     }
     private View iconPrivate;
@@ -228,6 +247,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     private TabSwitcher tabSwitcher;
     /** Set while a tab is being opened in front: it comes in with the new-tab animation. */
     private boolean animateNewTab;
+    /** Suppresses the ordinary page cross-fade while a tab comes from the overview. */
+    private boolean suppressTabSwitchAnimation;
     private AlertDialog dialog_overflow;
     private AlertDialog dialogCustomSearches;
     private View dialogViewSearch;
@@ -378,11 +399,19 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         // 1. Basis-Initialisierungen & Themes
         activity = this;
         context = this;
-        sp = PreferenceManager.getDefaultSharedPreferences(context);
+        // 18.0.0: the settings of the profile in front, over the settings of the app. Everything
+        // the browser reads and writes — the site permissions, the list of open tabs, the choices
+        // of the profile — therefore belongs to the profile, and nothing is copied or migrated.
+        sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
 
         new BannerBlock(context);
         // 17.3.3: Chromite's blocker replaces FOSS Browser's; it reads its lists in the background.
         AdBlocker.ensure(context);
+        // 17.3.4: the extensions get their background pages, and the tab in front is what a popup
+        // works on. The window is where a hidden background page lives, so its timers run.
+        com.rpooi3.explorer.extension.ExtensionBus.attach(
+                context, findViewById(android.R.id.content) instanceof android.view.ViewGroup
+                        ? (android.view.ViewGroup) findViewById(android.R.id.content) : null);
         HelperUtils.initTheme(activity);
 
         // 2. SharedPreferences Konfiguration & Flags
@@ -424,6 +453,10 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         controller.setAppearanceLightNavigationBars(!night);
 
         topBar = new TopBarController(findViewById(R.id.main), sp);
+        tabBar = new TabBarController(findViewById(R.id.tabBar), sp, tabBarHost);
+        // The tab strip may have become visible during its construction; let the address/content
+        // rules account for it before the first tab is added.
+        topBar.refreshLayout();
         homePage = new HomePageView(findViewById(R.id.home_page), new HomePageView.Listener() {
             @Override
             public void onHomeSearch() {
@@ -433,6 +466,14 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             @Override
             public void onHomeMenu(@NonNull final View anchor) {
                 showMainMenu(anchor);
+            }
+
+            @Override
+            public void onHomeCustomize() {
+                // 18.0.0 beta 6 (item 7): the pencil of the home page leads to its own settings,
+                // as Chrome's does.
+                startActivity(new Intent(BrowserActivity.this, Settings_Activity.class)
+                        .putExtra(Settings_Activity.EXTRA_SECTION, "section_home_custom"));
             }
 
             @Override
@@ -533,6 +574,27 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         }
         initIncognitoLock();
 
+        // 7b. Profiles (18.0.0): the profile in front is known from here on, and — as in Chrome —
+        // the switcher opens every time the browser starts, unless the user took the checkbox
+        // "Always show on startup" away. The tabs above are the ones the profile left.
+        com.rpooi3.explorer.profile.Profiles.cacheCurrent(context);
+        if (com.rpooi3.explorer.profile.Profiles.skipsAskOnce(context)) {
+            // This start came from a switch of profiles: the question was answered a moment ago,
+            // so it is not asked again — the browser simply says which profile it is now.
+            final String switchedTo = com.rpooi3.explorer.profile.Profiles.switchedTo(context);
+            com.rpooi3.explorer.profile.Profiles.consumeSkip(context);
+            profileSheetOffered = true;
+            if (null != switchedTo) {
+                new Handler(Looper.getMainLooper()).postDelayed(
+                        () -> CatToast.show(context, getString(R.string.profiles_now_browsing, switchedTo), 1),
+                        450);
+            }
+        } else if (!profileSheetOffered
+                && com.rpooi3.explorer.profile.Profiles.shouldAsk(context)) {
+            profileSheetOffered = true;
+            new Handler(Looper.getMainLooper()).postDelayed(this::showProfileSheet, 350);
+        }
+
         // 8. Zurück-Taste (OnBackPressed) Handler für moderne Geräte
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
@@ -550,6 +612,9 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             moveTaskToBack(true);
         } else if (null != fullscreenHolder || null != customView || null != videoView) {
             Log.v(TAG, "Foss Explorer in fullscreen mode");
+        } else if (isSecurityWarningShown()) {
+            // Back leaves the warning, as "Go Back" does: nothing of the site is loaded.
+            ninjaWebView.cancelSslWarning();
         } else if (isSearchOpen()) {
             hideSearch();
         } else if (isTabSwitcherOpen()) {
@@ -588,9 +653,38 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
 
     @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (null != tabBar) tabBar.setLandscape(Configuration.ORIENTATION_LANDSCAPE == newConfig.orientation);
+        if (null != topBar) topBar.refreshLayout();
+        if (null != tabBar) tabBar.refresh();
+    }
+
+    @Override
     protected void onNewIntent(final Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+    }
+
+    /**
+     * 18.0.0 beta 9 (item 1): a page that is playing keeps playing. When Explorer goes to the back
+     * the tab in front is asked whether anything of it is playing; if it is, a foreground service
+     * with a media notification is started (see the `media` package), so that the process, the
+     * WebView and the sound stay alive. Coming back to the front takes it away again.
+     */
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (isFinishing()) return;
+        if (!com.rpooi3.explorer.media.BackgroundAudio.isEnabled(sp)) return;
+        final NinjaWebView tab = null != ninjaWebView ? ninjaWebView : null;
+        if (null == tab) return;
+        com.rpooi3.explorer.media.BackgroundAudioService.attach(tab);
+        com.rpooi3.explorer.media.BackgroundAudio.probe(tab, playing -> {
+            if (playing && !isFinishing()) {
+                com.rpooi3.explorer.media.BackgroundAudio.start(this, getString(R.string.app_name));
+            }
+        });
     }
 
     @Override
@@ -648,7 +742,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                 if (controller instanceof NinjaWebView tab && !tab.isPrivateTab()) normal = tab;
             }
             if (null != normal) showAlbum(normal);
-            else addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+            else addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
         }
         updateIncognitoLock();
     }
@@ -685,11 +779,22 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     @Override
     public void onResume() {
         super.onResume();
+        // 18.3.0 beta (item 13): Chromite's update mechanism checks GitHub in the background;
+        // the result makes the update tile appear the next time the menu is opened.
+        com.rpooi3.explorer.update.Updater.checkInBackground(this);
+        // 18.0.0 beta 9 (item 1): in front again, the notification of the background sound goes.
+        com.rpooi3.explorer.media.BackgroundAudio.stop(this);
         updateIncognitoLock();
-        if (null != homePage && homePage.isVisible()) homePage.refresh();
-        if (1 == sp.getInt("restart_changed", 1)) {
-            triggerRebirth(context);
+        // A profile may have been renamed or given a picture while the settings were open.
+        updateProfileIcon();
+        if (null != tabBar) {
+            tabBar.refreshVisibility();
+            topBar.refreshLayout();
+            tabBar.refresh();
         }
+        if (null != homePage && homePage.isVisible()) homePage.refresh();
+        // 18.1.0 beta (item 5): a change of theme is answered in the settings, where it is made;
+        // the browsing screen no longer asks for the restart when it comes back to the front.
         if (sp.getBoolean("pdf_create", false)) {
             sp.edit().putBoolean("pdf_create", false).apply();
             final String text = getString(R.string.app_done) + ". " + getString(R.string.menu_download) +"?";
@@ -706,6 +811,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     @Override
     public void onDestroy() {
         unregisterNetworkCallback();
+        // 17.3.4: the background pages of the extensions end with the browser.
+        com.rpooi3.explorer.extension.ExtensionBus.destroy();
         DeleteUtils.checkAndExecuteAutoDelete(getApplicationContext());
         final NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(1);
@@ -756,7 +863,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         }
 
         // 2. Ansicht mit weicher Überblendung austauschen (falls mehrere Tabs offen sind)
-        if (!grow && contentFrame.isLaidOut() && 0 < contentFrame.getChildCount() && 1 < BrowserContainer.size()) {
+        if (!grow && !suppressTabSwitchAnimation && !isTabSwitcherOpen() && contentFrame.isLaidOut() && 0 < contentFrame.getChildCount() && 1 < BrowserContainer.size()) {
             final View oldView = contentFrame.getChildAt(0);
             oldView.animate()
                     .alpha(0f)
@@ -773,13 +880,21 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             contentFrame.addView(av);
             av.setAlpha(1f);
         }
+        // 18.0.0 beta 4: a page that comes back from the switcher is never left faded or shrunk.
+        // The switcher steps the content back while it is open, and the step has to be undone
+        // wherever the tab was chosen from — a card of the grid used to skip it, which is why a
+        // tab that was visited and left behind came back in the colour of the theme, washed out.
+        if (!isTabSwitcherOpen()) resetContentTransform();
 
         // 3. Adresszeile aktualisieren
         try {
             updateOmniBox(); } catch (final Exception ignored) {}
 
         // A new tab grows into place, the page together with the home page that may lie over it.
-        if (grow) NewTabAnimation.run(contentFrame, findViewById(R.id.home_page));
+        // Since 18.0.0 beta 4 the page itself grows, not the container it sits in: the container
+        // carries what the tab switcher does with it, and the two used to cancel each other out.
+        if (grow) NewTabAnimation.run(av, findViewById(R.id.home_page));
+        if (null != tabBar) tabBar.refresh();
     }
 
     @Override
@@ -792,7 +907,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                 return;
             }
             // The last tab is closed: a new tab takes its place, and the app stays open.
-            addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+            addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
             if (1 >= BrowserContainer.size()) return;
         }
 
@@ -801,6 +916,13 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             // Which tab comes to the front is decided by Chromium's rules (tabs/TabModel.kt): a background
             // tab leaves the tab in front alone; else the tab this one was opened from, else its neighbour.
             final AlbumController next = BrowserContainer.nextTabIfClosed(controller, currentAlbumController, isTabSwitcherOpen());
+
+            // 18.0.0 beta 6: what the tab was showing, so that the notice at the foot of the screen
+            // can bring it back (item 4).
+            final boolean closingWasPrivate = controller instanceof NinjaWebView tab && tab.isPrivateTab();
+            final String closingUrl = controller instanceof NinjaWebView tab ? tab.getUrl() : null;
+            final int closingIndex = BrowserContainer.indexOf(controller);
+            final boolean closingWasInFront = controller == currentAlbumController;
 
             tab_container.removeView(controller.getAlbumView());
             BrowserContainer.remove(controller);
@@ -812,9 +934,12 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
             if (null != next) showAlbum(next);
             if (null != tabSwitcher) tabSwitcher.refresh();
+            // Chrome's notice at the foot of the screen, with the way back to the tab.
+            showTabClosedNotice(closingUrl, closingWasPrivate, closingIndex, closingWasInFront);
         }).run();
 
         updateOmniBox();
+        if (null != tabBar) tabBar.refresh();
     }
 
     /**
@@ -1100,9 +1225,42 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             }
         });
 
+        findViewById(R.id.button_forward_landscape).setOnClickListener(v -> {
+            if (ninjaWebView != null && ninjaWebView.canGoForward()) ninjaWebView.goForward();
+        });
+        findViewById(R.id.button_home_landscape).setOnClickListener(v ->
+                ninjaWebView.loadUrl(HomePage.startUrl(BrowserActivity.this)));
+        findViewById(R.id.button_bookmark_landscape).setOnClickListener(v -> {
+            if (ninjaWebView != null && ninjaWebView.getUrl() != null) {
+                saveBookmark(ninjaWebView.getTitle(), ninjaWebView.getUrl());
+            }
+        });
+        findViewById(R.id.button_tabs_landscape).setOnClickListener(v -> showOverviewPage(R.id.page_0));
+
         findViewById(R.id.button_share).setOnClickListener(v -> shareCurrentPage());
 
         iconPrivate = findViewById(R.id.icon_private);
+
+        // The profile in front: its picture (or its letter), and the way into the profiles.
+        buttonProfile = findViewById(R.id.button_profile);
+        if (null != buttonProfile) {
+            buttonProfile.setOnClickListener(view -> showProfileSheet());
+            buttonProfile.setOnLongClickListener(view -> {
+                startActivity(new Intent(this, com.rpooi3.explorer.profile.ProfilesActivity.class));
+                return true;
+            });
+        }
+        // The same profile, on the home page: the top bar is hidden there, and without this the
+        // profiles were out of reach until a page was opened (issue 4).
+        buttonProfileHome = findViewById(R.id.home_profile);
+        if (null != buttonProfileHome) {
+            buttonProfileHome.setOnClickListener(view -> showProfileSheet());
+            buttonProfileHome.setOnLongClickListener(view -> {
+                startActivity(new Intent(this, com.rpooi3.explorer.profile.ProfilesActivity.class));
+                return true;
+            });
+        }
+        updateProfileIcon();
 
         buttonMenu = findViewById(R.id.button_menu);
         // The shield left of it: Firefox's protection panel for the page in front.
@@ -1113,8 +1271,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         buttonMenu.setOnClickListener(view -> showMainMenu());
 
         // Bottom bar: home, new tab, tabs.
-        findViewById(R.id.button_home).setOnClickListener(v -> ninjaWebView.loadUrl(HomePage.startUrl(sp)));
-        findViewById(R.id.button_newTab).setOnClickListener(v -> addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true));
+        findViewById(R.id.button_home).setOnClickListener(v -> ninjaWebView.loadUrl(HomePage.startUrl(BrowserActivity.this)));
+        findViewById(R.id.button_newTab).setOnClickListener(v -> addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true));
 
         tabCount = findViewById(R.id.tab_count);
         final View buttonTabs = findViewById(R.id.button_tabs);
@@ -1199,8 +1357,17 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         // 3. View-Referenzen einmalig außerhalb der Bedingung holen
         final int tabCount = BrowserContainer.size();
         this.tabCount.setText(99 < tabCount ? ":D" : String.valueOf(tabCount));
-        buttonBack.setEnabled(ninjaWebView.canGoBack());
-        buttonBack.setAlpha(ninjaWebView.canGoBack() ? 1f : 0.38f);
+        final boolean canBack = ninjaWebView.canGoBack();
+        final boolean canForward = ninjaWebView.canGoForward();
+        buttonBack.setEnabled(canBack);
+        buttonBack.setAlpha(canBack ? 1f : 0.38f);
+        final View landscapeForward = findViewById(R.id.button_forward_landscape);
+        if (null != landscapeForward) {
+            landscapeForward.setEnabled(canForward);
+            landscapeForward.setAlpha(canForward ? 1f : 0.38f);
+        }
+        final TextView landscapeTabCount = findViewById(R.id.tab_count_landscape);
+        if (null != landscapeTabCount) landscapeTabCount.setText(99 < tabCount ? ":D" : String.valueOf(tabCount));
         iconPrivate.setVisibility(ninjaWebView.isPrivateTab() ? VISIBLE : GONE);
 
         // 4. Strukturierter Null-Check für URL und Sichtbarkeit
@@ -1282,6 +1449,9 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     }
     
     private void showOverview() {
+        // 18.0.0 beta 6: a warning of an untrusted certificate is about the page, and the switcher
+        // has its own screen; the two never stood on top of each other.
+        hideSecurityWarning();
         hideSearch();
         moveInactiveTabs();
         tabSwitcher.show();
@@ -1290,34 +1460,98 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         updateIncognitoLock();
     }
 
+    // The warning of an untrusted certificate (18.0.0 beta 5) ---------------------------------
+
+    /**
+     * Draws the warning of Firefox for Android over the page whose certificate was refused.
+     *
+     * The warning is a screen of Explorer's own and not a page: the load of the site was stopped
+     * before this, so nothing is loaded behind the warning and nothing reloads while it is up. The
+     * two buttons answer the certificate through {@link NinjaWebView#acceptSslWarning()} and
+     * {@link NinjaWebView#cancelSslWarning()}.
+     */
+    public void showSecurityWarning(@NonNull final String url, final int primaryError) {
+        hideSecurityWarning();
+        final FrameLayout parent = contentFrame;
+        if (null == parent) return;
+        final View warning = com.rpooi3.explorer.browser.SecurityWarning.view(
+                this,
+                url,
+                primaryError,
+                ninjaWebView::cancelSslWarning,
+                ninjaWebView::acceptSslWarning);
+        parent.addView(warning, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        securityWarning = warning;
+        // It comes over the page without moving it; the page keeps its place underneath.
+        warning.setAlpha(0f);
+        warning.animate().alpha(1f).setDuration(160L).start();
+        topBar.showAddressBar();
+    }
+
+    /** Takes the warning off the screen, if one is up. */
+    public void hideSecurityWarning() {
+        if (null == securityWarning) return;
+        View warning = securityWarning;
+        securityWarning = null;
+        if (warning.getParent() instanceof ViewGroup parent) parent.removeView(warning);
+    }
+
+    /** Whether the warning of an untrusted certificate is on the screen. */
+    public boolean isSecurityWarningShown() {
+        return null != securityWarning;
+    }
+
     /** How long Chromium's page-to-switcher transition runs, and how far the page recedes. */
     private static final long SWITCHER_ANIMATION_MS = 200L;
     private static final float SWITCHER_CONTENT_SCALE = 0.92f;
     private static final float SWITCHER_CONTENT_ALPHA = 0.6f;
 
     /**
-     * 16.1.0: Chromium's transition between a page and the tab switcher. The page scales down
-     * a little and fades while the cards come up over it, and scales back up when a tab is
-     * chosen. A private tab leaves its page dark while the switcher is open.
+     * 18.4.0: the overview itself opens and a selected card opens immediately. The page still
+     * takes the compact Chromium overview state while the switcher is visible, but the state is
+     * applied in one frame rather than animated underneath the cards.
      */
     private void animateContentForSwitcher(final boolean intoSwitcher) {
-        final View content = findViewById(R.id.main_content);
-        if (null == content) return;
-        content.animate().cancel();
         final float scale = intoSwitcher ? SWITCHER_CONTENT_SCALE : 1f;
         final float alpha = intoSwitcher ? SWITCHER_CONTENT_ALPHA : 1f;
-        content.animate()
-                .scaleX(scale).scaleY(scale).alpha(alpha)
-                .setDuration(SWITCHER_ANIMATION_MS)
-                .setInterpolator(new android.view.animation.DecelerateInterpolator())
-                .start();
+        final View content = findViewById(R.id.main_content);
+        if (null != content) {
+            content.animate().cancel();
+            content.setScaleX(scale);
+            content.setScaleY(scale);
+            content.setAlpha(alpha);
+        }
         final View home = findViewById(R.id.home_page);
         if (null != home) {
             home.animate().cancel();
-            home.animate().scaleX(scale).scaleY(scale).alpha(alpha)
-                    .setDuration(SWITCHER_ANIMATION_MS)
-                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
-                    .start();
+            home.setScaleX(scale);
+            home.setScaleY(scale);
+            home.setAlpha(alpha);
+        }
+    }
+
+    /**
+     * 18.0.0 beta 4: puts the page back to its plain size and full colour, without an animation.
+     * Called whenever a tab is shown, so that a tab which was left behind while the switcher was
+     * open cannot come back washed out in the colour of the theme (issue 4).
+     */
+    private void resetContentTransform() {
+        final View content = findViewById(R.id.main_content);
+        if (null != content) {
+            content.animate().cancel();
+            content.setAlpha(1f);
+            content.setScaleX(1f);
+            content.setScaleY(1f);
+            content.setPivotX(content.getWidth() / 2f);
+            content.setPivotY(content.getHeight() / 2f);
+        }
+        final View home = findViewById(R.id.home_page);
+        if (null != home) {
+            home.animate().cancel();
+            home.setAlpha(1f);
+            home.setScaleX(1f);
+            home.setScaleY(1f);
         }
     }
 
@@ -1325,6 +1559,46 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     boolean isTabSwitcherOpen() {
         return null != tabSwitcher && tabSwitcher.isShowing();
     }
+
+    private final TabBarController.Host tabBarHost = new TabBarController.Host() {
+        @NonNull
+        @Override
+        public List<NinjaWebView> tabs() {
+            final List<NinjaWebView> tabs = new ArrayList<>();
+            for (final AlbumController controller : BrowserContainer.list()) {
+                if (controller instanceof NinjaWebView tab) tabs.add(tab);
+            }
+            return tabs;
+        }
+
+        @Override
+        public NinjaWebView currentTab() {
+            return currentAlbumController instanceof NinjaWebView tab ? tab : null;
+        }
+
+        @Override
+        public void selectTab(@NonNull final NinjaWebView tab) {
+            if (tab != currentAlbumController) {
+                hideSecurityWarning();
+                showAlbum(tab);
+            }
+        }
+
+        @Override
+        public void closeTab(@NonNull final NinjaWebView tab) {
+            if (1 >= BrowserContainer.size()) {
+                tab.loadUrl(HomePage.startUrl(BrowserActivity.this));
+                showAlbum(tab);
+            } else {
+                removeAlbum(tab);
+            }
+        }
+
+        @Override
+        public void newTab() {
+            addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
+        }
+    };
 
     private final TabSwitcher.Host tabSwitcherHost = new TabSwitcher.Host() {
         @NonNull
@@ -1344,7 +1618,14 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
         @Override
         public void selectTab(@NonNull final NinjaWebView tab) {
-            if (tab != currentAlbumController) showAlbum(tab);
+            if (tab != currentAlbumController) {
+                // A warning belongs to the tab it was raised for.
+                hideSecurityWarning();
+                showAlbum(tab);
+            }
+            // The page comes back to its size as the cards go away. Tapping a card used to skip
+            // this, so the tab that was opened stayed faded and shrunk for good (issue 4).
+            animateContentForSwitcher(false);
         }
 
         @Override
@@ -1352,7 +1633,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             if (1 >= BrowserContainer.size()) {
                 // There is always one tab: closing the last one leaves a fresh one.
                 tab.setThumbnail(null);
-                tab.loadUrl(HomePage.startUrl(sp));
+                tab.loadUrl(HomePage.startUrl(BrowserActivity.this));
                 updateOmniBox();
             } else {
                 removeAlbum(tab);
@@ -1363,7 +1644,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         @Override
         public void newTab(final boolean privateTab) {
             if (privateTab) addPrivateAlbum();
-            else addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+            else addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
         }
 
         @Override
@@ -1383,10 +1664,129 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         }
 
         @Override
+        public void hideSwitcher() {
+            // 18.0.0 beta 5: the arrow of the tab switcher's title row goes back to the page.
+            hideOverview();
+        }
+
+        @Override
         public void onModeChanged() {
             updateIncognitoLock();
         }
     };
+
+    /**
+     * 18.0.0 beta 6: the power button of the three-dot menu (item 3), as Opera has it.
+     *
+     * It does what quitting the browser should do: the private tabs lose their data with the last
+     * of them, the menu and the switcher are put away, and the task leaves the recent apps. Nothing
+     * of the user's history, bookmarks or settings is touched.
+     */
+    /**
+     * 18.0.0 beta 8 (item 2): the power button of the three-dot menu asks before it closes the
+     * browser, as Firefox and Chrome do on a computer. "Do not ask again" keeps the question away
+     * from then on; the switch behind it is in Settings &gt; Privacy and security, and it is on
+     * until it is turned off here.
+     */
+    void askExit() {
+        if (null != mainMenu) mainMenu.dismiss();
+        if (!sp.getBoolean("exit_confirm", true)) {
+            exitBrowser();
+            return;
+        }
+        if (isFinishing() || isDestroyed()) return;
+        final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+        builder.setTitle(R.string.exit_confirm_title);
+        builder.setMessage(R.string.exit_confirm_message);
+        final android.widget.CheckBox never = new android.widget.CheckBox(this);
+        never.setText(R.string.exit_confirm_never);
+        final int padding = (int) (20 * getResources().getDisplayMetrics().density);
+        final android.widget.FrameLayout holder = new android.widget.FrameLayout(this);
+        holder.setPadding(padding, 0, padding, 0);
+        holder.addView(never);
+        builder.setView(holder);
+        builder.setNegativeButton(R.string.app_cancel, null);
+        builder.setPositiveButton(R.string.app_ok,
+                (dialog, which) -> {
+                    if (never.isChecked()) sp.edit().putBoolean("exit_confirm", false).apply();
+                    exitBrowser();
+                });
+        builder.show();
+    }
+
+    void exitBrowser() {
+        // 18.0.0 beta 8 (item 3): what the user asked to have deleted when the browser closes is
+        // deleted first, then the browser goes.
+        try {
+            if (com.rpooi3.explorer.privacy.ClearOnExit.isAnyChosen(sp)) {
+                final boolean tabs = com.rpooi3.explorer.privacy.ClearOnExit.isOn(sp,
+                        com.rpooi3.explorer.privacy.ClearOnExit.KEY_TABS);
+                com.rpooi3.explorer.privacy.ClearOnExit.run(this, sp, () -> closeAllTabs(false));
+                if (tabs) sp.edit().putBoolean("restoreOnRestart", false).apply();
+            }
+        } catch (RuntimeException e) {
+            Log.w(TAG, "Clearing at the exit: " + e);
+        }
+        try {
+            if (null != mainMenu) mainMenu.dismiss();
+            if (null != tabSwitcher) tabSwitcher.hide();
+            if (hasPrivateTabs()) {
+                closeAllTabs(true);
+                com.rpooi3.explorer.privacy.PrivateTabs.wipe();
+            }
+        } catch (RuntimeException e) {
+            Log.w(TAG, "Leaving the browser: " + e);
+        }
+        finishAndRemoveTask();
+    }
+
+    /** The notice of the tab that was just closed, while it stands. */
+    com.google.android.material.snackbar.Snackbar tabClosedNotice;
+
+    /**
+     * 18.0.0 beta 6 (item 4): tells that a tab was closed, at the foot of the screen and with the
+     * way back, as Chrome does. "Undo" opens the tab again where it stood, with the page it was
+     * showing; a private tab comes back as a private tab.
+     */
+    void showTabClosedNotice(final String url, final boolean privateTab, final int index, final boolean wasInFront) {
+        final View content = findViewById(R.id.main_content);
+        if (null == content || null == url || url.isEmpty()) return;
+        if (null != tabClosedNotice) tabClosedNotice.dismiss();
+        final com.google.android.material.snackbar.Snackbar snackbar =
+                com.google.android.material.snackbar.Snackbar.make(content,
+                        privateTab ? R.string.tab_closed_private : R.string.tab_closed,
+                        com.google.android.material.snackbar.Snackbar.LENGTH_LONG);
+        snackbar.setAction(R.string.tab_closed_undo, v -> restoreTab(url, privateTab, index, wasInFront));
+        snackbar.addCallback(new com.google.android.material.snackbar.Snackbar.Callback() {
+            @Override
+            public void onDismissed(com.google.android.material.snackbar.Snackbar bar, int event) {
+                if (tabClosedNotice == bar) tabClosedNotice = null;
+            }
+        });
+        com.rpooi3.explorer.unit.HelperUtils.makeSnackbarRound(snackbar);
+        tabClosedNotice = snackbar;
+        snackbar.show();
+    }
+
+    /** Opens the tab that was closed again, where it stood, with the page it was showing. */
+    void restoreTab(final String url, final boolean privateTab, final int index, final boolean foreground) {
+        if (null != tabClosedNotice) {
+            tabClosedNotice.dismiss();
+            tabClosedNotice = null;
+        }
+        if (privateTab) addPrivateAlbum(url);
+        else addAlbum(com.rpooi3.explorer.unit.HelperUtils.domain(url), url, foreground);
+        final AlbumController restored = currentAlbumController;
+        if (null != restored) {
+            final int where = Math.max(0, Math.min(index, BrowserContainer.size() - 1));
+            if (BrowserContainer.indexOf(restored) != where) {
+                BrowserContainer.remove(restored);
+                BrowserContainer.add(restored, where);
+            }
+        }
+        if (null != tabSwitcher) tabSwitcher.refresh();
+        updateOmniBox();
+    }
 
     /**
      * Closes all normal tabs, or all private ones. A tab of the other kind
@@ -1403,7 +1803,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         final boolean currentCloses = closing.contains(currentAlbumController);
         if (null == remaining) {
             // The new tab has to exist before the old ones go: there is always one tab.
-            setWebView(getString(R.string.app_name), HomePage.startUrl(sp), true);
+            setWebView(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
         } else if (currentCloses) {
             showAlbum(remaining);
         }
@@ -1484,6 +1884,18 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             return kotlin.Unit.INSTANCE;
         });
         popup.getMenu().findItem(R.id.main_share).setEnabled(canShareCurrentPage());
+        // 18.0.0 beta 6: back and forward are there when there is somewhere to go (item 1).
+        popup.getMenu().findItem(R.id.main_nav_back).setEnabled(null != ninjaWebView && ninjaWebView.canGoBack());
+        popup.getMenu().findItem(R.id.main_nav_forward).setEnabled(null != ninjaWebView && ninjaWebView.canGoForward());
+        // 18.0.0 beta 7 (item 4): the third button prints the page, in Chromium's way; a page the
+        // browser draws itself has nothing to print.
+        popup.getMenu().findItem(R.id.main_nav_print).setEnabled(null != ninjaWebView
+                && !ninjaWebView.isShowingOwnPage() && !ninjaWebView.isShowingHomePage());
+        // 18.3.0 beta (item 14): Chromium puts its update tile below the navigation tiles.
+        // It appears only after Chromite's release check has found a newer Explorer APK.
+        final android.view.MenuItem update = popup.getMenu().findItem(R.id.main_nav_update);
+        update.setVisible(com.rpooi3.explorer.update.Updater.hasUpdate(this));
+        update.setEnabled(update.isVisible());
         popup.getMenu().findItem(R.id.main_desktop_site).setChecked(null != ninjaWebView && ninjaWebView.isDesktopSite());
         // 16.1.0: "Zoom" is always in the menu on a website, as in Chromium; the sheet it opens
         // is Chromium's zoom control (value, minus, slider, plus) for the site in front.
@@ -1495,24 +1907,44 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         // 17.3.1: "Extensions" stands beside "Zoom", half width each.
         // 17.3.2: the extension menu is there on the home page as well, where it takes the
         // whole row (nothing is there to zoom), and on a website beside a half-width "Zoom".
+        // 18.0.0 beta 9 (item 6): an extension does not run in a private tab (it never did), so
+        // the puzzle piece is not offered there at all — and "Zoom" then stands alone in its row,
+        // with the whole width of the sheet instead of half of it (see MainMenuSheet: a tile on
+        // its own is drawn like a group).
+        final boolean privateTab = null != ninjaWebView && ninjaWebView.isPrivateTab();
         final android.view.MenuItem extension = popup.getMenu().findItem(R.id.main_extension);
-        extension.setVisible(true);
-        extension.setEnabled(true);
-        // 17.3.2: the Chrome Web Store is always shown as a desktop site; it cannot be turned
-        // off there, because the store offers its extensions to no other kind of browser.
-        final boolean store = null != ninjaWebView && ninjaWebView.isChromeWebStore();
-        final android.view.MenuItem desktopSite = popup.getMenu().findItem(R.id.main_desktop_site);
-        if (store) {
-            desktopSite.setChecked(true);
-            desktopSite.setEnabled(false);
-        }
+        extension.setVisible(!privateTab);
+        extension.setEnabled(!privateTab);
+        // 18.2.0 beta (item 2): the Chrome Web Store is no longer an exception. 17.3.2 had put
+        // "Desktop site" on for it and greyed the entry out, because the store offered its
+        // extensions to no other kind of browser; the store is given its desktop agent either way
+        // (18.1.0 beta, item 6 and 18.2.0 beta, item 4), so what the switch does there now is what
+        // it does everywhere: it decides how the page is laid out, and it can be turned off.
         mainMenu = popup;
         popup.show();
     }
 
     private void onMainMenuItem(final int id) {
-        if (id == R.id.main_new_tab) {
-            addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+        if (id == R.id.main_nav_back) {
+            // 18.0.0 beta 6: Firefox's navigation in the menu (item 1).
+            if (null != ninjaWebView && ninjaWebView.canGoBack()) {
+                sp.edit().putBoolean("backPressed", true).apply();
+                ninjaWebView.goBack();
+            }
+        } else if (id == R.id.main_nav_forward) {
+            if (null != ninjaWebView && ninjaWebView.canGoForward()) ninjaWebView.goForward();
+        } else if (id == R.id.main_nav_print) {
+            if (null != ninjaWebView && !com.rpooi3.explorer.accessibility.PageHooks.printPage(ninjaWebView)) {
+                CatToast.show(this, R.string.print_nothing);
+            }
+        } else if (id == R.id.main_nav_update) {
+            // 18.3.0 beta (item 14): tapping the tile opens the Explorer update page.
+            com.rpooi3.explorer.update.UpdateActivity.open(this);
+        } else if (id == R.id.main_exit) {
+            // 18.0.0 beta 6: Opera's power button (item 3); 18.0.0 beta 8: it asks first (item 2).
+            askExit();
+        } else if (id == R.id.main_new_tab) {
+            addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
         } else if (id == R.id.main_new_private_tab) {
             addPrivateAlbum();
         } else if (id == R.id.main_history) {
@@ -1542,6 +1974,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     void showExtensionMenu() {
         if (null != extensionMenu) extensionMenu.dismiss();
         if (null != extensionPopup) extensionPopup.dismiss();
+        // 17.3.4: an extension asked from here works on the page in front.
+        com.rpooi3.explorer.extension.ExtensionBus.setActiveTab(ninjaWebView);
         final String url = null != ninjaWebView ? ninjaWebView.getUrl() : null;
         final com.rpooi3.explorer.extension.ExtensionMenuSheet sheet =
                 new com.rpooi3.explorer.extension.ExtensionMenuSheet(
@@ -1562,8 +1996,9 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                         // 17.3.2: adding the extension of the store page in front from here,
                         // which works whatever the store's own page does.
                         extensionId -> {
-                            com.rpooi3.explorer.extension.StoreHook.install(
-                                    getApplicationContext(),
+                            // 17.4.0: fetched, then asked about, then added.
+                            com.rpooi3.explorer.extension.ExtensionPrompt.request(
+                                    this,
                                     extensionId,
                                     installed -> {
                                         // 17.3.3: the tab may be gone by the time the install
@@ -1597,9 +2032,15 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         updateOmniBox();
     }
 
-    /** The popup of {@code extension}, in a sheet over the page. */
+    /**
+     * 17.3.4: the popup of {@code extension}, in a bubble under the menu button, the way Chrome
+     * shows it — the popup's own page at the size it asks for, and chrome.* with the tab in front
+     * behind it, so that it can work with the page it was opened on.
+     */
     void showExtensionPopup(final com.rpooi3.explorer.extension.WebExtension extension) {
         if (null != extensionPopup) extensionPopup.dismiss();
+        com.rpooi3.explorer.extension.ExtensionBus.setActiveTab(ninjaWebView);
+        final android.view.View anchor = findViewById(R.id.button_menu);
         final com.rpooi3.explorer.extension.ExtensionPopup popup =
                 new com.rpooi3.explorer.extension.ExtensionPopup(
                         this,
@@ -1614,7 +2055,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                             return kotlin.Unit.INSTANCE;
                         },
                         null,
-                        null);
+                        null,
+                        anchor);
         extensionPopup = popup;
         popup.show();
     }
@@ -1663,12 +2105,18 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
     /** Opens a private tab on the home page and says what "private" covers on this device. */
     private void addPrivateAlbum() {
-        setWebView(getString(R.string.private_tab), HomePage.startUrl(sp), true, true);
+        addPrivateAlbum(HomePage.startUrl(BrowserActivity.this));
+    }
+
+    /** Opens a private tab on [url]; used when a closed private tab is opened again. */
+    private NinjaWebView addPrivateAlbum(final String url) {
+        setWebView(getString(R.string.private_tab), url, true, true);
         final Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content),
                 ninjaWebView.isPrivateIsolated() ? R.string.private_tab_isolated : R.string.private_tab_shared,
                 Snackbar.LENGTH_LONG);
         HelperUtils.makeSnackbarRound(snackbar);
         snackbar.show();
+        return ninjaWebView;
     }
 
     /** Whether any open tab is a private one. */
@@ -1842,6 +2290,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         items.add(new MenuItem(R.string.menu_hide_bars, R.drawable.icon_show));
         items.add(new MenuItem(R.string.menu_closeTab, R.drawable.icon_tab_remove));
         items.add(new MenuItem(R.string.menu_restart, R.drawable.icon_restart));
+        items.add(new MenuItem(R.string.menu_profiles, R.drawable.icon_profile_standard));
         items.add(new MenuItem(R.string.menu_quit, R.drawable.icon_close));
         return items;
     }
@@ -1977,7 +2426,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
         @SuppressLint("NonConstantResourceId") final AdapterMenu adapter = new AdapterMenu(selectedItemsList, item -> {
-            final String favURL = HomePage.startUrl(sp);
+            final String favURL = HomePage.startUrl(BrowserActivity.this);
             final RecordAction action = new RecordAction(context);
             dialog_overflow.cancel();
             final int resId = item.getIconResId();
@@ -2034,6 +2483,8 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
                 startActivity(new Intent(this, DownloadsActivity.class));
             } else if (resId == R.drawable.icon_settings) {
                 startActivity(new Intent(this, Settings_Activity.class));
+            } else if (resId == R.drawable.icon_profile_standard) {
+                showProfileSheet();
             } else if (resId == R.drawable.icon_restart) {
                 triggerRebirth(context);
             } else if (resId == R.drawable.icon_delete) {
@@ -2178,25 +2629,23 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
         // 5. Standard-Reset PopupMenü
         checkbox_reset.setOnClickListener(v -> {
-            final PopupMenu popupMenu = new PopupMenu(context, checkbox_reset);
-            popupMenu.getMenuInflater().inflate(R.menu.menu_standard, popupMenu.getMenu());
-            popupMenu.setOnMenuItemClickListener(menuItem -> {
+            final MainMenuPopup popup = new MainMenuPopup(checkbox_reset, R.menu.menu_standard, itemId -> {
                 boolean always = false, restart = false;
                 int res = R.drawable.icon_close;
 
-                if (menuItem.getItemId() == R.id.menu_standardAlways) {
+                if (itemId == R.id.menu_standardAlways) {
                     always = true;
                     res = R.drawable.icon_check;
-                } else if (menuItem.getItemId() == R.id.menu_standardRestart) {
+                } else if (itemId == R.id.menu_standardRestart) {
                     restart = true;
                     res = R.drawable.icon_restart;
                 }
 
                 sp.edit().putBoolean("sp_standard_always", always).putBoolean("sp_standard_restart", restart).apply();
                 icon_standard.setImageResource(res);
-                return true;
+                return kotlin.Unit.INSTANCE;
             });
-            popupMenu.show();
+            popup.show();
         });
 
         // 6. Weiterleitungen & ScreenOn & Links
@@ -2874,12 +3323,12 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
             }
         } else if ("postLink".equals(action)) {
             if (1 > BrowserContainer.size()) {
-                addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+                addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
             }
             postLink(url, null);
         } else if ("customSearches".equals(action)) {
             if (1 > BrowserContainer.size()) {
-                addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+                addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
             }
             showDialogCustomSearches(url);
         } else if (null != intent.getAction() && intent.getAction().equals(Intent.ACTION_PROCESS_TEXT)) {
@@ -2893,7 +3342,7 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
         } else if (null != url && Intent.ACTION_SEND.equals(action)) {
             addAlbum(null, url, true);
         } else if (1 > BrowserContainer.size()) {
-            addAlbum(getString(R.string.app_name), HomePage.startUrl(sp), true);
+            addAlbum(getString(R.string.app_name), HomePage.startUrl(BrowserActivity.this), true);
         }
     }
 
@@ -2919,6 +3368,9 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
     }
 
     private void setWebView(final String title, String url, boolean foreground, final boolean privateTab) {
+        // A tab created or restored from the overview opens directly; the ordinary bottom-bar
+        // new-tab action keeps its separate new-tab motion.
+        final boolean openingFromTabSwitcher = isTabSwitcherOpen();
 
         ninjaWebView = new NinjaWebView(context, privateTab);
 
@@ -2957,36 +3409,224 @@ public class BrowserActivity extends AppCompatActivity implements BrowserControl
 
         if (!foreground) ninjaWebView.deactivate();
         else {
-            hideOverview();
-            ninjaWebView.setBrowserController(this);
-            ninjaWebView.activate();
-            dialogOverview.cancel();
-            animateNewTab = true;
-            showAlbum(ninjaWebView);
+            // Set these before hiding the overview: showAlbum consumes both flags while it swaps
+            // the visible WebView. A card/new-tab hand-off must not inherit the ordinary cross-fade
+            // or the separate bottom-bar new-tab growth animation.
+            animateNewTab = !openingFromTabSwitcher;
+            suppressTabSwitchAnimation = openingFromTabSwitcher;
+            try {
+                hideOverview();
+                ninjaWebView.setBrowserController(this);
+                ninjaWebView.activate();
+                dialogOverview.cancel();
+                showAlbum(ninjaWebView);
+            } finally {
+                suppressTabSwitchAnimation = false;
+            }
         }
         final View albumView = ninjaWebView.getAlbumView();
         tab_container.addView(albumView, WRAP_CONTENT, WRAP_CONTENT);
         updateOmniBox();
+        if (null != tabBar) tabBar.refresh();
     }
 
     private synchronized void addAlbum(final String title, String url, boolean foreground) {
         setWebView(title, url, foreground);
     }
 
+    // Profiles (18.0.0) ----------------------------------------------------------------------
+
+    /** Whether the sheet of the profiles was already offered in this run of the screen. */
+    private boolean profileSheetOffered = false;
+
+    /**
+     * Opens the sheet of the profiles: the profile in front, the others, the guest, and the
+     * checkbox "Always show on startup" at the bottom.
+     */
+    public void showProfileSheet() {
+        new com.rpooi3.explorer.profile.ProfileSwitcherSheet(
+                this,
+                BrowserContainer.size(),
+                new com.rpooi3.explorer.profile.ProfileSwitcherSheet.Listener() {
+                    @Override
+                    public void onSwitchProfile(com.rpooi3.explorer.profile.BrowserProfile profile) {
+                        switchProfile(profile);
+                    }
+
+                    @Override
+                    public void onGuest() {
+                        toggleGuest();
+                    }
+
+                    @Override
+                    public void onAddProfile() {
+                        addProfileFromSheet();
+                    }
+
+                    @Override
+                    public void onManageProfiles() {
+                        startActivity(new Intent(BrowserActivity.this,
+                                com.rpooi3.explorer.profile.ProfilesActivity.class));
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Shows the profile in front on the bar: the picture the user chose for it, or its letter in
+     * its colour. Tapping it opens the profiles.
+     */
+    public void updateProfileIcon() {
+        if (null == buttonProfile) return;
+        try {
+            final com.rpooi3.explorer.profile.BrowserProfile profile =
+                    com.rpooi3.explorer.profile.Profiles.current(context);
+            final android.widget.ImageView image = (android.widget.ImageView) buttonProfile;
+            // The bar's tint would paint the picture over; the disc carries its own colour.
+            image.setImageTintList(null);
+            image.setImageDrawable(com.rpooi3.explorer.profile.ProfilePictures
+                    .toolbarIcon(context, profile, 26));
+            buttonProfile.setContentDescription(getString(R.string.profiles_now_browsing, profile.getName()));
+            if (null != buttonProfileHome) {
+                final android.widget.ImageView home = (android.widget.ImageView) buttonProfileHome;
+                home.setImageTintList(null);
+                home.setImageDrawable(com.rpooi3.explorer.profile.ProfilePictures
+                        .toolbarIcon(context, profile, 26));
+                buttonProfileHome.setContentDescription(
+                        getString(R.string.profiles_now_browsing, profile.getName()));
+            }
+        } catch (RuntimeException e) {
+            Log.w(TAG, "The profile could not be shown on the bar: " + e);
+        }
+    }
+
+    /** Makes [target] the profile in front and starts the browser again in it. */
+    public void switchProfile(final com.rpooi3.explorer.profile.BrowserProfile target) {
+        if (null == target) return;
+        if (target.getId().equals(com.rpooi3.explorer.profile.Profiles.currentId(this))) return;
+        // Nothing of the profile that is being left goes with the next one: the tabs, the database
+        // and the cookies of private tabs are closed before the profile changes.
+        com.rpooi3.explorer.profile.Profiles.releaseDatabases();
+        PrivateTabs.wipe();
+        com.rpooi3.explorer.profile.Profiles.switchTo(context, target.getId());
+        com.rpooi3.explorer.profile.Profiles.cacheCurrent(context);
+        // The switch answers the question of the start: the browser must not ask it again.
+        com.rpooi3.explorer.profile.Profiles.setSkipsAskOnce(context, target.getName());
+        relaunchForProfile();
+    }
+
+    /** Starts a guest session, or ends the one that is running. */
+    public void toggleGuest() {
+        com.rpooi3.explorer.profile.Profiles.releaseDatabases();
+        PrivateTabs.wipe();
+        if (com.rpooi3.explorer.profile.Profiles.isGuest(context)) {
+            com.rpooi3.explorer.profile.Profiles.leaveGuest(context);
+        } else {
+            com.rpooi3.explorer.profile.Profiles.startGuest(context);
+        }
+        com.rpooi3.explorer.profile.Profiles.cacheCurrent(context);
+        com.rpooi3.explorer.profile.Profiles.setSkipsAskOnce(context,
+                com.rpooi3.explorer.profile.Profiles.current(context).getName());
+        relaunchForProfile();
+    }
+
+    /** Makes a profile and switches to it. */
+    public void createProfile(final String name, final int colour) {
+        final com.rpooi3.explorer.profile.BrowserProfile created =
+                com.rpooi3.explorer.profile.Profiles.create(context, name, colour);
+        if (null == created) {
+            CatToast.show(context, getString(R.string.profiles_too_many), 1);
+            return;
+        }
+        // The picture was chosen before the profile existed; it is kept before the browser starts
+        // again in that profile (a switch is a restart, so the write has to be on disk by then).
+        final Bitmap picture = pendingProfilePicture;
+        pendingProfilePicture = null;
+        if (null != picture
+                && !com.rpooi3.explorer.profile.ProfilePictures.save(context, created, picture)) {
+            CatToast.show(context, getString(R.string.profiles_picture_failed), 1);
+        }
+        switchProfile(created);
+    }
+
+    /**
+     * Names a new profile, with the same picture row the settings use (18.0.0 beta 3). The sheet is
+     * offered on the first start and, by the checkbox, on every start, so this is also how a profile
+     * is made from the home screen (issue 7).
+     */
+    private void addProfileFromSheet() {
+        pendingProfilePicture = null;
+        new com.rpooi3.explorer.profile.ProfileSetupDialog(
+                this,
+                null,
+                (name, colour) -> {
+                    createProfile(name, colour);
+                    return kotlin.Unit.INSTANCE;
+                },
+                () -> kotlin.Unit.INSTANCE,
+                picture -> {
+                    pendingProfilePicture = picture;
+                    return kotlin.Unit.INSTANCE;
+                })
+                .show();
+    }
+
+    /** The picture of a profile is chosen from the dialog, so the picker answers here. */
+    @Deprecated
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (com.rpooi3.explorer.profile.ProfilePicturePicker.handle(requestCode, resultCode, data)) {
+            updateProfileIcon();
+        }
+    }
+
+    /**
+     * Starts the browser again, in the profile that is now in front. A profile cannot be changed
+     * under a page that is already loaded, so the screen — and with it the WebViews, the database
+     * and the settings — is made anew. Each profile's own tabs come back with it.
+     */
+    private void relaunchForProfile() {
+        sp.edit().putBoolean("restoreOnRestart", false).apply();
+        CatToast.show(context, getString(R.string.profiles_switched,
+                com.rpooi3.explorer.profile.Profiles.current(context).getName()), 1);
+        final PackageManager packageManager = context.getPackageManager();
+        final Intent intent = packageManager.getLaunchIntentForPackage(context.getPackageName());
+        if (null == intent) return;
+        final ComponentName componentName = intent.getComponent();
+        context.startActivity(Intent.makeRestartActivityTask(componentName));
+        System.exit(0);
+    }
+
+    /**
+     * 18.0.0 beta 8 (item 6): the theme was changed, so the browser is painted again from the
+     * start. Until now a snackbar said so and went away by itself; now it is a notice with one
+     * button, and that button restarts Explorer — every screen comes back with the new theme.
+     */
     private void triggerRebirth(final Context context) {
         sp.edit().putInt("restart_changed", 0).apply();
         sp.edit().putBoolean("restoreOnRestart", true).apply();
-        final Snackbar snackbar = Snackbar.make(ninjaWebView, R.string.toast_restart, Snackbar.LENGTH_SHORT);
-        HelperUtils.makeSnackbarRound(snackbar);
-        snackbar.setAction(context.getString(R.string.app_ok), (v -> {
-            final PackageManager packageManager = context.getPackageManager();
-            final Intent intent = packageManager.getLaunchIntentForPackage(context.getPackageName());
-            assert null != intent;
-            final ComponentName componentName = intent.getComponent();
-            final Intent mainIntent = Intent.makeRestartActivityTask(componentName);
-            context.startActivity(mainIntent);
-            System.exit(0);
-        }));
-        snackbar.show();
+        if (isFinishing() || isDestroyed()) return;
+        try {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.restart_notice_title)
+                    .setMessage(R.string.restart_notice_message)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.restart_notice_ok, (dialog, which) -> restartExplorer())
+                    .show();
+        } catch (RuntimeException e) {
+            Log.w(TAG, "The notice of the restart: " + e);
+        }
+    }
+
+    /** Closes every task of Explorer and opens it again, which is what the theme needs. */
+    void restartExplorer() {
+        final PackageManager packageManager = context.getPackageManager();
+        final Intent intent = packageManager.getLaunchIntentForPackage(context.getPackageName());
+        if (null == intent) return;
+        final ComponentName componentName = intent.getComponent();
+        final Intent mainIntent = Intent.makeRestartActivityTask(componentName);
+        context.startActivity(mainIntent);
+        System.exit(0);
     }
 }

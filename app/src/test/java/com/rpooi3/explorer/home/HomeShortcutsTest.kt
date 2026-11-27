@@ -161,10 +161,12 @@ class HomeShortcutsTest {
 
     @Test
     fun hide_isRemembered() {
-        val wikipedia = HomeShortcuts.load(context).first { it.title == "Wikipedia" }
+        // The repository shortcut replaced the old first-run wiki bookmark. Pick the current
+        // built-in suggestion rather than coupling persistence to a historical title.
+        val suggestion = HomeShortcuts.load(context).first { it.url == HomeShortcuts.DEFAULTS.first().url }
 
-        HomeShortcuts.hide(context, wikipedia)
+        HomeShortcuts.hide(context, suggestion)
 
-        assertTrue(HomeShortcuts.load(context).none { it.title == "Wikipedia" })
+        assertTrue(HomeShortcuts.load(context).none { it.url == suggestion.url })
     }
 }

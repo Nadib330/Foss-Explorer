@@ -92,9 +92,20 @@ class Release1610Test {
             assertEquals(View.VISIBLE, start.visibility)
             assertEquals("Start browsing", start.text.toString())
 
+            // 18.0.0: the welcome ends by asking for the first profile, as Chrome's does. The
+            // profile is named (or skipped) there, and only then is the welcome over.
             start.performClick()
-            assertTrue("the welcome is over", activity.isFinishing)
             assertTrue("and does not come back", prefs.getBoolean("welcome_seen", false))
+            assertFalse("the profile of the first start is asked for", activity.isFinishing)
+            assertFalse(
+                "and is asked for once",
+                com.rpooi3.explorer.profile.Profiles.setupDone(activity),
+            )
+            // The welcome of the first start therefore stays open on the dialog that names the
+            // profile; skipping it (or naming it) ends the welcome.
+            shadowOf(Looper.getMainLooper()).idle()
+            assertNotNull("one profile exists to be named", com.rpooi3.explorer.profile.Profiles.all(activity).firstOrNull())
+            com.rpooi3.explorer.profile.Profiles.setSetupDone(activity)
         }
     }
 

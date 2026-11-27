@@ -26,7 +26,7 @@
                 android:id="@+id/library_back"
                 android:layout_width="@dimen/bar_button_size"
                 android:layout_height="@dimen/bar_button_size"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_ripple_small"
                 android:contentDescription="@string/bar_back"
                 android:src="@drawable/icon_arrow_back"
                 app:tint="?attr/colorOnSurface" />
@@ -47,7 +47,7 @@
                 android:id="@+id/library_search"
                 android:layout_width="@dimen/bar_button_size"
                 android:layout_height="@dimen/bar_button_size"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_ripple_small"
                 android:contentDescription="@string/library_search"
                 android:src="@drawable/icon_search"
                 app:tint="?attr/colorOnSurface" />
@@ -56,7 +56,7 @@
                 android:id="@+id/library_more"
                 android:layout_width="@dimen/bar_button_size"
                 android:layout_height="@dimen/bar_button_size"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_ripple_small"
                 android:contentDescription="@string/bar_menu"
                 android:src="@drawable/icon_more_vert"
                 android:visibility="gone"
@@ -76,7 +76,7 @@
                 android:id="@+id/library_search_back"
                 android:layout_width="@dimen/bar_button_size"
                 android:layout_height="@dimen/bar_button_size"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_ripple_small"
                 android:contentDescription="@string/app_cancel"
                 android:src="@drawable/icon_arrow_back"
                 app:tint="?attr/colorOnSurface" />
@@ -101,7 +101,7 @@
                 android:id="@+id/library_search_clear"
                 android:layout_width="@dimen/bar_button_size"
                 android:layout_height="@dimen/bar_button_size"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_ripple_small"
                 android:contentDescription="@string/search_clear"
                 android:src="@drawable/icon_close"
                 app:tint="?attr/colorOnSurface" />

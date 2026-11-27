@@ -1,12 +1,17 @@
 /*
- * Explorer: the JavaScript side of "Desktop site".
+ * Explorer: the JavaScript side of the Chrome Web Store.
  * Own code, GPL-3.0.
  *
  * The user agent string alone is not enough for the pages Google writes today: they read
  * `navigator.platform`, `navigator.userAgentData` and `navigator.vendor` in the page as well, and
  * a page that sees an Android WebView there answers "Switch to Google Chrome" although the HTTP
  * header said Windows. This script makes the two agree: it is handed to the WebView before the
- * page's own scripts run, and only in desktop mode.
+ * page's own scripts run.
+ *
+ * 17.4.0: the script says whatever the user agent of the page says. A website in desktop mode is
+ * served the agent of Chrome on Windows (17.3.3) and is told Windows here; the Chrome Web Store is
+ * served the old Linux agent and is told Linux. A page in mobile mode is told nothing of the kind
+ * and has the script taken back.
  */
 package com.rpooi3.explorer.browser
 
@@ -25,16 +30,30 @@ object DesktopIdentity {
     private val handed = WeakHashMap<WebView, String>()
     private val scripts = WeakHashMap<WebView, ScriptHandler>()
 
+    /** The platform of a page served Chrome's Windows agent. */
+    const val WINDOWS = "Windows"
+
+    /** The platform of a page served Chrome's Linux agent: the Chrome Web Store. */
+    const val LINUX = "Linux"
+
     /**
-     * The script of a desktop page: Windows, a computer, no touch screen, Chrome's brands.
+     * The script of a desktop page: a computer, no touch screen, Chrome's brands, and the
+     * platform of the agent the page was served.
      *
      * @param major the Chrome version of the user agent, so that both tell the same story
+     * @param platform [WINDOWS] or [LINUX], the platform of that agent
      */
     @JvmStatic
-    fun script(major: String): String = """
+    @JvmOverloads
+    fun script(major: String, platform: String = WINDOWS): String = """
 (function(){
   var MAJOR = '${'$'}{major}';
   var FULL = MAJOR + '.0.0.0';
+  var WINDOWS = '${'$'}{platform}' !== 'Linux';
+  var PLATFORM = WINDOWS ? 'Windows' : 'Linux';
+  var NAVIGATOR_PLATFORM = WINDOWS ? 'Win32' : 'Linux x86_64';
+  var PLATFORM_VERSION = WINDOWS ? '15.0.0.0' : '';
+  var ARCHITECTURE = 'x86';
   function define(object, name, value){
     try {
       Object.defineProperty(object, name, { value: value, configurable: true, writable: true });
@@ -43,11 +62,11 @@ object DesktopIdentity {
     }
   }
   try {
-    define(navigator, 'platform', 'Win32');
+    define(navigator, 'platform', NAVIGATOR_PLATFORM);
     define(navigator, 'vendor', 'Google Inc.');
     define(navigator, 'maxTouchPoints', 0);
   } catch (e) {}
-  // The client hints of a Chrome on Windows.
+  // The client hints of Chrome on the platform this page was served as.
   try {
     var brands = [
       { brand: 'Google Chrome', version: MAJOR },
@@ -56,25 +75,25 @@ object DesktopIdentity {
     ];
     var highEntropy = function(){
       return Promise.resolve({
-        architecture: 'x86', bitness: '64', brands: brands, fullVersionList: [
+        architecture: ARCHITECTURE, bitness: '64', brands: brands, fullVersionList: [
           { brand: 'Google Chrome', version: FULL },
           { brand: 'Chromium', version: FULL },
           { brand: 'Not_A Brand', version: '24.0.0.0' }
-        ], mobile: false, model: '', platform: 'Windows', platformVersion: '15.0.0.0',
+        ], mobile: false, model: '', platform: PLATFORM, platformVersion: PLATFORM_VERSION,
         uaFullVersion: FULL, wow64: false
       });
     };
     var metadata = {
-      brands: brands, mobile: false, platform: 'Windows',
+      brands: brands, mobile: false, platform: PLATFORM,
       getHighEntropyValues: function(hints){ return highEntropy(); },
-      toJSON: function(){ return { brands: brands, mobile: false, platform: 'Windows' }; }
+      toJSON: function(){ return { brands: brands, mobile: false, platform: PLATFORM }; }
     };
     if (!navigator.userAgentData) {
       define(navigator, 'userAgentData', metadata);
     } else {
       try {
         define(Object.getPrototypeOf(navigator.userAgentData), 'mobile', false);
-        define(Object.getPrototypeOf(navigator.userAgentData), 'platform', 'Windows');
+        define(Object.getPrototypeOf(navigator.userAgentData), 'platform', PLATFORM);
       } catch (e) {
         define(navigator, 'userAgentData', metadata);
       }
@@ -91,8 +110,9 @@ object DesktopIdentity {
      * caller runs it from the page callbacks; coming twice is harmless.
      */
     @JvmStatic
-    fun apply(webView: WebView, major: String) {
-        val code = script(major)
+    @JvmOverloads
+    fun apply(webView: WebView, major: String, platform: String = WINDOWS) {
+        val code = script(major, platform)
         synchronized(handed) {
             if (handed[webView] == code) return
             handed[webView] = code
@@ -129,7 +149,8 @@ object DesktopIdentity {
 
     /** Runs the script in the page that is loading, for WebViews without document-start scripts. */
     @JvmStatic
-    fun applyNow(webView: WebView, major: String) {
-        webView.evaluateJavascript(script(major), null)
+    @JvmOverloads
+    fun applyNow(webView: WebView, major: String, platform: String = WINDOWS) {
+        webView.evaluateJavascript(script(major, platform), null)
     }
 }

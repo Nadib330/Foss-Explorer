@@ -31,6 +31,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.rpooi3.explorer.R
 import com.rpooi3.explorer.browser.BrowserContainer
 import com.rpooi3.explorer.browser.NinjaDownloadListener
+import com.rpooi3.explorer.downloads.DownloadEngine
+import com.rpooi3.explorer.downloads.DownloadStore
 import com.rpooi3.explorer.home.HomeAppearance
 import com.rpooi3.explorer.preferences.HomeCustomizationScreen
 import com.rpooi3.explorer.preferences.SettingsScreens
@@ -69,9 +71,18 @@ class Release1423Test {
      */
     @org.junit.Before
     fun markTheWelcomeAsSeen() {
+        val app = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.app.Application>()
         androidx.preference.PreferenceManager
-            .getDefaultSharedPreferences(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+            .getDefaultSharedPreferences(app)
             .edit().putBoolean("welcome_seen", true).commit()
+        DownloadStore.active(app).forEach { DownloadEngine.cancel(app, it.id) }
+        DownloadStore.clear(app)
+        app.getSharedPreferences("downloads_log", Context.MODE_PRIVATE).edit().clear().commit()
+        val manager = app.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.query(DownloadManager.Query())?.use { cursor ->
+            val id = cursor.getColumnIndex(DownloadManager.COLUMN_ID)
+            while (cursor.moveToNext()) manager.remove(cursor.getLong(id))
+        }
     }
 
 
@@ -161,13 +172,19 @@ class Release1423Test {
         assertNotNull("with a handle", content.findViewById<View>(R.id.main_menu_handle))
         val groups = content.findViewById<LinearLayout>(R.id.main_menu_groups)
         fun ids(group: Int) = (groups.getChildAt(group) as ViewGroup).let { g -> (0 until g.childCount).map { g.getChildAt(it).id } }
-        // 17.3.1: five groups, because "Zoom" and "Extensions" are two halves of a row.
-        assertEquals(5, groups.childCount)
-        assertEquals("tabs", listOf(R.id.main_new_tab, R.id.main_new_private_tab), ids(0))
-        assertEquals("tools", listOf(R.id.main_share, R.id.main_desktop_site), ids(1))
-        assertEquals("zoom and extensions, half width each", listOf(R.id.main_zoom, R.id.main_extension), ids(2))
-        assertEquals("library", listOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), ids(3))
-        assertEquals(listOf(R.id.main_settings), ids(4))
+        // 18.0.0 beta 6: six groups — Firefox's navigation came to the top, and Opera's power
+        // button stands beside Settings at the foot.
+        assertEquals(6, groups.childCount)
+        assertEquals(
+            "navigation, as in Firefox",
+            listOf(R.id.main_nav_back, R.id.main_nav_forward, R.id.main_nav_print),
+            ids(0),
+        )
+        assertEquals("tabs", listOf(R.id.main_new_tab, R.id.main_new_private_tab), ids(1))
+        assertEquals("tools", listOf(R.id.main_share, R.id.main_desktop_site), ids(2))
+        assertEquals("zoom and extensions, half width each", listOf(R.id.main_zoom, R.id.main_extension), ids(3))
+        assertEquals("library", listOf(R.id.main_history, R.id.main_bookmarks, R.id.main_downloads), ids(4))
+        assertEquals("settings, then the power button", listOf(R.id.main_settings, R.id.main_exit), ids(5))
 
         // The same entries as before, nothing added and nothing lost.
         val labels = (0 until groups.childCount).flatMap { g ->
@@ -178,14 +195,14 @@ class Release1423Test {
         assertEquals(
             setOf(
                 "New tab", "New private tab", "History", "Downloads", "Bookmarks", "Share", "Zoom", "Desktop site",
-                "Settings", "Extensions",
+                "Settings", "Extensions", "Back", "Forward", "Print", "Exit",
             ),
             labels.toSet(),
         )
-        assertEquals(10, labels.size)
+        assertEquals(14, labels.size)
 
         // Groups are rounded and cut their rows; rows lie one below the other, 2dp apart.
-        val tools = groups.getChildAt(1) as LinearLayout
+        val tools = groups.getChildAt(2) as LinearLayout
         assertEquals(LinearLayout.VERTICAL, tools.orientation)
         assertTrue(tools.clipToOutline)
         val density = activity.resources.displayMetrics.density
@@ -258,7 +275,7 @@ class Release1423Test {
         prefs.edit().remove("openTabs").commit()
         browser {
             open("https://example.org/")
-            val pair = openMenu().findViewById<LinearLayout>(R.id.main_menu_groups).getChildAt(2) as ViewGroup
+            val pair = openMenu().findViewById<LinearLayout>(R.id.main_menu_groups).getChildAt(3) as ViewGroup
             assertEquals(
                 listOf(R.id.main_zoom, R.id.main_extension),
                 (0 until pair.childCount).map { pair.getChildAt(it).id },
@@ -278,9 +295,9 @@ class Release1423Test {
 
     private fun latestSheet(): BottomSheetDialog = ShadowDialog.getLatestDialog() as BottomSheetDialog
 
-    /** The one download that was handed to Android's download manager. */
-    private fun org.robolectric.shadows.ShadowDownloadManager.onlyRequest() =
-        shadowOf((0L..4L).firstNotNullOf { getRequest(it) })
+    /** The download added to Explorer's built-in manager by the answer in the sheet. */
+    private fun newTask(before: Set<Long>) =
+        DownloadStore.list(context).first { it.id !in before }
 
     @Test
     fun aDownload_isAskedAboutInFirefoxsSheet_andStartsWithTheButton() = browser {
@@ -300,29 +317,27 @@ class Release1423Test {
         assertEquals("Close", sheet.findViewById<View>(R.id.download_close)!!.contentDescription.toString())
         assertNull("the old dialog with two fields is gone", sheet.findViewById<View>(R.id.editTop))
 
-        val manager = shadowOf(context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager)
-        assertEquals("nothing is fetched before the answer", 0, manager.requestCount)
-
+        val before = DownloadStore.list(context).map { it.id }.toSet()
         sheet.findViewById<View>(R.id.download_button)!!.performClick()
         idle()
         assertFalse(sheet.isShowing)
-        assertEquals(1, manager.requestCount)
-        assertEquals("https://example.org/files/report.pdf", manager.onlyRequest().uri.toString())
+        val task = newTask(before)
+        assertEquals("https://example.org/files/report.pdf", task.url)
+        assertEquals("report.pdf", task.fileName)
+        assertEquals("application/pdf", task.mimeType)
     }
 
     @Test
     fun theCross_closesTheQuestion_withoutDownloading_andANameCanBeTyped() = browser {
         shadowOf(context).grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         open("https://example.org/")
-        val manager = shadowOf(context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager)
-
         NinjaDownloadListener.saveAs(activity, web, "https://example.org/files/report.pdf", null, "application/pdf")
         idle()
         assertEquals("size not known", "Download file?", latestSheet().findViewById<TextView>(R.id.download_title)!!.text.toString())
         latestSheet().findViewById<View>(R.id.download_close)!!.performClick()
         idle()
         assertFalse(latestSheet().isShowing)
-        assertEquals(0, manager.requestCount)
+        assertTrue("closing the sheet does not create a task", DownloadStore.list(context).isEmpty())
 
         NinjaDownloadListener.saveAs(activity, web, "https://example.org/files/report.pdf", null, "application/pdf", 10L)
         idle()
@@ -331,7 +346,7 @@ class Release1423Test {
         sheet.findViewById<View>(R.id.download_button)!!.performClick()
         idle()
         // 16.1.0 (item 5): the name typed without an ending gets the ending of the file, not ".bin".
-        assertEquals("a name without an ending gets the one of the file", "my report.pdf", manager.onlyRequest().title.toString())
+        assertEquals("a name without an ending gets the one of the file", "my report.pdf", newTask(emptySet()).fileName)
 
         // An empty name does not start anything, and the question stays.
         NinjaDownloadListener.saveAs(activity, web, "https://example.org/files/report.pdf", null, "application/pdf", 10L)
@@ -340,7 +355,7 @@ class Release1423Test {
         latestSheet().findViewById<View>(R.id.download_button)!!.performClick()
         idle()
         assertTrue(latestSheet().isShowing)
-        assertEquals(1, manager.requestCount)
+        assertEquals(1, DownloadStore.list(context).size)
     }
 
     // -------------------------------------------------------- 3. long-press menu
@@ -498,8 +513,13 @@ class Release1423Test {
             assertEquals("Home page customization", title)
             assertEquals(
                 listOf(
-                    "home_custom_description", "home_wallpaper_pick", "home_wallpaper_remove", "home_wallpaper_dim",
-                    "home_color", "home_show_logo", "home_show_shortcuts", "favoriteURL",
+                    "home_custom_description", "home_style", "home_wallpaper_pick", "home_wallpaper_remove", "home_wallpaper_dim",
+                    "home_color", "home_show_logo",
+                    // 18.0.0 beta 6: the page takes more of the user's own choices.
+                    "home_show_search", "home_show_shortcuts", "home_title_text", "home_shortcuts_columns",
+                    // 18.0.0 beta 7: a page of the user's own, in HTML, CSS and JavaScript.
+                    "home_code_on", "home_code_edit", "home_code_clear",
+                    "favoriteURL",
                 ),
                 all().map { it.key },
             )
@@ -619,23 +639,19 @@ class Release1423Test {
             assertEquals("Source code of FOSS Browser", pref("about_source_upstream").title.toString())
             assertEquals(
                 // 17.3.3: a row says what it is, not what opening it does.
-                "FOSS Browser by Gaukler Faun. The parts Explorer takes from it are listed under Open source components.",
+                // 17.4.3: the row "Open source components" is gone, so the summary names the
+                // file in the repository instead.
+                "FOSS Browser by Gaukler Faun, the browser Explorer started from. Its licence and what Explorer still takes from it are in LICENSE.md of the source.",
                 pref("about_source_upstream").summary.toString(),
             )
         }
-        val components = SettingsScreens.readAsset(context, "licenses/components.txt")!!
-        for (part in listOf(
-            "FOSS Browser: what Explorer still takes from it", "the web view inside a tab that loads the pages",
-            "Chromium: offline page and dinosaur game", "Chromium: settings, context menu, tabs and Incognito page",
-            "Firefox for Android: main menu, download prompt and protection panel", "Mozilla Public License Version 2.0",
-            "Readability", "AndroidX", "Material Components for Android", "Kotlin standard library",
-            "Material Design Icons", "Search engine logos", "App icon and logo",
-            "Redistribution and use in source and binary forms", "Apache License",
-        )) {
-            assertTrue(part, components.contains(part))
-        }
+        // 17.4.3: the app carries no list of components any more; the repository's LICENSE.md
+        // holds it, with every licence beside it.
+        assertNull(
+            "the list of components is not in the app",
+            SettingsScreens.readAsset(context, "licenses/components.txt"),
+        )
         val root = File("..").canonicalFile
-        assertTrue(components.contains(File(root, "third_party/firefox/LICENSE").readText().trim()))
         val license = File(root, "LICENSE.md").readText()
         for (part in listOf("third_party/firefox", "third_party/chromium-settings", "third_party/readability", "BrowserActivity.java", "tools/upstream_audit.py")) {
             assertTrue(part, license.contains(part))

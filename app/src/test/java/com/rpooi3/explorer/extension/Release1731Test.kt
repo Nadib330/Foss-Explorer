@@ -213,13 +213,14 @@ class Release1731Test {
 
     @Test
     fun theButtonOfTheStorePage_asksTheStore() {
-        // 17.3.2: the store's own button is taken over instead of a second one being added.
+        // 17.3.2: the store's own button installs through the browser, without a second one being
+        // added. 18.1.0 beta (item 6) left nothing but the bridge that call goes through.
         val script = StoreHook.script(context, extensionId, "the-token")
-        assertTrue(script.contains("installFromStore(TOKEN, ID)"))
+        assertTrue(script.contains("installFromStore(TOKEN, String(id))"))
         assertTrue(script.contains("var TOKEN = 'the-token';"))
         assertTrue(script.contains("var ID = (String(location.href).match(/[a-p]{32}/) || ['$extensionId'])[0];"))
-        assertTrue("it looks for the store's own button", script.contains("add to chrome"))
-        assertTrue(script.contains("data-explorer-extension"))
+        assertTrue("the store's install call is taken", script.contains("beginInstallWithManifest3"))
+        assertFalse("and nothing of the page is marked", script.contains("data-explorer-extension"))
     }
 
     // Installing -------------------------------------------------------------------------------
@@ -291,9 +292,14 @@ class Release1731Test {
             ExtensionScripts.extensionIdOf("https://${ExtensionScripts.DOMAIN}/$extensionId/a/b.css"),
         )
         assertFalse(ExtensionScripts.isExtensionUrl("https://example.com/"))
-        assertEquals("text/html; charset=utf-8", ExtensionFiles.mimeType("popup/index.html"))
-        assertEquals("text/javascript; charset=utf-8", ExtensionFiles.mimeType("a/b.js"))
+        // 17.4.2: the type alone; the charset travels beside it (ExtensionFiles.encodingOf), so
+        // that a WebView draws the page instead of printing its source.
+        assertEquals("text/html", ExtensionFiles.mimeType("popup/index.html"))
+        assertEquals("utf-8", ExtensionFiles.encodingOf("popup/index.html"))
+        assertEquals("text/javascript", ExtensionFiles.mimeType("a/b.js"))
+        assertEquals("utf-8", ExtensionFiles.encodingOf("a/b.js"))
         assertEquals("image/png", ExtensionFiles.mimeType("icon48.png"))
+        assertEquals(null, ExtensionFiles.encodingOf("icon48.png"))
     }
 
     @Test

@@ -1,9 +1,10 @@
 package com.rpooi3.explorer.library
 
+import com.rpooi3.explorer.profile.ProfilePrefs
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import androidx.appcompat.widget.PopupMenu
+import com.rpooi3.explorer.view.MainMenuPopup
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,7 +35,7 @@ class BookmarksActivity : LibraryActivity() {
     override val itemActionIconRes = R.drawable.icon_more_vert
     override val itemActionLabelRes = R.string.library_more_actions
 
-    private val prefs by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
+    private val prefs by lazy { ProfilePrefs.settings(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,45 +87,41 @@ class BookmarksActivity : LibraryActivity() {
 
     override fun onItemAction(item: Row.Item, anchor: View) {
         val record = item.payload as Record
-        PopupMenu(this, anchor).apply {
-            menu.add(0, MENU_NEW_TAB, 0, R.string.library_open_new_tab)
-            menu.add(0, MENU_PRIVATE_TAB, 1, R.string.library_open_private_tab)
-            menu.add(0, MENU_EDIT, 2, R.string.menu_edit)
-            if (categories().isNotEmpty()) menu.add(0, MENU_MOVE, 3, R.string.bookmarks_move)
-            menu.add(0, MENU_COPY, 4, R.string.library_copy_link)
-            menu.add(0, MENU_SHARE, 5, R.string.menu_share_link)
-            menu.add(0, MENU_DELETE, 6, R.string.menu_delete)
-            setOnMenuItemClickListener { choice ->
-                when (choice.itemId) {
-                    MENU_NEW_TAB -> openInBrowser(record.url, TARGET_NEW_TAB)
-                    MENU_PRIVATE_TAB -> openInBrowser(record.url, TARGET_PRIVATE_TAB)
-                    MENU_EDIT -> edit(record)
-                    MENU_MOVE -> move(record)
-                    MENU_COPY -> copyToClipboard(record.url)
-                    MENU_SHARE -> shareLink(item.title, record.url)
-                    MENU_DELETE -> delete(record)
-                }
-                true
+        val popup = MainMenuPopup(anchor) { itemId ->
+            when (itemId) {
+                MENU_NEW_TAB -> openInBrowser(record.url, TARGET_NEW_TAB)
+                MENU_PRIVATE_TAB -> openInBrowser(record.url, TARGET_PRIVATE_TAB)
+                MENU_EDIT -> edit(record)
+                MENU_MOVE -> move(record)
+                MENU_COPY -> copyToClipboard(record.url)
+                MENU_SHARE -> shareLink(item.title, record.url)
+                MENU_DELETE -> delete(record)
             }
-        }.show()
+        }
+        popup.menu.add(0, MENU_NEW_TAB, 0, R.string.library_open_new_tab)
+        popup.menu.add(0, MENU_PRIVATE_TAB, 1, R.string.library_open_private_tab)
+        popup.menu.add(0, MENU_EDIT, 2, R.string.menu_edit)
+        if (categories().isNotEmpty()) popup.menu.add(0, MENU_MOVE, 3, R.string.bookmarks_move)
+        popup.menu.add(0, MENU_COPY, 4, R.string.library_copy_link)
+        popup.menu.add(0, MENU_SHARE, 5, R.string.menu_share_link)
+        popup.menu.add(0, MENU_DELETE, 6, R.string.menu_delete)
+        popup.show()
     }
 
     override fun onMoreClick(anchor: View) {
-        PopupMenu(this, anchor).apply {
-            menu.add(0, MENU_SORT_NAME, 0, R.string.bookmarks_sort_name)
-            menu.add(0, MENU_SORT_CATEGORY, 1, R.string.bookmarks_sort_category)
-            menu.add(0, MENU_SORT_SITE, 2, R.string.bookmarks_sort_site)
-            menu.add(0, MENU_DELETE_ALL, 3, R.string.bookmarks_delete_all)
-            setOnMenuItemClickListener { choice ->
-                when (choice.itemId) {
-                    MENU_SORT_NAME -> sortBy("title", byWebsite = false)
-                    MENU_SORT_CATEGORY -> sortBy("time", byWebsite = false)
-                    MENU_SORT_SITE -> sortBy(prefs.getString(KEY_SORT, "title") ?: "title", byWebsite = true)
-                    MENU_DELETE_ALL -> confirmDeleteAll()
-                }
-                true
+        val popup = MainMenuPopup(anchor) { itemId ->
+            when (itemId) {
+                MENU_SORT_NAME -> sortBy("title", byWebsite = false)
+                MENU_SORT_CATEGORY -> sortBy("time", byWebsite = false)
+                MENU_SORT_SITE -> sortBy(prefs.getString(KEY_SORT, "title") ?: "title", byWebsite = true)
+                MENU_DELETE_ALL -> confirmDeleteAll()
             }
-        }.show()
+        }
+        popup.menu.add(0, MENU_SORT_NAME, 0, R.string.bookmarks_sort_name)
+        popup.menu.add(0, MENU_SORT_CATEGORY, 1, R.string.bookmarks_sort_category)
+        popup.menu.add(0, MENU_SORT_SITE, 2, R.string.bookmarks_sort_site)
+        popup.menu.add(0, MENU_DELETE_ALL, 3, R.string.bookmarks_delete_all)
+        popup.show()
     }
 
     /** These are the preferences the bookmark query itself reads; see RecordAction.listBookmark. */

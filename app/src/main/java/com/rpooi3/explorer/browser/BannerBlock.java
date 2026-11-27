@@ -24,7 +24,7 @@ public class BannerBlock {
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public BannerBlock(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sp = com.rpooi3.explorer.profile.ProfilePrefs.settings(context);
 
         // 1. Prüfen, ob ein Eintrag auf '_deny_cookie_banners' und 'true' steht
         boolean isEnabled = false;

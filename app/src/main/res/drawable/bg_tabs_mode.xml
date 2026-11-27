@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Tab switcher: the ground of the switch between tabs and private tabs. -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?attr/colorControlHighlight">
+    android:color="?attr/colorControlHighlight"
+    android:radius="18dp">
     <item>
         <shape>
             <solid android:color="?attr/colorSurfaceContainerHighest" />

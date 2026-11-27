@@ -253,7 +253,7 @@ class Release1212Test {
         view<View>(R.id.button_tabs).performClick()
         idle()
 
-        view<View>(R.id.tabs_new).performClick()
+        view<View>(R.id.tabs_fab).performClick()
         idle()
 
         assertEquals(2, BrowserContainer.size())
@@ -279,7 +279,7 @@ class Release1212Test {
 
         // "New tab" follows the page that is shown.
         modes.check(R.id.tabs_mode_private)
-        view<View>(R.id.tabs_new).performClick()
+        view<View>(R.id.tabs_fab).performClick()
         idle()
         assertTrue(web.isPrivateTab)
         assertEquals(3, BrowserContainer.size())
@@ -562,7 +562,7 @@ class Release1212Test {
         view<View>(R.id.button_tabs).performClick()
         idle()
         assertEquals(listOf("explorer://dino"), cardTitles())
-        view<View>(R.id.tabs_new).performClick()
+        view<View>(R.id.tabs_fab).performClick()
         idle()
         open("https://www.example.org/some/long/path?with=query")
         view<View>(R.id.button_tabs).performClick()

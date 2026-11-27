@@ -50,9 +50,13 @@ public class WebAppInterface {
             // Saved the same way as every other file the browser writes itself, so it also
             // works with scoped storage and shows up on the downloads screen.
             final String mimeType = (ignoredMimeType == null || ignoredMimeType.trim().isEmpty()) ? null : ignoredMimeType.trim();
-            StorageCompat.writeToDownloads(mContext, fileName, mimeType, fileBytes);
-            String text = mContext.getString(R.string.app_done) + ". " + mContext.getString(R.string.menu_download) + "?";
-            CatToast.show(mContext, text, 1);
+            final android.net.Uri saved = StorageCompat.writeToDownloads(mContext, fileName, mimeType, fileBytes);
+            // 18.0.0 beta 6 (item 6): what was saved can be opened at once, as Chrome offers it.
+            if (mContext instanceof Activity activity) {
+                final String name = fileName;
+                activity.runOnUiThread(() ->
+                        com.rpooi3.explorer.downloads.DownloadChip.finished(activity, name, saved));
+            }
         } catch (Exception e) {
             Log.e("Foss Explorer", "Blob-Speicherfehler: " + e.getMessage());
             if (mContext instanceof Activity activity) {

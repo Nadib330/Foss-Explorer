@@ -8,6 +8,7 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -19,6 +20,22 @@ public class BasePreferenceFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {}
+
+    /**
+     * 18.0.0 beta 9 (item 3): every setting belongs to the profile in front, so every settings
+     * screen reads and writes the preferences of that profile — `…_preferences@<id>` for the
+     * second profile and the ones after it, and the plain file for the first, which is the one an
+     * update to 18.0.0 finds. The screens of the profiles themselves (their names, their colours,
+     * the list of them) are not settings of a profile and stay where they were.
+     */
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final PreferenceManager manager = getPreferenceManager();
+        manager.setSharedPreferencesName(
+                com.rpooi3.explorer.profile.ProfilePrefs.nameOf(requireContext(), null));
+        manager.setSharedPreferencesMode(android.content.Context.MODE_PRIVATE);
+    }
 
     /** Every settings screen is drawn as groups of rounded cards, see {@link SettingsCards}. */
     @Override

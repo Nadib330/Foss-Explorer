@@ -11,6 +11,7 @@
  */
 package com.rpooi3.explorer.privacy
 
+import com.rpooi3.explorer.profile.ProfilePrefs
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
@@ -23,7 +24,7 @@ object MarkedAds {
     /** The marks, one address each, in a string set. Hosts written by hand are kept as they are. */
     private const val KEY = "xguard_marked_ads"
 
-    private fun prefs(context: Context): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private fun prefs(context: Context): SharedPreferences = ProfilePrefs.settings(context)
 
     /** The marked addresses, sorted. */
     @JvmStatic
