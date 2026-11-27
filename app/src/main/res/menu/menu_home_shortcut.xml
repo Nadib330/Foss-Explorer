@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/home_shortcut_new_foreground"
+        android:icon="@drawable/icon_tab_plus"
+        android:title="@string/main_menu_new_tabOpen" />
+    <item
+        android:id="@+id/home_shortcut_new_background"
+        android:icon="@drawable/icon_tab_background"
+        android:title="@string/main_menu_new_tab" />
+    <item
+        android:id="@+id/home_shortcut_remove"
+        android:icon="@drawable/icon_delete"
+        android:title="@string/home_remove_shortcut" />
+</menu>

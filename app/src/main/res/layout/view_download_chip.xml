@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 18.0.0 beta 6: the notice of a download, in the shape of Chrome's download bubble — a small
+     card that rises from the foot of the page while the file arrives, with a ring that fills up,
+     and that turns into "Downloaded" with a way to open the file once it is there. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/download_chip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/spacing_medium"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+    app:cardCornerRadius="@dimen/download_chip_radius"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_medium"
+        android:paddingTop="@dimen/spacing_small"
+        android:paddingEnd="@dimen/spacing_small"
+        android:paddingBottom="@dimen/spacing_small">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp">
+
+            <ProgressBar
+                android:id="@+id/download_chip_progress"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:indeterminate="true"
+                android:progressTint="?attr/colorPrimary"
+                tools:ignore="UnusedAttribute" />
+
+            <ImageView
+                android:id="@+id/download_chip_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/icon_download_circle"
+                android:visibility="gone"
+                app:tint="?attr/colorPrimary" />
+
+            <!-- 18.4.0: Chromium places the pause affordance in the progress ring itself. -->
+            <ImageButton
+                android:id="@+id/download_chip_pause"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_ripple_small"
+                android:contentDescription="@string/download_action_pause"
+                android:padding="12dp"
+                android:src="@drawable/icon_pause"
+                android:visibility="gone"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_medium"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/download_chip_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="holiday-photos.zip" />
+
+            <TextView
+                android:id="@+id/download_chip_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="42%" />
+        </LinearLayout>
+
+        <!-- "Open", once the file is there; Chrome offers it the same way. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/download_chip_open"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/download_chip_open"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/download_chip_close"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_ripple_small"
+            android:contentDescription="@string/download_chip_close"
+            android:padding="8dp"
+            android:src="@drawable/icon_close"
+            app:tint="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

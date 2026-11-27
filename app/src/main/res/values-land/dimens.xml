@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The browser bars stay usable in landscape without taking desktop-sized vertical space. -->
+    <dimen name="toolbar_height">48dp</dimen>
+    <dimen name="toolbar_button_height">40dp</dimen>
+    <dimen name="tab_bar_height">44dp</dimen>
+    <dimen name="tab_item_width">176dp</dimen>
+    <dimen name="tab_item_height">36dp</dimen>
+    <dimen name="tab_scroll_step">180dp</dimen>
+    <dimen name="address_pill_height">40dp</dimen>
+</resources>
