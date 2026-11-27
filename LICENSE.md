@@ -9,6 +9,7 @@ it, and the licences of the parts taken from Chromium, Firefox and Mozilla:
 | ---- | ------- | ---- |
 | Everything written for Explorer (its own code, layouts, texts, tests, tools) | **GNU General Public License, version 3 (GPL-3.0)** | [COPYING](COPYING) |
 | Everything taken from [FOSS Browser](https://codeberg.org/Gaukler_Faun/FOSS_Browser) | GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later) | [COPYING.AGPL](COPYING.AGPL) |
+| The install prompt of an extension and its warning lines, and the method of the ad blocker, from [Cromite](https://github.com/uazo/cromite) | GNU General Public License, version 3 (the same licence as Explorer's own code) | [COPYING](COPYING) |
 | The offline page and its dinosaur game, from the Chromium project | BSD 3-clause | [third_party/chromium-neterror/LICENSE](third_party/chromium-neterror/LICENSE) |
 | Settings texts, row layouts and icons, from the Chromium project | BSD 3-clause | [third_party/chromium-settings/LICENSE](third_party/chromium-settings/LICENSE) |
 | The arrangement of the three-dot menu, of the download prompt and of the protection panel, and the texts of that prompt and that panel, from Firefox for Android | Mozilla Public License 2.0 | [third_party/firefox/LICENSE](third_party/firefox/LICENSE) |
@@ -198,6 +199,22 @@ The panel behind the shield of the top bar (`view/ProtectionPanel.kt`,
 and uses its texts (`protection_panel_*`, `connection_security_panel_*`,
 `clear_site_data*`, `trackers_blocked_panel_*` in `strings.xml`; MPL-2.0, see
 `third_party/firefox`). The code is written for Explorer.
+
+**Cromite: the extension install prompt and the ad blocker**
+`extension/ExtensionPrompt.kt`, the `ext_warn_*` and `extensions_prompt_*` texts in
+`res/values/strings.xml`, and `browser/AdFilter.kt` with `browser/AdBlocker.kt`.
+The question Explorer puts in front of a person adding an extension — *Add "name"?*, the
+description, *It can:* and a line for each permission, with Cancel and Add extension — follows
+the install prompt of Chromium as [Cromite](https://github.com/uazo/cromite) carries it, and
+the warning lines are the words of its `extension_permission_*` strings. The ad blocker owes
+its method to Cromite's: Adblock Plus lists matched by url, by path and by kind of request in
+`shouldInterceptRequest`, and element rules hidden by a style sheet written into the page
+before it is painted. The engine itself (the parsing, the matching, the lists) is Explorer's
+own code. Cromite is a Chromium fork by uazo, the successor of Bromite, and is under the GNU
+General Public License, version 3 — the same licence as Explorer's own code, so nothing is
+relicensed here.
+Copyright the Cromite authors and the Chromium Authors. GPL-3.0.
+https://github.com/uazo/cromite
 
 **Chromium context menu**
 The menu of a long press on a link or a picture (`view/LinkContextMenu.kt`,
